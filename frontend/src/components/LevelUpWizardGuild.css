@@ -36,30 +36,29 @@ section.rq-lu.rq-lu.rq-lu h3 { font-family: var(--rq-font-display, 'Cinzel', Geo
 section.rq-lu.rq-lu.rq-lu > nav span { border-radius: 999px !important; padding: 6px 10px !important; color: var(--lu-muted) !important; }
 section.rq-lu.rq-lu.rq-lu > nav span[aria-current='step'] { color: var(--guild-ink) !important; outline: 0 !important; background: var(--lu-brass) !important; }
 
-/* Glass buttons: only the inner glow is visible; the transparent border on
-   ::after preserves the existing button geometry. */
+/* Glass buttons: fine edge and inner glow drawn on ::after. */
 section.rq-lu.rq-lu.rq-lu button { position: relative; border-width: 0 !important; border-radius: 10px !important; }
 section.rq-lu.rq-lu.rq-lu button::after {
   content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  border: 1px solid transparent; box-shadow: var(--guild-box-glow);
-  transition: box-shadow 140ms ease;
+  border: 1px solid var(--lu-line); box-shadow: var(--guild-box-glow);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 section.rq-lu.rq-lu.rq-lu button:hover:not(:disabled)::after,
-section.rq-lu.rq-lu.rq-lu button:focus-visible::after { border-color: transparent; box-shadow: var(--guild-box-glow-hot); }
-section.rq-lu.rq-lu.rq-lu button[aria-pressed='true']::after { border-color: transparent; box-shadow: var(--guild-box-glow-hot); }
+section.rq-lu.rq-lu.rq-lu button:focus-visible::after { border-color: var(--lu-hi); box-shadow: var(--guild-box-glow-hot); }
+section.rq-lu.rq-lu.rq-lu button[aria-pressed='true']::after { border-color: var(--lu-hi); box-shadow: var(--guild-box-glow-hot); }
 section.rq-lu.rq-lu.rq-lu button:focus-visible { outline: 2px solid var(--guild-focus-ring); outline-offset: 2px; }
 section.rq-lu.rq-lu.rq-lu button[aria-pressed='true'] strong { color: var(--lu-hi) !important; }
 section.rq-lu.rq-lu.rq-lu button span { color: var(--lu-muted); }
 
 /* Primary action: solid brass with dark ink text. */
 section.rq-lu.rq-lu.rq-lu button.rq-lu__primary { --rq-control-blue: var(--lu-bg); --rq-text-primary: var(--lu-text); --rq-fill-color: rgba(var(--guild-h2-rgb), 0.16); }
-section.rq-lu.rq-lu.rq-lu button.rq-lu__primary::after { border-color: transparent; box-shadow: var(--guild-box-glow-hot); }
+section.rq-lu.rq-lu.rq-lu button.rq-lu__primary::after { border-color: var(--lu-hi); box-shadow: var(--guild-box-glow-hot); }
 section.rq-lu.rq-lu.rq-lu button.rq-lu__primary:disabled { --rq-control-blue: rgba(var(--guild-accent-rgb), 0.25); --rq-text-primary: var(--lu-muted); }
 section.rq-lu.rq-lu.rq-lu button.rq-lu__primary:disabled::after { box-shadow: none; border-color: var(--lu-line); }
 
 /* Panels and the hit point receipt. */
 section.rq-lu.rq-lu.rq-lu > div > section > div:not([class]) > div { border-radius: 10px; }
-section.rq-lu.rq-lu.rq-lu .rq-lu__receipt { border-radius: 10px; border-color: transparent !important; box-shadow: var(--guild-box-glow-hot); color: var(--lu-hi); }
+section.rq-lu.rq-lu.rq-lu .rq-lu__receipt { border-radius: 10px; border-color: var(--lu-hi) !important; box-shadow: var(--guild-box-glow-hot); color: var(--lu-hi); }
 section.rq-lu.rq-lu.rq-lu .rq-lu__receipt-lines { display: grid; gap: 2px; }
 section.rq-lu.rq-lu.rq-lu .rq-lu__receipt-lines span { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--lu-muted); }
 section.rq-lu.rq-lu.rq-lu .rq-lu__receipt-lines strong { color: var(--lu-hi) !important; font-size: 1.05rem; }

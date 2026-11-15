@@ -3,9 +3,9 @@
  * so nothing here can touch the classic sheet or the rest of the app.
  *
  * Glass style from the owner's brief: one dark blue background everywhere,
- * no lighter panels. Shapes are told apart by a soft glow that fades
- * inwards only (see GlowPolygon for the SVG shapes; inset shadows for
- * boxes), without a visible resting outline. Selected things glow stronger.
+ * no lighter panels. Shapes are told apart by a fine edge and a soft glow
+ * that fades inwards only (see GlowPolygon for the SVG shapes; inset shadows
+ * for boxes). Selected things glow stronger.
  */
 .hex-sheet {
   /* Defaults are Guild Ledger Brass; hexThemes.js sets the chosen theme inline. */
@@ -28,7 +28,7 @@
   --hex-text: #f4ead2;
   --hex-muted: #cdbf9e;
   --hex-line: rgba(var(--hex-glow-rgb), 0.22);
-  --hex-resting-edge: transparent;
+  --hex-resting-edge: var(--hex-orange-soft);
   --hex-glow: inset 0 0 14px rgba(var(--hex-glow-rgb), 0.26), inset 0 0 3px rgba(var(--hex-glow-rgb), 0.32);
   --hex-glow-strong: inset 0 0 18px rgba(var(--hex-glow-rgb), 0.5), inset 0 0 4px rgba(var(--hex-glow-rgb), 0.6);
   --hex-radius: 12px;
@@ -62,11 +62,11 @@
 
 .hex-sheet--state { align-items: center; justify-content: center; text-align: center; color: var(--hex-muted); }
 
-/* Glass glow on buttons -------------------------------------------------
+/* Glass edge and glow on buttons ----------------------------------------
    The app-wide control theme sets every button's border colour and removes
    its box-shadow with !important inside a cascade layer, which beats any
-   rule here. So a button draws its inner glow on a child span (.hex-glass)
-   instead, under the content. */
+   rule here. So a button draws its fine edge and inner glow on a child span
+   (.hex-glass) instead, under the content. */
 #root .hex-sheet :is(button, a):has(> .hex-glass) { position: relative; isolation: isolate; border-width: 0 !important; }
 /* The app-wide hover/press fill (styles/actionFillAnimations.css) slides a
    solid blue panel across buttons; here it is a faint orange wash instead. */
@@ -103,7 +103,7 @@
   display: grid; place-items: center; width: 100%; height: 100%;
   clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
 }
-.hex-sheet__hex-button-rim { background: transparent; padding: 1px; }
+.hex-sheet__hex-button-rim { background: var(--hex-orange-soft); padding: 1px; }
 .hex-sheet__hex-button-face { background: var(--hex-bg); box-shadow: var(--hex-glow-strong); }
 .hex-sheet .hex-sheet__hex-button:hover .hex-sheet__hex-button-face { box-shadow: inset 0 0 22px rgba(var(--hex-glow-rgb), 0.7); }
 .hex-sheet__identity { min-width: 0; text-align: center; }
@@ -119,7 +119,7 @@
   display: block; width: 100%; height: 100%;
   clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
 }
-.hex-portrait__frame { background: transparent; padding: 1px; }
+.hex-portrait__frame { background: var(--hex-orange-soft); padding: 1px; }
 .hex-portrait__inner { background: var(--hex-bg); box-shadow: var(--hex-glow); display: grid; place-items: center; overflow: hidden; }
 .hex-portrait__inner img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .hex-portrait__initials { font-weight: 800; font-size: 1.1rem; color: var(--hex-orange); }
@@ -182,26 +182,26 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
   overflow: visible;
   touch-action: manipulation;
 }
-.hex-wheel__frame { fill: none; stroke: none; }
+.hex-wheel__frame { fill: none; stroke: var(--hex-stroke-cool, rgba(var(--hex-glow-rgb), 0.35)); stroke-opacity: 0.55; stroke-width: 0.4; }
 
-/* Inner glow (GlowPolygon): the fill is the page itself and the blurred
-   halo is clipped to the inside of the shape. */
+/* Inner glow (GlowPolygon): the fill is the page itself, the blurred halo is
+   clipped to the inside of the shape, and a fine edge sits on top. */
 .hex-glow__fill { fill: var(--hex-bg); }
 .hex-glow__halo { fill: none; stroke: var(--hex-stroke-hot, var(--hex-orange)); stroke-width: 7; stroke-linejoin: round; opacity: 0.38; transition: opacity 140ms ease; }
-.hex-glow__edge { fill: none; stroke: none; stroke-width: 0; stroke-linejoin: round; transition: stroke 140ms ease; }
+.hex-glow__edge { fill: none; stroke: var(--hex-stroke-hot, var(--hex-orange-soft)); stroke-width: 0.45; stroke-linejoin: round; transition: stroke 140ms ease; }
 
 .hex-wheel__wedge .hex-glow__halo { stroke: var(--hex-stroke-cool, var(--hex-cool)); }
-.hex-wheel__wedge .hex-glow__edge { stroke: none; stroke-opacity: 0; }
+.hex-wheel__wedge .hex-glow__edge { stroke: var(--hex-stroke-cool, var(--hex-cool-soft)); stroke-width: 0.4; stroke-opacity: 0.55; }
 .hex-wheel__slot.is-active .hex-wheel__wedge .hex-glow__halo,
 .hex-spin__sector.is-active .hex-wheel__wedge .hex-glow__halo,
 .hex-hp__svg.is-armed .hex-hp__half.is-selected .hex-wheel__wedge .hex-glow__halo,
 .hex-skills__case.hex-wheel__wedge .hex-glow__halo { stroke: var(--hex-stroke-hot, var(--hex-orange)); }
-.hex-skills__case.hex-wheel__wedge .hex-glow__edge { stroke: none; }
+.hex-skills__case.hex-wheel__wedge .hex-glow__edge { stroke: var(--hex-stroke-hot, var(--hex-orange-soft)); }
 .hex-wheel__wedge--empty { opacity: 0.4; }
 .hex-wheel__slot { cursor: pointer; outline: none; }
 .hex-wheel__slot:hover .hex-glow__halo { opacity: 0.6; }
 .hex-wheel__slot.is-active .hex-glow__halo, .hex-wheel__slot:focus-visible .hex-glow__halo { opacity: 0.9; }
-.hex-wheel__slot.is-active .hex-glow__edge { stroke: none; }
+.hex-wheel__slot.is-active .hex-glow__edge { stroke: var(--hex-stroke-hot, var(--hex-orange)); stroke-width: 0.45; stroke-opacity: 0.85; }
 .hex-wheel__slot:focus-visible .hex-glow__edge { stroke: var(--hex-text); }
 .hex-wheel__slot.is-disabled { cursor: default; opacity: 0.45; }
 .hex-wheel__label { fill: var(--hex-text); font-weight: 700; letter-spacing: 0.02em; pointer-events: none; }
@@ -210,18 +210,19 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .hex-wheel__sublabel { fill: var(--hex-orange); font-weight: 700; letter-spacing: 0.06em; pointer-events: none; }
 .hex-wheel__centre { cursor: pointer; outline: none; }
 .hex-wheel__centre-shape .hex-glow__halo { opacity: 0.95; }
-.hex-wheel__centre-shape .hex-glow__edge { stroke: none; }
+.hex-wheel__centre-shape .hex-glow__edge { stroke: var(--hex-stroke-hot, var(--hex-hi)); stroke-width: 0.45; stroke-opacity: 0.65; }
 .hex-wheel__centre:hover .hex-glow__halo { opacity: 1; stroke-width: 9; }
 .hex-wheel__centre:focus-visible .hex-glow__edge { stroke: var(--hex-text); stroke-width: 2.4; }
 
-/* Sheet wheels use the same inward-clipped glow as Home. Keyboard focus
-   temporarily restores a strong boundary so selection remains clear. */
+/* Sheet wheels use the same fine edge and inward-clipped glow as Home.
+   Keyboard focus temporarily strengthens the boundary. */
 .hex-sheet .hex-wheel__frame--glowing .hex-glow__fill { stroke: none; }
 .hex-sheet .hex-wheel__frame--glowing .hex-glow__halo { stroke: var(--hex-stroke-cool, var(--hex-cool)); stroke-width: 9; opacity: 0.42; }
 .hex-sheet .hex-wheel__frame--glowing .hex-glow__edge,
-.hex-sheet .hex-wheel__wedge .hex-glow__edge { stroke: none; stroke-width: 0; stroke-opacity: 0; }
+.hex-sheet .hex-wheel__wedge .hex-glow__edge { stroke-width: 0.4; stroke-opacity: 0.55; }
 .hex-sheet .hex-wheel__centre-shape .hex-glow__halo { opacity: 0.5; }
-.hex-sheet .hex-wheel__centre-shape .hex-glow__edge { stroke: none; stroke-width: 0; stroke-opacity: 0; }
+.hex-sheet .hex-wheel__centre-shape .hex-glow__edge { stroke-width: 0.45; stroke-opacity: 0.65; }
+.hex-sheet .hex-wheel__slot.is-active .hex-glow__edge { stroke-opacity: 0.85; }
 .hex-sheet .hex-spin:focus-visible .hex-wheel__frame--glowing .hex-glow__edge,
 .hex-sheet .hex-wheel__slot:focus-visible .hex-glow__edge,
 .hex-sheet .hex-wheel__centre:focus-visible .hex-glow__edge { stroke: var(--hex-text); stroke-width: 2; stroke-opacity: 1; }
@@ -316,7 +317,7 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .hex-hp__half:hover .hex-glow__halo { opacity: 0.6; }
 .hex-hp__svg.is-armed .hex-hp__half.is-selected .hex-glow__halo,
 .hex-hp__half:focus-visible .hex-glow__halo { opacity: 0.9; }
-.hex-hp__svg.is-armed .hex-hp__half.is-selected .hex-glow__edge { stroke: none; }
+.hex-hp__svg.is-armed .hex-hp__half.is-selected .hex-glow__edge { stroke: var(--hex-stroke-hot, var(--hex-orange)); stroke-width: 0.45; stroke-opacity: 0.85; }
 .hex-hp__svg.is-armed .hex-hp__half:not(.is-selected) .hex-glow__halo { opacity: 0.18; }
 .hex-hp__half:focus-visible .hex-glow__edge { stroke: var(--hex-text); stroke-width: 1.6; }
 .hex-hp__label { fill: var(--hex-muted); font-weight: 800; letter-spacing: 0.14em; pointer-events: none; transition: opacity 120ms ease; }
@@ -327,7 +328,7 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 
 .hex-hp__ring { pointer-events: none; transform-box: view-box; transform-origin: 0 0; animation: hex-hp-ring-in 160ms cubic-bezier(.2, .8, .3, 1.1) both; }
 @keyframes hex-hp-ring-in { from { opacity: 0; transform: scale(0.82); } to { opacity: 1; transform: none; } }
-.hex-hp__ring-face { fill: rgba(var(--hex-bg-rgb), 0.9); stroke: none; }
+.hex-hp__ring-face { fill: rgba(var(--hex-bg-rgb), 0.9); stroke: var(--hex-orange-soft); stroke-width: 0.45; }
 /* With transform-box: view-box the origin is measured from the user-space
    origin (0,0), which is exactly the wheel's centre. "center" would be half
    the viewBox's width and height away from it, and a turn would swing the
@@ -381,15 +382,15 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .hex-combat-list .clean-sheet-action-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 8px; }
 .hex-combat-list .clean-sheet-action-card-shell { display: grid; gap: 6px; }
 /* Buttons have their border colour and shadow locked by the app-wide
-   control theme, so the inset glow supplies their visible shape. */
+   control theme, so a fine inward outline and glow supply their shape. */
 .hex-combat-list .clean-sheet-action-card {
   display: grid; gap: 3px; width: 100%; min-height: 64px; padding: 10px 12px; text-align: left;
-  border-radius: 10px; border: 0 !important; outline: 0;
+  border-radius: 10px; border: 0 !important; outline: 1px solid var(--hex-orange-soft); outline-offset: -1px;
   background: var(--hex-bg); color: var(--hex-text); font: inherit; box-shadow: var(--hex-glow);
 }
 .hex-combat-list button.clean-sheet-action-card { cursor: pointer; --rq-control-blue: var(--hex-bg); }
-.hex-combat-list button.clean-sheet-action-card:hover { box-shadow: var(--hex-glow-strong); }
-.hex-combat-list .clean-sheet-action-card--reference { box-shadow: none; opacity: .9; }
+.hex-combat-list button.clean-sheet-action-card:hover { outline-color: var(--hex-orange); box-shadow: var(--hex-glow-strong); }
+.hex-combat-list .clean-sheet-action-card--reference { outline-color: var(--hex-line); box-shadow: none; opacity: .9; }
 .hex-combat-list .clean-sheet-action-card strong { font-size: .98rem; font-weight: 800; }
 .hex-combat-list .clean-sheet-action-card > span:not(.clean-sheet-action-type) { font-size: .82rem; color: var(--hex-muted); line-height: 1.35; }
 .hex-combat-list .clean-sheet-action-type {
@@ -400,21 +401,21 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .hex-combat-list .clean-sheet-attack-stat-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 6px; }
 .hex-combat-list .clean-sheet-attack-stat-box {
   display: grid; gap: 1px; justify-items: center; min-height: 52px; padding: 6px 4px; border-radius: 8px;
-  border: 0 !important; outline: 0; box-shadow: var(--hex-glow);
+  border: 0 !important; outline: 1px solid var(--hex-orange-soft); outline-offset: -1px; box-shadow: var(--hex-glow);
   background: var(--hex-bg); color: var(--hex-text); font: inherit; --rq-control-blue: var(--hex-bg);
 }
 .hex-combat-list button.clean-sheet-attack-stat-box { cursor: pointer; }
-.hex-combat-list .clean-sheet-attack-roll-box { box-shadow: var(--hex-glow-strong); }
+.hex-combat-list .clean-sheet-attack-roll-box { outline-color: var(--hex-orange); box-shadow: var(--hex-glow-strong); }
 .hex-combat-list .clean-sheet-attack-stat-box span { font-size: .64rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--hex-muted); }
 .hex-combat-list .clean-sheet-attack-stat-box strong { font-size: .92rem; font-weight: 800; text-align: center; }
 .hex-combat-list .clean-sheet-pending-damage {
   display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px;
-  border-radius: 8px; border: 1px dashed transparent; box-shadow: var(--hex-control-glow, var(--hex-glow)); font-size: .82rem; color: var(--hex-muted);
+  border-radius: 8px; border: 1px dashed var(--hex-orange-soft); box-shadow: var(--hex-glow); font-size: .82rem; color: var(--hex-muted);
 }
 .hex-combat-list .clean-sheet-pending-damage button,
 .hex-combat-list .clean-sheet-variable-resource-spend button,
 .hex-combat-list .clean-sheet-fighter-buttons button {
-  min-height: 40px; padding: 0 12px; border-radius: 8px; border: 0 !important; outline: 0; box-shadow: var(--hex-glow);
+  min-height: 40px; padding: 0 12px; border-radius: 8px; border: 0 !important; outline: 1px solid var(--hex-orange-soft); outline-offset: -1px; box-shadow: var(--hex-glow);
   background: transparent; --rq-control-blue: transparent; color: var(--hex-text); font: inherit; font-weight: 700; cursor: pointer;
 }
 .hex-combat-list .clean-sheet-variable-resource-spend { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -487,7 +488,7 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 }
 .hex-equip__slot-glow { position: absolute !important; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .hex-equip__slot-glow .hex-glow__halo { stroke: var(--hex-stroke-cool, var(--hex-cool)); opacity: 0.4; }
-.hex-equip__slot-glow .hex-glow__edge { stroke: none; stroke-width: 0; stroke-opacity: 0; }
+.hex-equip__slot-glow .hex-glow__edge { stroke: var(--hex-stroke-cool, var(--hex-cool)); stroke-width: 0.4; stroke-opacity: 0.55; }
 .hex-equip__slot:is(.is-filled, .is-selected) .hex-glow__halo,
 .hex-equip__slot:is(.is-filled, .is-selected) .hex-glow__edge { stroke: var(--hex-stroke-hot, var(--hex-orange)); }
 .hex-equip__slot.is-selected .hex-glow__halo { opacity: 0.65; }
@@ -516,10 +517,10 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .hex-equip__actions, .hex-equip__pack-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .hex-sheet .hex-equip button:not(.hex-equip__slot) {
   min-height: 44px; padding: 0 12px; border-radius: 10px; border: 0 !important;
-  outline: 0; box-shadow: var(--hex-glow);
+  outline: 1px solid var(--hex-orange-soft); outline-offset: -1px; box-shadow: var(--hex-glow);
   background: transparent; --rq-control-blue: transparent; color: var(--hex-text); font: inherit; font-weight: 700; cursor: pointer;
 }
-.hex-sheet .hex-equip button.is-primary { box-shadow: var(--hex-glow-strong); --rq-control-blue: rgba(var(--hex-glow-rgb), 0.14); }
+.hex-sheet .hex-equip button.is-primary { outline-color: var(--hex-orange); box-shadow: var(--hex-glow-strong); --rq-control-blue: rgba(var(--hex-glow-rgb), 0.14); }
 .hex-sheet .hex-equip button:disabled { opacity: .45; cursor: default; }
 .hex-equip__choices, .hex-equip__pack { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .hex-sheet .hex-equip__choices button { width: 100%; display: grid; justify-items: start; gap: 1px; padding: 8px 12px !important; text-align: left; }
@@ -556,7 +557,7 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .hex-spin.is-spinning .hex-spin__rotor { transition: none; }
 .hex-spin__sector { cursor: pointer; }
 .hex-spin__sector.is-active .hex-glow__halo { opacity: 0.95; }
-.hex-spin__sector.is-active .hex-glow__edge { stroke: none; }
+.hex-spin__sector.is-active .hex-glow__edge { stroke: var(--hex-stroke-hot, var(--hex-orange)); stroke-width: 0.45; stroke-opacity: 0.85; }
 .hex-spin__label { fill: var(--hex-text); font-size: 11px; font-weight: 800; letter-spacing: .02em; font-family: var(--hex-title-font); pointer-events: none; }
 .hex-spin__sector:not(.is-active) .hex-spin__label { fill: var(--hex-muted); }
 .hex-spin__sub { fill: var(--hex-sub); font-size: 6px; font-weight: 700; letter-spacing: .08em; pointer-events: none; }
@@ -572,7 +573,7 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .hex-skills__dial.is-spinning { cursor: grabbing; }
 .hex-skills__dial:focus-visible .hex-skills__ring { stroke: var(--hex-text); }
 .hex-skills__case .hex-glow__halo { opacity: 0.3; }
-.hex-skills__ring { fill: none; stroke: none; pointer-events: none; }
+.hex-skills__ring { fill: none; stroke: var(--hex-orange-soft); stroke-width: 0.4; pointer-events: none; }
 .hex-skills__rotor { transform-box: view-box; transform-origin: 0 0; transition: transform 260ms cubic-bezier(.2, .8, .25, 1.05); }
 .hex-skills__dial.is-spinning .hex-skills__rotor { transition: none; }
 .hex-skills__segment { fill: transparent; cursor: pointer; }
@@ -610,7 +611,7 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .hex-skills__dot.is-half { background: linear-gradient(90deg, var(--hex-orange) 50%, rgba(var(--hex-muted-rgb), 0.25) 50%); }
 .hex-sheet .hex-skills__roll {
   flex: none; min-width: 56px; min-height: 40px; border-radius: 10px; border: 0 !important;
-  outline: 0; box-shadow: var(--hex-glow); background: transparent; --rq-control-blue: transparent;
+  outline: 1px solid var(--hex-orange-soft); outline-offset: -1px; box-shadow: var(--hex-glow); background: transparent; --rq-control-blue: transparent;
   color: var(--hex-text); font: inherit; font-weight: 800; cursor: pointer;
 }
 @media (prefers-reduced-motion: reduce) { .hex-skills__rotor { transition: none; } }
@@ -674,7 +675,7 @@ html body #root .d20-glyph__label { fill: var(--hex-text, #fff); font-family: va
 }
 .hex-spell__cast svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .hex-spell__cast .hex-glow__halo { stroke: var(--hex-stroke-hot, var(--hex-orange)); }
-.hex-spell__cast .hex-glow__edge { stroke: none; stroke-width: 0; stroke-opacity: 0; }
+.hex-spell__cast .hex-glow__edge { stroke: var(--hex-stroke-hot, var(--hex-orange)); stroke-width: 0.45; stroke-opacity: 0.7; }
 html body #root .hex-spell__cast text { fill: var(--hex-text); font: 800 40px/1 var(--hex-title-font) !important; pointer-events: none; }
 .hex-sheet .hex-spell__cast:not(:disabled):is(:hover, :focus-visible) .hex-glow__halo { opacity: 0.7; }
 .hex-sheet .hex-spell__cast:not(:disabled):focus-visible .hex-glow__edge { stroke: var(--hex-text); stroke-width: 3; stroke-opacity: 1; }

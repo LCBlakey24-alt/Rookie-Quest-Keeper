@@ -61,7 +61,7 @@ Decoration never wins over legibility or table-speed.
 >
 > - **Background:** deep blue `#0A2342` fading to dusk purple at the bottom of the page (`--guild-sky`). Shapes are filled with the deep blue.
 > - **Backdrop hexagons:** a few large, faint hexagon outlines (the ring-in-a-hexagon motif) turn very slowly behind every page (`HexBackdrop`), showing only between panels. The sky is painted once on `<html>` and outer page surfaces stay see-through above it. The hexagons hold still for anyone who prefers reduced motion; the sign-in page and the TV player display stay flat.
-> - **Glow (owner-approved, 15 November 2026):** resting boxes, tabs, buttons, wheels and hexagons have no visible outline. Their shape is defined only by a soft glow that stays *inside* the shape, never outside it. Ordinary shapes glow hot pink `#FF3D8B` → violet `#B04DFF` → sky blue `#4FB3FF` (`--guild-box-glow`, `--guild-stroke-cool`). Chosen, primary and centre shapes glow peach `#FFB066` → pink `#FF5FA0` → gold `#FFD27A` (`--guild-box-glow-hot`, `--guild-stroke-hot`). Each wall of a box glows in its own colour. Keep it subtle; the middle of a box stays deep blue. Visible boundaries remain for editable fields, semantic warnings/errors and temporary keyboard focus.
+> - **Glow (owner-reviewed on production, 15 November 2026):** resting boxes, tabs and buttons use a restrained 1px edge; SVG wheels and hexagons use the Home wheel's finer sub-pixel edge. A soft glow stays *inside* the shape, never outside it. Ordinary shapes glow hot pink `#FF3D8B` → violet `#B04DFF` → sky blue `#4FB3FF` (`--guild-box-glow`, `--guild-stroke-cool`). Chosen, primary and centre shapes glow peach `#FFB066` → pink `#FF5FA0` → gold `#FFD27A` (`--guild-box-glow-hot`, `--guild-stroke-hot`). The edge must support the glow, not overpower it; thick wheel outlines are not allowed. Each wall of a box glows in its own colour. Keep it subtle; the middle of a box stays deep blue. Editable fields, semantic warnings/errors and temporary keyboard focus remain more explicit.
 > - **Type:** headings in **Cinzel**, text in **Inter**.
 > - **Text:** white, with `#C9D2E6` for muted text; peach `#FFB066` for small kickers.
 > - Status colours (success, warning, danger) are unchanged and stay semantic.
@@ -205,7 +205,7 @@ Rookie's signature control is the **wheel**: a round ring of wedges inside a hex
 - **Not triangular wedges.** The ring is round. The hexagon is only the case around it and the centre button.
 - **The centre hexagon opens the 3D dice roller.** The one exception is a wheel used to make a choice (race, class, and other creator choices). There the centre is **Confirm**: it confirms the option at the top and moves on, running the same checks as Next.
 - **Selection** is the wedge resting under the pointer at the top. Drag the ring, tap a wedge, or use the arrow keys.
-- **Glow** sits inside each shape only, without a resting outline: the Neon Coast colours (pink → violet → blue) on ordinary wedges, and peach → pink → gold on the selected wedge, the case and the centre (§3).
+- **Glow** sits inside each shape, supported by the same fine edge used on the Home wheel: the Neon Coast colours (pink → violet → blue) on ordinary wedges, and peach → pink → gold on the selected wedge, the case and the centre (§3).
 - **Labels** on the ring turn with their wedge.
 - Every wheel offers a plain list alternative (Show as list).
 
@@ -214,12 +214,12 @@ Rookie's signature control is the **wheel**: a round ring of wedges inside a hex
 ### Default
 
 - Navy fill.
-- No visible resting border; a restrained inner glow defines the control.
+- Restrained 1px edge with an inner glow.
 - Cream text.
 
 ### Primary
 
-- Dark navy-blue fill with a stronger warm inner glow; antique gold is not a control border.
+- Dark navy-blue fill with a fine warm edge and stronger warm inner glow; antique gold is not a control border.
 - Gold-filled CTAs are not allowed, including the landing page. Primary buttons remain blue; only the 3px underline animates into the citrus gradient.
 
 ### Hover
