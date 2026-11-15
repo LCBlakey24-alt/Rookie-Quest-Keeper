@@ -9,6 +9,19 @@ jest.mock('./diceDyeGallery', () => ({
   createDiceDyeGallery: jest.fn(),
 }));
 
+// jsdom does not expose PointerEvent consistently across CI Node versions.
+// Dispatch a bubbling pointer event with explicit coordinates so the same
+// drag threshold used by a phone is actually exercised rather than NaN.
+function dispatchPointer(element, name, { pointerId, clientX, clientY }) {
+  const event = new Event(name, { bubbles: true, cancelable: true });
+  Object.defineProperties(event, {
+    pointerId: { value: pointerId },
+    clientX: { value: clientX },
+    clientY: { value: clientY },
+  });
+  fireEvent(element, event);
+}
+
 describe('physical 3D dice dye picker', () => {
   let gallery;
 
@@ -68,8 +81,8 @@ describe('physical 3D dice dye picker', () => {
     const galleryElement = screen.getByTestId('dice-dye-gallery-3d');
     galleryElement.setPointerCapture = jest.fn();
     const confirm = screen.getByTestId('dice-dye-confirm');
-    fireEvent.pointerDown(confirm, { pointerId: 1, clientX: 120, clientY: 120 });
-    fireEvent.pointerUp(confirm, { pointerId: 1, clientX: 120, clientY: 120 });
+    dispatchPointer(confirm, 'pointerdown', { pointerId: 1, clientX: 120, clientY: 120 });
+    dispatchPointer(confirm, 'pointerup', { pointerId: 1, clientX: 120, clientY: 120 });
     fireEvent.click(confirm);
     expect(galleryElement.setPointerCapture).not.toHaveBeenCalled();
     expect(onConfirm).toHaveBeenCalledTimes(1);
@@ -83,8 +96,8 @@ describe('physical 3D dice dye picker', () => {
     const galleryElement = screen.getByTestId('dice-dye-gallery-3d');
     galleryElement.setPointerCapture = jest.fn();
     const dye = screen.getByTestId('dice-dye-moss');
-    fireEvent.pointerDown(dye, { pointerId: 2, clientX: 50, clientY: 50 });
-    fireEvent.pointerUp(dye, { pointerId: 2, clientX: 50, clientY: 50 });
+    dispatchPointer(dye, 'pointerdown', { pointerId: 2, clientX: 50, clientY: 50 });
+    dispatchPointer(dye, 'pointerup', { pointerId: 2, clientX: 50, clientY: 50 });
     fireEvent.click(dye);
     expect(galleryElement.setPointerCapture).not.toHaveBeenCalled();
     expect(onSelect).toHaveBeenCalledTimes(1);
@@ -97,8 +110,8 @@ describe('physical 3D dice dye picker', () => {
     const onConfirm = jest.fn();
     render(<DiceDyePicker3D selectedId="amber" onSelect={onSelect} onConfirm={onConfirm} />);
     const dye = screen.getByTestId('dice-dye-moss');
-    fireEvent.pointerDown(dye, { pointerId: 3, clientX: 140, clientY: 130 });
-    fireEvent.pointerUp(dye, { pointerId: 3, clientX: 90, clientY: 130 });
+    dispatchPointer(dye, 'pointerdown', { pointerId: 3, clientX: 140, clientY: 130 });
+    dispatchPointer(dye, 'pointerup', { pointerId: 3, clientX: 90, clientY: 130 });
     fireEvent.click(dye);
     const index = DICE_DYES.findIndex((entry) => entry.id === 'amber');
     expect(onSelect).toHaveBeenCalledTimes(1);
