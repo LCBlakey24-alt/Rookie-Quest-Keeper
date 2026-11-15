@@ -79,3 +79,14 @@ test('missing ability score remains blank instead of inventing a 10', () => {
   expect(result.values['abilities.wis.score']).toBeUndefined();
   expect(result.values['abilities.wis.modifier']).toBeUndefined();
 });
+
+test('V7 page-one effect summaries replace removed V6 quick-action slots', () => {
+  const result=mapCharacterPageOne({
+    ...base, concentrating_on:'Bless', resistances:['Cold'],
+  }, {
+    attacks:profiles,quickActions:{action:'Attack'},
+  });
+  expect(result.values['combat.concentration_summary']).toBe('Bless');
+  expect(result.values['combat.defences_summary']).toBe('Cold');
+  expect(result.values['combat.quick.action']).toBeUndefined();
+});
