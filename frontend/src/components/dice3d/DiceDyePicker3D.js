@@ -56,9 +56,17 @@ export default function DiceDyePicker3D({ selectedId, onSelect, onConfirm }) {
     step((event.deltaY || event.deltaX) > 0 ? 1 : -1);
   };
 
+  const suppressClickRef = useRef(false);
+
   const handlePointerDown = (event) => {
     pointerStartRef.current = { x: event.clientX, y: event.clientY };
-    event.currentTarget.setPointerCapture?.(event.pointerId);
+    suppressClickRef.current = false;
+    // Capturing a pointer on the gallery parent steals the synthesized tap
+    // from its child buttons on mobile. Confirm and material selections must
+    // receive an ordinary click. Still capture drags begun on empty wheel.
+    if (!event.target.closest?.('button')) {
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+    }
   };
 
   const handlePointerUp = (event) => {
@@ -68,7 +76,12 @@ export default function DiceDyePicker3D({ selectedId, onSelect, onConfirm }) {
     const dx = event.clientX - start.x;
     const dy = event.clientY - start.y;
     const distance = Math.abs(dx) > Math.abs(dy) ? dx : dy;
-    if (Math.abs(distance) >= 24) step(distance < 0 ? 1 : -1);
+    if (Math.abs(distance) >= 24) {
+      // Mobile may synthesize a click on the die button after a drag. The
+      // swipe changes the selection exactly once and must not also confirm it.
+      suppressClickRef.current = true;
+      step(distance < 0 ? 1 : -1);
+    }
   };
 
   useEffect(() => {
@@ -107,7 +120,17 @@ export default function DiceDyePicker3D({ selectedId, onSelect, onConfirm }) {
     galleryRef.current?.select(selectedId);
   }, [selectedId]);
 
-  if (failed) return <DiceDyePickerFallback selectedId={selectedId} onSelect={onSelect} />;
+  if (failed) {
+    return (
+      <div className="rq-dye-gallery__fallback">
+        <DiceDyePickerFallback selectedId={selectedId} onSelect={onSelect} />
+        <button type="button" className="rq-floating-dice__style-next"
+          data-testid="dice-dye-confirm" onClick={onConfirm}>
+          Choose die type
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -120,6 +143,13 @@ export default function DiceDyePicker3D({ selectedId, onSelect, onConfirm }) {
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
       onPointerCancel={() => { pointerStartRef.current = null; }}
+      onClickCapture={(event) => {
+        if (suppressClickRef.current) {
+          suppressClickRef.current = false;
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }}
       onKeyDown={(event) => {
         if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
           event.preventDefault();
