@@ -44,26 +44,19 @@ export async function writeEditableCharacterPdf(templateBytes, mapping, options 
     if (unicode) throw new Error('Field '+unicode[0]+' needs an embedded Unicode appearance font');
   }
 
-  // Perform no partial form writes until every field is known and type-safe.
-  const typeErrors=[];
+  // Perform no partial writes until pdf-lib itself confirms the field type.
+  // Constructor names can be mangled in production minified bundles.
+  const resolved=[];
   for (const [key,value] of Object.entries(values)){
     try {
-      const f=form.getField(key);
-      if (typeof value==='boolean' && !f.constructor?.name?.includes('CheckBox'))
-        typeErrors.push(key);
-      if (typeof value!=='boolean' && !f.constructor?.name?.includes('TextField'))
-        typeErrors.push(key);
-    } catch { typeErrors.push(key); }
+      const field=typeof value==='boolean' ? form.getCheckBox(key) : form.getTextField(key);
+      resolved.push({field,key,value});
+    } catch { throw new Error('Unexpected form field type: '+key); }
   }
-  if(typeErrors.length)throw new Error('Unexpected form field type: '+typeErrors[0]);
-
-  for(const [key,value] of Object.entries(values)){
+  for(const {field,value} of resolved){
     if(typeof value==='boolean'){
-      const check=form.getCheckBox(key);
-      if(value)check.check();else check.uncheck();
-    }else{
-      form.getTextField(key).setText(String(value));
-    }
+      if(value)field.check();else field.uncheck();
+    }else field.setText(String(value));
   }
   // Update appearance streams so filled values are visible in PDF viewers,
   // but retain the AcroForm for user edits on phones/tablets.
