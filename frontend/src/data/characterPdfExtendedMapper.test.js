@@ -80,11 +80,12 @@ test('edition mismatch throws instead of quietly exporting the wrong reference p
   expect(()=>mapFullCharacterPdfFields(character,{edition:'2014'})).toThrow(/edition/);
 });
 
-test('multiclass mixed hit dice require extra information instead of wrong die type', () => {
+test('V7 gives mixed multiclass Hit Dice a breakdown without inventing one die type', () => {
   const result=mapFullCharacterPdfFields({...character,hit_dice:'2d8+3d10'},
     {attacks:attacks.slice(0,1)});
-  expect(result.exportReady).toBe(false);
+  expect(result.exportReady).toBe(true);
   expect(result.values['combat.hit_dice.type']).toBeUndefined();
+  expect(result.values['combat.hit_dice.breakdown']).toBe('2d8+3d10');
 });
 
 test('spellbook-only and always-prepared entries cannot disappear silently', () => {
@@ -96,4 +97,44 @@ test('spellbook-only and always-prepared entries cannot disappear silently', () 
   expect(result.exportReady).toBe(false);
   expect(result.overflow.some(item=>item.field==='magic.spellbook')).toBe(true);
   expect(result.overflow.some(item=>item.field==='magic.always_prepared_spells')).toBe(true);
+});
+
+test('V7 dedicated action page maps distinct action, bonus and reaction rows', () => {
+  const result=mapFullCharacterPdfFields(character,{
+    attacks:attacks.slice(0,2),
+    actions:[{name:'Attack',requirement:'Action',range:'Melee',effect:'Two strikes',usage:'At will'}],
+    bonusActions:[{name:'Healing Word',range:'60 ft',effect:'Restore HP',usage:'1 slot'}],
+    reactions:[{name:'Shield',trigger:'When hit',range:'Self',effect:'+5 AC',usage:'1 slot'}],
+    combatNotes:{extraAttacks:'Weapon Mastery',defensiveFeatures:'Protection Fighting Style'},
+  });
+  expect(result.exportReady).toBe(true);
+  expect(result.values['actions.action.1.name']).toBe('Attack');
+  expect(result.values['actions.action.1.requirement']).toBe('Action');
+  expect(result.values['actions.bonus.1.name']).toBe('Healing Word');
+  expect(result.values['actions.reaction.1.trigger']).toBe('When hit');
+  expect(result.values['actions.resources.1.name']).toBe('channel_divinity');
+  expect(result.values['actions.resources.1.remaining']).toBe('1');
+  expect(result.values['combat.details.extra_attack_notes']).toBe('Weapon Mastery');
+  expect(result.values['combat.defensive_features']).toBe('Protection Fighting Style');
+  expect(result.values['combat.passive_investigation']).toBeDefined();
+  expect(Object.keys(result.values).some(key => key.startsWith('combat.quick.'))).toBe(false);
+  expect(result.values['combat.action_options']).toBeUndefined();
+});
+
+test('V7 action overflow is preserved rather than quietly dropping available options', () => {
+  const lots=Array.from({length:7},(_,i)=>({name:'Ability '+i,effect:'Effect '+i}));
+  const result=mapFullCharacterPdfFields(character,{
+    attacks:attacks.slice(0,1),actions:lots,
+  });
+  expect(result.exportReady).toBe(false);
+  expect(result.overflow).toContainEqual(expect.objectContaining({field:'actions.action'}));
+  expect(result.values['actions.action.6.name']).toBe('Ability 5');
+  expect(result.values['actions.action.7.name']).toBeUndefined();
+});
+
+test('action page does not expose GM-only notes or secretly assume abilities', () => {
+  const result=mapFullCharacterPdfFields(character,{attacks:attacks.slice(0,1)});
+  expect(JSON.stringify(result.values)).not.toContain(character.gm_notes);
+  expect(result.values['actions.action.1.name']).toBeUndefined();
+  expect(result.values['actions.reaction.1.name']).toBeUndefined();
 });
