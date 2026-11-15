@@ -4,7 +4,7 @@ import { Minus, Plus, Volume2, VolumeX } from 'lucide-react';
 import { getCurrentHp, getMaxHp, getTempHp } from '@/components/clean-sheet/cleanSheetUtils';
 import GlowPolygon, { GlowFilter, useSvgId } from './GlowPolygon';
 import { DEAL_DURATION_MS, DEAL_STAGGER_MS } from './HexWheel';
-import { INNER_RADIUS, OUTER_RADIUS, hexVertex, hexVertices, pointsAttribute, wheelViewBox } from './hexGeometry';
+import { INNER_RADIUS, OUTER_RADIUS, RING_INNER, RING_OUTER, hexVertices, pointsAttribute, ringSegment, wheelViewBox } from './hexGeometry';
 import {
   DEGREES_PER_HP,
   DRAG_THRESHOLD_DEGREES,
@@ -19,6 +19,7 @@ import {
   settledRotation,
 } from './hpDial';
 import { isDialSoundOn, playDialTick, setDialSoundOn } from './dialSound';
+import './HexHpDial.css';
 
 const CENTRE_RADIUS = INNER_RADIUS - 4;
 const RETURN_MS = 420;
@@ -33,15 +34,11 @@ const TICKS = Array.from({ length: Math.round(360 / MINOR_TICK_DEGREES) }, (_, i
 }));
 
 /**
- * The hexagon in two halves, split across the middle with a small gap: Hit
- * Points on top, Temp HP below. Each half runs from the outer rim to the
- * inner hexagon.
+ * Two rounded ring sections inside the hexagon: Hit Points on top and
+ * Temp HP below. The center hexagon stays free for confirming the change.
  */
-const GAP = 1.6;
-const O = (i) => hexVertex(i, OUTER_RADIUS);
-const I = (i) => hexVertex(i, INNER_RADIUS);
-const TOP_HALF = [[O(4)[0], -GAP], O(5), O(0), O(1), [O(2)[0], -GAP], [I(2)[0], -GAP], I(1), I(0), I(5), [I(4)[0], -GAP]];
-const BOTTOM_HALF = TOP_HALF.map(([x, y]) => [x, -y]);
+const TOP_HALF = ringSegment(270, 450, { outer: RING_OUTER, inner: RING_INNER, gap: 2, steps: 36 });
+const BOTTOM_HALF = ringSegment(90, 270, { outer: RING_OUTER, inner: RING_INNER, gap: 2, steps: 36 });
 const HALVES = [
   { id: 'hp', points: pointsAttribute(TOP_HALF), name: 'HIT POINTS', labelY: -76, valueY: -59 },
   { id: 'temp', points: pointsAttribute(BOTTOM_HALF), name: 'TEMP HP', labelY: 76, valueY: 59 },
@@ -68,7 +65,7 @@ function trailPath(rotation) {
 /**
  * The HP dial.
  *
- * The hexagon is split in two: Hit Points on top, Temp HP below. Tap a half
+ * The ring is split in two: Hit Points on top, Temp HP below. Tap a half
  * and a round dial drops into the hexagon with 0 in the centre. Turn it
  * clockwise to add, anticlockwise to take away; it clicks once per hit
  * point. Damage to Hit Points comes off Temp HP first. Nothing is saved
@@ -329,21 +326,24 @@ export default function HexHpDial({ character, initialTarget = 'hp', onConfirm, 
 
   return (
     <div className="hex-hp" data-testid="hex-hp-dial">
-      <svg
-        ref={svgRef}
-        className={`hex-wheel hex-hp__svg${armed ? ' is-armed' : ''}${dragging ? ' is-rotating' : ''}${returning ? ' is-returning' : ''}`}
-        viewBox={wheelViewBox()}
-        data-hex-radius={OUTER_RADIUS + 2}
-        role="group"
-        aria-label="Hit point dial"
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-      >
-        <GlowFilter id={filterId} />
-        <polygon className="hex-wheel__frame" points={pointsAttribute(hexVertices(OUTER_RADIUS + 2))} aria-hidden="true" />
-        <g role="radiogroup" aria-label="Adjust which pool">
+      <div className="hex-sheet__wheel-anchor" data-testid="hex-wheel-anchor">
+        <svg
+          ref={svgRef}
+          className={`hex-wheel hex-hp__svg${armed ? ' is-armed' : ''}${dragging ? ' is-rotating' : ''}${returning ? ' is-returning' : ''}`}
+          viewBox={wheelViewBox()}
+          data-hex-radius={OUTER_RADIUS + 2}
+          role="group"
+          aria-label="Hit point dial"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+        >
+          <GlowFilter id={filterId} />
+          <g aria-hidden="true">
+            <GlowPolygon className="hex-wheel__frame hex-hp__frame" points={pointsAttribute(hexVertices(OUTER_RADIUS + 2))} filterId={filterId} />
+          </g>
+          <g role="radiogroup" aria-label="Adjust which pool">
           {HALVES.map((half, order) => (
             <g
               key={half.id}
@@ -368,9 +368,9 @@ export default function HexHpDial({ character, initialTarget = 'hp', onConfirm, 
               <text className="hex-hp__value" x={0} y={half.valueY} fontSize={15} textAnchor="middle" dominantBaseline="central" aria-hidden="true">{values[half.id]}</text>
             </g>
           ))}
-        </g>
+          </g>
 
-        {showRing && (
+          {showRing && (
           <g className="hex-hp__ring" aria-hidden="true" data-testid="hex-hp-ring">
             <circle className="hex-hp__ring-face" cx={0} cy={0} r={RING_RADIUS} />
             <g className="hex-hp__rotor" style={{ transform: `rotate(${rotation}deg)` }} data-testid="hex-hp-rotor" data-rotation={Math.round(rotation)}>
@@ -393,9 +393,9 @@ export default function HexHpDial({ character, initialTarget = 'hp', onConfirm, 
             <path className="hex-hp__trail" d={trailPath(rotation)} />
             <polygon className="hex-hp__pointer" points={`0,${-RING_RADIUS} -5,${-RING_RADIUS - 8} 5,${-RING_RADIUS - 8}`} />
           </g>
-        )}
+          )}
 
-        <g
+          <g
           className={`hex-wheel__centre hex-hp__centre${delta > 0 ? ' is-positive' : delta < 0 ? ' is-negative' : ''}`}
           data-dial-centre
           role="button"
@@ -409,8 +409,9 @@ export default function HexHpDial({ character, initialTarget = 'hp', onConfirm, 
           <GlowPolygon className="hex-wheel__centre-shape" points={pointsAttribute(hexVertices(CENTRE_RADIUS))} filterId={filterId} />
           <text className="hex-wheel__centre-label" x={0} y={-5} fontSize={bigCentre ? 20 : 9} textAnchor="middle" dominantBaseline="central" aria-hidden="true">{centreLine}</text>
           <text className="hex-wheel__centre-sublabel" x={0} y={12} fontSize={centreSub.length > 22 ? 4.2 : 5.2} textAnchor="middle" dominantBaseline="central" aria-hidden="true">{centreSub}</text>
-        </g>
-      </svg>
+          </g>
+        </svg>
+      </div>
 
       <div className="hex-hp__controls">
         <button type="button" className="hex-hp__step" aria-label="Take away 1" onClick={() => setDelta(delta - 1)} disabled={saving} data-testid="hex-hp-minus">

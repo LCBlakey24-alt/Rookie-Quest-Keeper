@@ -16,24 +16,24 @@
   touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; outline: none;
 }
 .guild-wheel__svg.is-dragging { cursor: grabbing; }
-.guild-wheel__svg:focus-visible .guild-wheel__case { stroke: var(--_hi); stroke-width: 3; }
-.guild-wheel__case { fill: var(--_bg); stroke: var(--guild-stroke-hot, var(--_accent)); stroke-width: 1.6; }
-.guild-wheel__rim { fill: var(--_panel); stroke: rgba(var(--_accent-rgb), 0.35); stroke-width: 0.8; }
+.guild-wheel__svg:focus-visible .guild-wheel__case { stroke: var(--_hi); stroke-width: 3; stroke-opacity: 1; }
+.guild-wheel__case { fill: var(--_bg); stroke: var(--guild-stroke-hot, var(--_accent)); stroke-width: 0.45; stroke-opacity: 0.55; }
+.guild-wheel__rim { fill: var(--_bg); stroke: var(--guild-stroke-cool, var(--_cool)); stroke-opacity: 0.35; stroke-width: 0.4; }
 .guild-wheel__glow { fill: none; stroke: var(--guild-stroke-cool, var(--_cool)); stroke-width: 7; opacity: 0.5; pointer-events: none; transition: stroke 160ms ease, opacity 160ms ease; }
-.guild-wheel__glow--case { stroke: var(--guild-stroke-hot, var(--_accent)); stroke-width: 12; opacity: 0.55; }
-.guild-wheel__glow--core { stroke: var(--guild-stroke-hot, var(--_accent)); stroke-width: 9; opacity: 0.6; }
+.guild-wheel__glow--case { stroke: var(--guild-stroke-hot, var(--_accent)); stroke-width: 12; opacity: 0.3; }
+.guild-wheel__glow--core { stroke: var(--guild-stroke-hot, var(--_accent)); stroke-width: 9; opacity: 0.35; }
 .guild-wheel__ring { transform-box: view-box; transform-origin: 0 0; transition: transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1); }
 .guild-wheel__svg.is-dragging .guild-wheel__ring { transition: none; }
 .guild-wheel__face { fill: transparent; }
-.guild-wheel__edge { fill: none; stroke: var(--guild-stroke-cool, rgba(111, 184, 255, 0.4)); stroke-opacity: 0.6; stroke-width: 0.8; pointer-events: none; transition: stroke 160ms ease; }
+.guild-wheel__edge { fill: none; stroke: var(--guild-stroke-cool, rgba(111, 184, 255, 0.4)); stroke-opacity: 0.55; stroke-width: 0.4; pointer-events: none; transition: stroke 160ms ease; }
 .guild-wheel__segment text { fill: var(--_muted); font: 800 8.5px/1 var(--rq-font-sans, Inter, sans-serif); letter-spacing: 0.06em; pointer-events: none; }
-.guild-wheel__segment.is-preview .guild-wheel__face { fill: rgba(var(--_accent-rgb), 0.1); }
-.guild-wheel__segment.is-preview .guild-wheel__glow { stroke: var(--guild-stroke-hot, var(--_accent)); opacity: 0.95; }
-.guild-wheel__segment.is-preview .guild-wheel__edge { stroke: var(--guild-stroke-hot, var(--_hi)); stroke-opacity: 1; stroke-width: 1.4; }
+.guild-wheel__segment.is-preview .guild-wheel__face { fill: var(--guild-select, rgba(96, 156, 232, 0.2)); }
+.guild-wheel__segment.is-preview .guild-wheel__glow { stroke: var(--guild-stroke-hot, var(--_accent)); opacity: 0.55; }
+.guild-wheel__segment.is-preview .guild-wheel__edge { stroke: var(--guild-stroke-hot, var(--_hi)); stroke-opacity: 0.7; stroke-width: 0.45; }
 .guild-wheel__segment.is-preview text { fill: var(--_text); }
 .guild-wheel__segment.is-selected text { fill: var(--_hi); }
 .guild-wheel__pointer { fill: var(--guild-stroke-hot, var(--_hi)); }
-.guild-wheel__core { fill: var(--_bg); stroke: var(--guild-stroke-hot, var(--_hi)); stroke-width: 1.6; pointer-events: none; }
+.guild-wheel__core { fill: var(--_bg); stroke: var(--guild-stroke-hot, var(--_hi)); stroke-width: 0.45; stroke-opacity: 0.65; pointer-events: none; }
 .guild-wheel__caption { fill: var(--_muted); font: 800 7px/1 var(--rq-font-sans, Inter, sans-serif); letter-spacing: 0.2em; pointer-events: none; }
 .guild-wheel__name { fill: var(--_text); font: 700 17px/1 var(--rq-font-display, 'Cinzel', Georgia, serif); pointer-events: none; }
 .guild-wheel__name.is-medium { font-size: 14px; }
@@ -43,12 +43,14 @@
 /* Wedges deal out from the centre, one after another, when the wheel
    appears; a parent marked .is-leaving shrinks them back in first. */
 .guild-wheel__segment { transform-box: view-box; transform-origin: 0 0; animation: guild-wheel-deal 260ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both; animation-delay: calc(var(--wheel-order, 0) * 22ms); }
-.guild-wheel__core, .guild-wheel__glow--core, .guild-wheel__name, .guild-wheel__caption { animation: guild-wheel-fade 300ms ease-out both; }
+.guild-wheel__core, .guild-wheel__name, .guild-wheel__caption { animation: guild-wheel-fade 300ms ease-out both; }
+.guild-wheel__glow--core { animation: guild-wheel-core-glow-fade 300ms ease-out both; }
 .is-leaving .guild-wheel__segment { animation: guild-wheel-shrink 180ms ease-in both; animation-delay: 0ms; }
 .is-leaving .guild-wheel__name, .is-leaving .guild-wheel__caption { animation: guild-wheel-fade 160ms ease-in reverse both; }
 @keyframes guild-wheel-deal { from { transform: scale(0.35); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @keyframes guild-wheel-shrink { from { transform: scale(1); opacity: 1; } to { transform: scale(0.35); opacity: 0; } }
 @keyframes guild-wheel-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes guild-wheel-core-glow-fade { from { opacity: 0; } to { opacity: 0.35; } }
 @media (prefers-reduced-motion: reduce) {
   .guild-wheel__ring, .guild-wheel__glow, .guild-wheel__edge { transition: none; }
   .guild-wheel__segment, .guild-wheel__core, .guild-wheel__glow--core, .guild-wheel__name, .guild-wheel__caption,
@@ -73,7 +75,7 @@ html body #root .guild-wheel button.guild-wheel__confirm, .guild-wheel button.gu
 .guild-wheel button.guild-wheel__confirm::before, .guild-wheel button.guild-wheel__confirm::after { content: none !important; }
 .guild-wheel:has(.guild-wheel__confirm:hover) .guild-wheel__core,
 .guild-wheel:has(.guild-wheel__confirm:active) .guild-wheel__core { fill: rgba(var(--_accent-rgb), 0.16); }
-.guild-wheel:has(.guild-wheel__confirm:focus-visible) .guild-wheel__core { stroke: var(--_text); stroke-width: 3; }
+.guild-wheel:has(.guild-wheel__confirm:focus-visible) .guild-wheel__core { stroke: var(--_text); stroke-width: 3; stroke-opacity: 1; }
 
 /* Dimmed options (unaffordable point-buy scores, scores still to be rolled). */
 .guild-wheel__segment.is-disabled text { fill: rgba(198, 211, 226, 0.32); }

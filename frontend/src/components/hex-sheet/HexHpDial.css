@@ -1,0 +1,26 @@
+/* The HP dial follows the shared inward-glow treatment: a fine edge around
+   the stationary case and round sections, with the glow clipped inside. */
+.hex-hp__frame .hex-glow__fill { stroke: none; }
+.hex-hp__frame .hex-glow__halo {
+  stroke: var(--hex-stroke-cool);
+  stroke-width: 9;
+  opacity: 0.42;
+}
+.hex-hp__frame .hex-glow__edge,
+.hex-hp__half .hex-glow__edge {
+  stroke: var(--hex-stroke-cool);
+  stroke-width: 0.4;
+  stroke-opacity: 0.55;
+}
+.hex-sheet .hex-hp__svg.is-armed .hex-hp__half.is-selected .hex-glow__halo { opacity: 0.5; }
+.hex-sheet .hex-hp__svg.is-armed .hex-hp__half.is-selected .hex-glow__edge {
+  stroke-width: 0.6;
+  stroke-opacity: 0.75;
+}
+
+/* Preserve a visible focus indicator and the warm chosen-section cue. */
+.hex-sheet .hex-hp__svg .hex-hp__half:focus-visible .hex-glow__edge {
+  stroke: var(--hex-text);
+  stroke-width: 1.6;
+  stroke-opacity: 1;
+}

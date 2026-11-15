@@ -53,7 +53,7 @@
 /* Step tabs: the current step is filled with soft brass under a bright edge.
    (Its label keeps the light text colour, which other creator rules pin.) */
 .full-creator-page .full-creator-steps button[aria-current='step'] { --rq-control-blue: var(--guild-select); }
-.full-creator-page .full-creator-steps button[aria-current='step']::after { border-width: 2px; }
+.full-creator-page .full-creator-steps button[aria-current='step']::after { border-width: 1px; }
 .full-creator-page .full-creator-steps button.is-complete:not([aria-current='step']) small { color: var(--gl-hi); }
 
 /* Primary actions: the warm Neon Coast glow (peach, pink, gold) inside a bright edge. */

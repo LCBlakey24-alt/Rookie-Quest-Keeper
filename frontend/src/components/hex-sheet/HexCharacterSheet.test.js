@@ -197,6 +197,22 @@ describe('Back works like history', () => {
 });
 
 describe('the D20 centre and dice wheel', () => {
+  test('keeps the dice wheel in the shared anchor and Back above its interaction layer', async () => {
+    await openSheet();
+    expect(screen.getByTestId('hex-wheel-anchor')).toContainElement(screen.getByTestId('hex-wheel'));
+
+    fireEvent.click(screen.getByTestId('hex-centre'));
+    const diceAnchor = screen.getByTestId('hex-wheel-anchor');
+    const back = screen.getByTestId('hex-back');
+    expect(screen.getByTestId('hex-sheet')).toHaveAttribute('data-view', 'dice');
+    expect(diceAnchor).toContainElement(screen.getByTestId('guild-choice-wheel'));
+    expect(diceAnchor).not.toContainElement(back);
+
+    fireEvent.click(back);
+    expect(screen.getByTestId('hex-sheet')).toHaveAttribute('data-view', 'main');
+    expect(screen.getByTestId('hex-wheel-anchor')).toContainElement(screen.getByTestId('hex-wheel'));
+  });
+
   test('the centre opens a wheel of dice; turn the die you want to the top and the centre rolls it', async () => {
     await openSheet();
     fireEvent.click(screen.getByTestId('hex-centre'));
