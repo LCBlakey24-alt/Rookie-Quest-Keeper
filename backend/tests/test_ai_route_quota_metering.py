@@ -155,7 +155,24 @@ class OtherAiRoutesKeepTheirQuotaChecksTests(unittest.TestCase):
     """Structural guard for the LLM routes that need a live provider/database."""
 
     CASES = {
-        "routes/ai.py": ("ai_generate_with_rules",),
+        "routes/ai.py": (
+            "ai_generate_with_rules",
+            "rook_generate",
+            "generate_ai_content",
+            "rook_form_fill",
+            "rook_chat",
+            "process_note_with_ai",
+            "parse_session_notes",
+            "generate_session_outline",
+            "generate_session_checklist",
+            "generate_session_replay",
+        ),
+        "routes/npcs.py": ("generate_npc_with_stats",),
+        "routes/notes.py": ("generate_and_sync_session_recap",),
+        "routes/rook_chat.py": ("rook_chat",),
+        "routes/rook_form_fill.py": ("rook_form_fill",),
+        "routes/rook_generate.py": ("rook_generate",),
+        "routes/rook_studio.py": ("create_rook_draft",),
         "routes/character_import.py": ("extract_character_sheet",),
         "routes/character_templates.py": ("ai_match_template",),
     }
@@ -178,6 +195,26 @@ class OtherAiRoutesKeepTheirQuotaChecksTests(unittest.TestCase):
                     }
                     self.assertIn("check_ai_access", called)
                     self.assertIn("record_ai_usage", called)
+
+                    ordered_calls = [
+                        (node.lineno, node.func.id)
+                        for node in ast.walk(self._function(relative_path, function_name))
+                        if isinstance(node, ast.Call)
+                        and isinstance(node.func, ast.Name)
+                        and node.func.id in {"check_ai_access", "record_ai_usage"}
+                    ]
+                    provider_calls = [
+                        node.lineno
+                        for node in ast.walk(self._function(relative_path, function_name))
+                        if isinstance(node, ast.Call)
+                        and isinstance(node.func, ast.Attribute)
+                        and node.func.attr in {"send_message", "create"}
+                    ]
+                    self.assertTrue(provider_calls, "expected a provider call")
+                    check_line = min(line for line, name in ordered_calls if name == "check_ai_access")
+                    record_line = max(line for line, name in ordered_calls if name == "record_ai_usage")
+                    self.assertLess(check_line, min(provider_calls))
+                    self.assertGreater(record_line, max(provider_calls))
 
     def test_ai_generate_with_rules_authorises_campaign_access(self):
         """It used to read the campaign straight out of the database."""

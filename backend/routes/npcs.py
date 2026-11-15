@@ -1,7 +1,7 @@
 """NPC routes: CRUD, AI generation, relationship web."""
 from fastapi import APIRouter, HTTPException, Depends, status
 from config import db, logger
-from utils.auth import get_current_user, verify_campaign_ownership, check_ai_access
+from utils.auth import get_current_user, verify_campaign_ownership, check_ai_access, record_ai_usage
 from utils.helpers import get_campaign_context
 from utils.resilient_records import serialise_records
 from models import (
@@ -199,6 +199,7 @@ Respond with ONLY valid JSON matching this schema:
     chat.with_model('openai', 'gpt-4o')
     
     response = await chat.send_message(UserMessage(text=full_prompt))
+    await record_ai_usage(username)
     
     json_match = re.search(r'\{[\s\S]*\}', response)
     if not json_match:
