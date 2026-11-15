@@ -11,6 +11,7 @@ import {
   AlertTriangle, CheckCircle, Eye, EyeOff, RefreshCw
 } from 'lucide-react';
 import HexLoader from '@/components/guild-motif/HexLoader';
+import PrivacyRightsPanel from '@/components/privacy/PrivacyRightsPanel';
 
 function AccountSettings({ username, onLogout, onUsernameChange }) {
   const navigate = useNavigate();
@@ -247,6 +248,8 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
             </form>
           )}
         </section>
+
+        <PrivacyRightsPanel key={profile?.username || username} username={profile?.username || username} />
 
         <section className="account-settings-panel account-settings-danger" style={dangerPanelStyle} aria-busy={deleteSaving ? 'true' : 'false'}>
           <SectionHeader icon={AlertTriangle} title="Danger Zone" danger />

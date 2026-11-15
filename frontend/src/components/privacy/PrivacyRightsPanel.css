@@ -1,0 +1,95 @@
+#root .rqk-rights-panel {
+  padding: clamp(16px, 2.3vw, 26px);
+  display: grid;
+  gap: 18px;
+  color: var(--guild-text, #fff);
+  background: var(--guild-box, #0a2342);
+  border: 1px solid rgba(79, 179, 255, .32);
+  border-radius: 16px;
+  box-shadow: var(--guild-box-glow);
+}
+#root .rqk-rights-panel__heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+#root .rqk-rights-panel h2,
+#root .rqk-rights-panel h3 { margin: 0; color: var(--guild-text, #fff) !important; }
+#root .rqk-rights-panel h2 { display: flex; gap: 9px; align-items: center; font-size: 19px; }
+#root .rqk-rights-panel h3 { font-size: 16px; }
+#root .rqk-rights-panel p, #root .rqk-rights-panel small {
+  color: var(--guild-muted, #b4c0cd) !important;
+  font-size: 13px;
+  line-height: 1.6;
+}
+#root .rqk-rights-panel__heading p { margin: 8px 0 0; max-width: 70ch; }
+#root .rqk-rights-panel__form { display: grid; gap: 9px; }
+#root .rqk-rights-panel label { color: var(--guild-text, #fff); font-size: 13px; font-weight: 700; }
+#root .rqk-rights-panel :is(textarea,select) {
+  width: 100%;
+  border: 1px solid rgba(79, 179, 255, .35) !important;
+  border-radius: 10px;
+  padding: 11px 12px;
+  background: var(--guild-bg-deep, #0a2342) !important;
+  color: var(--guild-text, #fff) !important;
+  font: inherit;
+  font-size: 14px;
+}
+#root .rqk-rights-panel :is(textarea,select):focus-visible,
+#root .rqk-rights-panel button:focus-visible {
+  outline: 3px solid var(--guild-h1, #4fb3ff) !important;
+  outline-offset: 2px;
+}
+#root .rqk-rights-panel__hint { margin: 2px 0 4px; }
+#root .rqk-rights-panel button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  border-radius: 11px;
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+#root .rqk-rights-panel button:disabled { opacity: .65; cursor: not-allowed; }
+#root .rqk-rights-panel__primary {
+  width: fit-content;
+  color: var(--guild-ink, #091a2c) !important;
+  background: var(--guild-hi, #4fb3ff) !important;
+  border: none;
+}
+#root .rqk-rights-panel__secondary {
+  color: var(--guild-text, #fff) !important;
+  background: var(--guild-select, rgba(79,179,255,.12)) !important;
+  border: 1px solid rgba(79,179,255,.4);
+}
+#root .rqk-rights-panel__history { border-top: 1px solid rgba(79, 179, 255, .24); padding-top: 14px; }
+#root .rqk-rights-panel__history-list { margin-top: 12px; display: grid; gap: 9px; }
+#root .rqk-rights-panel__request {
+  padding: 12px;
+  background: var(--guild-bg-deep, #0a2342);
+  border: 1px solid rgba(79,179,255,.22);
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+#root .rqk-rights-panel__request-header {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+#root .rqk-rights-panel__request-header span {
+  padding: 4px 8px;
+  background: var(--guild-select, rgba(79,179,255,.12));
+  border-radius: 20px;
+  font-size: 11px;
+}
+#root .rqk-rights-panel__reply { padding-left: 10px; border-left: 2px solid var(--guild-hi, #4fb3ff); }
+@media (max-width: 560px) {
+  #root .rqk-rights-panel__primary, #root .rqk-rights-panel__secondary { width: 100%; }
+}

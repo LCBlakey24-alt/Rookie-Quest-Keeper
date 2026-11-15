@@ -98,6 +98,8 @@ RATE_LIMITS = [
 METHOD_RATE_LIMITS = {
     ("PATCH", "/api/auth/me"): ("/api/auth/me:update", 10, 60 * 60),
     ("DELETE", "/api/auth/me"): ("/api/auth/me:delete", 3, 60 * 60),
+    # Avoid high-volume privacy request submissions.
+    ("POST", "/api/privacy/requests"): ("/api/privacy/requests:create", 5, 60 * 60),
 }
 
 # Routes used before the caller has a session. Keyed on IP only.

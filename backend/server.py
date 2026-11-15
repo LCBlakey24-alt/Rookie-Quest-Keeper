@@ -179,6 +179,7 @@ async def run_startup_maintenance():
         await db.user_playtest_content.create_index([("campaign_id", ASCENDING)], background=True)
         await db.password_resets.create_index([("token", ASCENDING)], background=True)
         await db.password_resets.create_index([("email", ASCENDING)], background=True)
+        await db.privacy_rights_requests.create_index([("username", ASCENDING), ("created_at", ASCENDING)], background=True)
         await db.handouts.create_index([("campaign_id", ASCENDING)], background=True)
         await db.player_handouts.create_index([("username", ASCENDING)], background=True)
         await db.player_handouts.create_index([("handout_id", ASCENDING), ("username", ASCENDING)], unique=True, background=True)

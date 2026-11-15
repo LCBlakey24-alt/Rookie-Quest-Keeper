@@ -11,6 +11,7 @@ import AdminSiteUpdatesTab from './admin/AdminSiteUpdatesTab';
 import AdminAuditLogTab from './admin/AdminAuditLogTab';
 import AdminMissionBrief from './admin/AdminMissionBrief';
 import AdminFeedbackTab from './admin/AdminFeedbackTab';
+import AdminPrivacyRequestsTab from './admin/AdminPrivacyRequestsTab';
 import AdminTestingNotesTab from './admin/AdminTestingNotesTab';
 import AdminCharacterAuditTab from './admin/AdminCharacterAuditTab';
 import AdminLayoutStudioTab from './admin/AdminLayoutStudioTab';
@@ -38,7 +39,7 @@ const theme = {
   dangerSoft: 'var(--rq-accent-soft)',
 };
 
-const adminTabIds = ['testing', 'updates', 'layout', 'audit', 'character-audit', 'feedback', 'reviews', 'rules', 'templates', 'users', 'site'];
+const adminTabIds = ['testing', 'updates', 'layout', 'audit', 'character-audit', 'feedback', 'privacy-rights', 'reviews', 'rules', 'templates', 'users', 'site'];
 
 function getInitialAdminTab() {
   if (typeof window === 'undefined') return 'testing';
@@ -51,6 +52,7 @@ function AdminPage() {
   const [reviews, setReviews] = useState([]);
   const [users, setUsers] = useState([]);
   const [overview, setOverview] = useState({ feedback_count: 0, new_feedback_count: 0 });
+  const [privacyPending, setPrivacyPending] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [reviewBusyId, setReviewBusyId] = useState('');
@@ -86,16 +88,20 @@ function AdminPage() {
   const fetchData = async ({ background = false } = {}) => {
     try {
       if (background) setRefreshing(true);
-      const [reviewsRes, usersRes, overviewRes] = await Promise.all([
+      const [reviewsRes, usersRes, overviewRes, privacyRes] = await Promise.all([
         apiClient.get('/reviews/all').catch(() => ({ data: [] })),
         apiClient.get('/admin/users').catch(() => ({ data: [] })),
         apiClient.get('/admin/mission-overview')
           .catch(() => apiClient.get('/admin/overview'))
           .catch(() => ({ data: {} })),
+        apiClient.get('/admin/privacy/requests/summary')
+          .catch(() => ({ data: { pending_count: null } })),
+
       ]);
       setReviews(Array.isArray(reviewsRes.data) ? reviewsRes.data : []);
       setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
       setOverview(overviewRes.data || {});
+      setPrivacyPending(Number.isInteger(privacyRes?.data?.pending_count) ? privacyRes.data.pending_count : null);
     } catch (error) {
       toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Could not refresh admin data');
     } finally {
@@ -177,6 +183,7 @@ function AdminPage() {
     { id: 'audit', label: 'Audit Log', short: 'Audit Log', icon: ShieldCheck, description: 'Review important admin actions and keep receipts for live-site changes.' },
     { id: 'character-audit', label: 'Character Audit', short: 'Audit', icon: FlaskConical, description: 'Check builder and sheet rules readiness.' },
     { id: 'feedback', label: `Feedback (${overview.new_feedback_count || 0})`, short: 'Feedback', icon: MessageSquare, description: 'Review user feedback and mark what needs action.' },
+    { id: 'privacy-rights', label: `Privacy Requests (${privacyPending ?? '?'})`, short: 'Privacy', icon: ShieldCheck, description: 'Review user data-access, correction and deletion requests privately.' },
     { id: 'reviews', label: `Reviews (${reviews.length})`, short: 'Reviews', icon: Star, description: 'Approve or hide public user reviews.' },
     { id: 'rules', label: 'Rule Systems', short: 'Rules', icon: BookOpen, description: 'Manage rule-system records used by the app.' },
     { id: 'templates', label: 'Templates', short: 'Templates', icon: Users, description: 'Control premade character templates.' },
@@ -249,6 +256,7 @@ function AdminPage() {
           <StatCard label="Draft Updates" value={stats.draftUpdates} icon={ClipboardList} tone={stats.draftUpdates > 0 ? 'hot' : 'normal'} />
           <StatCard label="Archived Updates" value={stats.archivedUpdates} icon={Archive} />
           <StatCard label="New Feedback" value={stats.newFeedback} icon={MessageSquare} tone={stats.newFeedback > 0 ? 'hot' : 'normal'} />
+          <StatCard label="Privacy Requests" value={privacyPending ?? '—'} icon={ShieldCheck} tone={privacyPending > 0 ? 'hot' : 'normal'} />
           <StatCard label="Active Feedback" value={stats.activeFeedback} icon={Activity} tone={stats.activeFeedback > 0 ? 'hot' : 'normal'} />
           <StatCard label="New Testing" value={stats.newTesting} icon={ClipboardList} tone={stats.newTesting > 0 ? 'hot' : 'normal'} />
           <StatCard label="Active Testing" value={stats.activeTesting} icon={FlaskConical} tone={stats.activeTesting > 0 ? 'hot' : 'normal'} />
@@ -322,6 +330,7 @@ function AdminPage() {
           {activeTab === 'audit' && <AdminAuditLogTab />}
           {activeTab === 'character-audit' && <AdminCharacterAuditTab />}
           {activeTab === 'feedback' && <AdminFeedbackTab />}
+          {activeTab === 'privacy-rights' && <AdminPrivacyRequestsTab />}
           {activeTab === 'reviews' && <ReviewsPanel reviews={reviews} busyId={reviewBusyId} onToggleReview={handleToggleReview} onDeleteReview={handleDeleteReview} />}
           {activeTab === 'rules' && <RuleSystemManager />}
           {activeTab === 'templates' && <div className="admin-mission-control-page__templates-panel" style={adminPanelStyle}><div style={{ marginBottom: 16 }}><h2 style={{ color: theme.gold, fontSize: 18, fontWeight: 800, margin: 0 }}>Premade Character Templates</h2><p style={{ color: theme.text.muted, fontSize: 12, marginTop: 4 }}>Toggle visibility, clone to homebrew, or delete custom templates. Core templates ship with the app and can only be hidden.</p></div><TemplateEditor /></div>}

@@ -3,6 +3,7 @@ from routes.auth import router as auth_router
 from routes.auth_login_fast import router as auth_login_fast_router, remove_legacy_auth_login_route
 from routes.admin_feedback import router as admin_feedback_router
 from routes.admin import router as admin_router
+from routes.privacy_rights import router as privacy_rights_router
 from routes.custom_creatures import router as custom_creatures_router, remove_legacy_custom_creature_routes
 from routes.site_updates import router as site_updates_router
 from routes.admin_audit import router as admin_audit_router
@@ -92,6 +93,8 @@ all_routers = [
     # other account endpoint unchanged.
     auth_login_fast_router,
     auth_router,
+    # Authenticated privacy request intake and strictly admin-only review.
+    privacy_rights_router,
     # Register focused admin feedback reads before the legacy admin router so
     # separated feedback/testing list and export endpoints take precedence.
     admin_feedback_router,
