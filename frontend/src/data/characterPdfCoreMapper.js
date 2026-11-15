@@ -1,5 +1,5 @@
 /**
- * Page-1 field values for Rookie Quest Keeper's editable character PDFs.
+ * Page-1 field values for Rookie Quest Keeper's V7 editable character PDFs.
  * Draft, not routed into the live application (#906).
  *
  * The caller MUST already have checked access to this character.
@@ -173,8 +173,15 @@ export function mapCharacterPageOne(character, options = {}) {
     overflow.push({ field: 'attacks', value: attacks.slice(5) });
   }
   if (!attacks.length) warnings.push('No validated attack profiles supplied.');
-  for (const key of ['action', 'bonus_action', 'reaction']) {
-    put('combat.quick.' + key, options.quickActions?.[key]);
-  }
+  // V7 removed page-one quick-action fields: character actions now belong to
+  // dedicated page two. This is only an at-a-glance effect/defence summary.
+  const concentration = character.concentrating_on || character.concentration;
+  put('combat.concentration_summary', typeof concentration === 'string'
+    ? concentration : nameOf(concentration));
+  const resistances = character.resistances;
+  const defenceSummary = options.combatNotes?.defencesSummary
+    ?? (Array.isArray(resistances) ? resistances.map(nameOf).join(', ')
+      : typeof resistances === 'string' ? resistances : '');
+  put('combat.defences_summary', defenceSummary);
   return { edition, values, overflow, warnings, exportReady: overflow.length === 0 };
 }
