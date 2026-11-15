@@ -397,7 +397,26 @@ function NPCGridDisplay({ payload, target }) {
     </section>
   );
 }
-function NPCCard({ npc, target, compact = false }) { return <article className="rqk-player-display__npc-card" style={npcCardStyle(target)}>{npc.image_url ? <img src={npc.image_url} alt={npc.name} style={npcImageStyle(target)} /> : <div style={npcInitialStyle(target)}>{String(npc.name || '?').slice(0, 1).toUpperCase()}</div>}<div className="rqk-player-display__npc-info" style={npcInfoStyle(target)}><h2 style={npcNameStyle(target)}>{npc.name || 'Unknown Figure'}</h2>{npc.subtitle && <p style={npcSubStyle(target)}>{npc.subtitle}</p>}{npc.description && !isTable(target) && !compact && <p style={npcDescriptionStyle}>{npc.description}</p>}</div></article>; }
+function NPCCard({ npc, target, compact = false }) {
+  return (
+    <article className="rqk-player-display__npc-card" style={npcCardStyle(target)}>
+      <div className="rqk-player-display__npc-portrait" aria-label={npc.name || 'NPC portrait'}>
+        <DisplayHexPortrait
+          imageUrl={npc.image_url}
+          name={npc.name || 'Unknown Figure'}
+          tone="cool"
+          size={isTable(target) ? (compact ? 72 : 112) : (compact ? 125 : 205)}
+          animated
+        />
+      </div>
+      <div className="rqk-player-display__npc-info" style={npcInfoStyle(target)}>
+        <h2 style={npcNameStyle(target)}>{npc.name || 'Unknown Figure'}</h2>
+        {npc.subtitle && <p style={npcSubStyle(target)}>{npc.subtitle}</p>}
+        {npc.description && !isTable(target) && !compact && <p style={npcDescriptionStyle}>{npc.description}</p>}
+      </div>
+    </article>
+  );
+}
 
 function BattleStartDisplay({ target }) {
   return (

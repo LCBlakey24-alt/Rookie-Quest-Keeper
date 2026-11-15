@@ -12,6 +12,16 @@ describe('DisplayHexPortrait', () => {
     expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
   });
 
+  test('animated NPC rim leaves the portrait outside the rotating group', () => {
+    const { container, getByTestId } = render(<DisplayHexPortrait imageUrl="/npc.png" name="NPC" animated />);
+    const rim = container.querySelector('.rqk-display-hex__rotating-frame');
+    expect(getByTestId('display-hex-portrait')).toHaveAttribute('data-animated', 'true');
+    expect(rim).not.toBeNull();
+    expect(rim.querySelector('image')).toBeNull();
+    expect(container.querySelector('image').getAttribute('clip-path')).toMatch(/portrait-clip/);
+    expect(container.querySelector('.rqk-display-hex__ring')).toBeNull();
+  });
+
   test('shows initials without artwork', () => {
     const { container } = render(<DisplayHexPortrait name="Mira Vale" />);
     expect(container.querySelector('text')).toHaveTextContent('MV');
