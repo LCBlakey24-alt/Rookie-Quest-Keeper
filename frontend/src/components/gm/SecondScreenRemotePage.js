@@ -1,12 +1,12 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import TiaKartaSecondScreenQuickRemote from '@/components/gm/TiaKartaSecondScreenQuickRemote';
+import SecondScreenQuickRemote from '@/components/gm/SecondScreenQuickRemote';
 
 export default function SecondScreenRemotePage() {
   const { campaignId } = useParams();
   return (
     <main style={pageStyle} data-testid="second-screen-remote-page">
-      <TiaKartaSecondScreenQuickRemote campaignId={campaignId} />
+      <SecondScreenQuickRemote campaignId={campaignId} />
     </main>
   );
 }

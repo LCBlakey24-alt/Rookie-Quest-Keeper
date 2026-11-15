@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { createDiceTray } from '@/components/dice3d/diceTrayScene';
 import { getDye } from '@/components/dice3d/diceDyes';
 import DiceTray3DOverlay from './DiceTray3DOverlay';
@@ -61,5 +61,15 @@ describe('3D dice dye materials and fresh throws', () => {
     const nextPalette = createDiceTray.mock.calls[afterFirst][0].palette;
     expect(nextPalette.body).toBe(getDye('garnet').body);
     expect(nextPalette.ink).toBe(getDye('garnet').ink);
+  });
+
+  test('does not apply critical styling until the result is revealed', () => {
+    const view = render(<DiceTray3DOverlay {...baseProps} isCrit />);
+    const panel = screen.getByTestId('dice-tray-overlay').querySelector('.rq-dice-tray__panel');
+    expect(panel).not.toHaveClass('is-crit');
+
+    view.rerender(<DiceTray3DOverlay {...baseProps} isCrit isRevealed />);
+    expect(panel).toHaveClass('is-crit');
+    expect(panel).toHaveClass('is-revealed');
   });
 });

@@ -9,6 +9,7 @@ import { characterRulesEdition } from '../../data/characterSpellListRules';
 import { resourceActionCards, resourceValue } from '../../data/actionEconomyCards';
 import CombatSpellActionCard from './CombatSpellActionCard';
 import UsesLeftPanel from './UsesLeftPanel';
+import { castableSpells } from '../hex-sheet/magicModel';
 import { resourceAdjustUpdate, slotAdjustUpdate, spellSlotRows } from '../../data/spentResourceRestore';
 import { ActionSection, AttackCard, SimpleActionCard, VariableResourceActionCard } from './CleanCombatTabCards';
 import {
@@ -82,23 +83,20 @@ function normaliseSpell(spell, fallbackLevel = null, source = '') {
   };
 }
 
+/**
+ * The spells Combat offers: exactly the Magic wheel's castable spells (one
+ * shared list), so names are filled in from the built-in spells before their
+ * level or casting time is decided, a Wizard's unprepared spellbook is left
+ * out, and a spell known through two classes keeps one copy per class.
+ */
 function gatherCharacterSpells(character = {}) {
-  const spellSources = [
-    [character?.cantrips_known || character?.cantrips, 0, 'Cantrip'],
-    [character?.spells_prepared || character?.prepared_spells, null, 'Prepared Spell'],
-    [character?.spells_known || character?.known_spells || character?.spellbook, null, 'Known Spell'],
-  ];
-  const seen = new Set();
-
-  return spellSources
-    .flatMap(([spells, fallbackLevel, source]) => toArray(spells).map((spell) => normaliseSpell(spell, fallbackLevel, source)))
-    .filter(Boolean)
-    .filter((spell) => {
-      const key = normalizeName(spell.name);
-      if (!key || seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+  return castableSpells(character).map((spell) => {
+    const normalised = normaliseSpell(spell, spell.level, spell.level === 0 ? 'Cantrip' : 'Spell');
+    // The built-in list has no casting-time field, but its reaction and
+    // bonus-action spells say so first ("Reaction: +5 AC ...").
+    const lead = /^\s*(reaction|bonus action)\b/i.exec(normalised.description || '');
+    return { ...normalised, key: spell.key, castingTime: normalised.castingTime || (lead ? lead[1] : '') };
+  });
 }
 
 function normaliseFeature(feature) {
@@ -154,7 +152,8 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   characterRef.current = character;
   // The host's latest state when it has one: this tab may have closed by the
   // time an Undo is pressed, and its own copy stops updating then.
-  const latest = () => getLatestCharacter?.() || characterRef.current;
+  // null once the sheet this tab belonged to has closed: old Undos then do nothing.
+  const latest = () => (getLatestCharacter ? getLatestCharacter() : characterRef.current);
 
   const strengthMod = mod(character?.strength);
   const dexterityMod = mod(character?.dexterity);
@@ -237,6 +236,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
     if (!known || !onCharacterUpdate) return;
     // With a host that keeps the latest state, count from that (this tab may
     // have closed since the spend being undone).
+    if (getLatestCharacter && !latest()) return;
     const resource = getLatestCharacter ? resourceValue(latest(), known) : known;
     const change = resourceAdjustUpdate(latest(), resource, delta);
     if (!change) return;
@@ -259,6 +259,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
   // Spend or give back one spell slot of a level (or a Pact Magic slot).
   const adjustSlot = async (slot, delta) => {
     if (!onCharacterUpdate) return false;
+    if (!latest()) return false;
     const updates = slotAdjustUpdate(latest(), slot, delta);
     if (!updates) return false;
     // Pact Magic is also a class resource: drop any draft of it so both read the saved value.
@@ -311,6 +312,10 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
 
   const castSpell = async (spell, explicitOption = null) => {
     const spellName = spell.name || 'Spell';
+    if (spell.level === null || spell.level === undefined) {
+      toast.error(`Set ${spellName}'s level in Manage spells before casting it.`);
+      return;
+    }
     const cast = buildCharacterSpellCastUpdate(character, spell, { explicitOption });
 
     if (!cast.ok) {
@@ -397,7 +402,7 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
 
   const spellCards = (spellList, typeLabel) => spellList.map((spell) => (
     <CombatSpellActionCard
-      key={`${typeLabel}-${spell.name}`}
+      key={`${typeLabel}-${spell.key || spell.name}`}
       character={character}
       spell={spell}
       typeLabel={typeLabel}
