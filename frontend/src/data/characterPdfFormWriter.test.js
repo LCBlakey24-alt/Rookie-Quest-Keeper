@@ -20,8 +20,16 @@ function mockedPDF(title='Rookie Quest Keeper - Interactive Character Sheet (202
   const form={
     getFields:jest.fn(()=>fields),
     getField:jest.fn(name=>byName.get(name)),
-    getTextField:jest.fn(name=>byName.get(name)),
-    getCheckBox:jest.fn(name=>byName.get(name)),
+    getTextField:jest.fn(name=>{
+      const field=byName.get(name);
+      if(!(field instanceof MockPDFTextField))throw new Error('Not a text field');
+      return field;
+    }),
+    getCheckBox:jest.fn(name=>{
+      const field=byName.get(name);
+      if(!(field instanceof MockPDFCheckBox))throw new Error('Not a checkbox');
+      return field;
+    }),
     updateFieldAppearances:jest.fn(),
     flatten:jest.fn(),
   };
