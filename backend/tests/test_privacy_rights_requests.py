@@ -90,7 +90,7 @@ def test_member_can_open_request_and_only_view_their_own_records(monkeypatch):
     response = run(routes.create_privacy_request(request(details='Please provide a copy.'), username='owner'))
     assert response['request']['status'] == 'received'
     assert response['request']['request_type'] == 'access'
-    assert 'completed' not in response['message']
+    assert 'not a decision or completed action' in response['message']
     assert collection.docs[0]['username'] == 'owner'
     run(routes.create_privacy_request(request(request_type='deletion'), username='another'))
 
@@ -143,7 +143,12 @@ def test_admin_can_review_but_internal_notes_never_reach_requester(monkeypatch):
     run(routes.update_admin_privacy_request(
         request_id, routes.PrivacyRightsRequestUpdate(status='responded'), username='administrator',
     ))
-    assert run(routes.list_my_privacy_requests(username='owner'))[0]['responded_at']
+    responded_at = run(routes.list_my_privacy_requests(username='owner'))[0]['responded_at']
+    assert responded_at
+    run(routes.update_admin_privacy_request(
+        request_id, routes.PrivacyRightsRequestUpdate(status='closed'), username='administrator',
+    ))
+    assert run(routes.list_my_privacy_requests(username='owner'))[0]['responded_at'] == responded_at
     admin = run(routes.list_admin_privacy_requests(username='administrator'))
     assert admin[0]['username'] == 'owner'
 

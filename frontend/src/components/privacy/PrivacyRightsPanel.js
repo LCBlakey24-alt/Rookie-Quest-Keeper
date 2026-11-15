@@ -94,7 +94,7 @@ export default function PrivacyRightsPanel({ username }) {
           placeholder="Briefly describe what you need. Do not include passwords, identification documents or private details about other people."
           disabled={submitting}
         />
-        <p className="rqk-rights-panel__hint">This feature records requests for review. We may need to verify your identity or contact you separately before disclosing or changing information. You can also contact the service operator through other available channels.</p>
+        <p className="rqk-rights-panel__hint">This feature records requests for review. We may need to verify your identity or contact you separately before disclosing or changing information. A verified public contact route for people who cannot sign in is still being prepared.</p>
         <button type="submit" disabled={submitting} className="rqk-rights-panel__primary" data-testid="privacy-rights-submit">
           <Send size={15} aria-hidden="true" />
           {submitting ? 'Sending request…' : 'Submit privacy request'}

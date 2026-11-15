@@ -129,8 +129,11 @@ async def update_admin_privacy_request(
         'public_note': payload.public_note.strip(),
         'updated_by': username,
         'updated_at': now,
-        'responded_at': now if payload.status == 'responded' else None,
     }
+    # Keep the first recorded response timestamp when a completed response is
+    # later archived as closed. A status edit must not erase the audit trail.
+    if payload.status == 'responded':
+        update['responded_at'] = now
     result = await db.privacy_rights_requests.update_one(
         {'id': request_id}, {'$set': update},
     )

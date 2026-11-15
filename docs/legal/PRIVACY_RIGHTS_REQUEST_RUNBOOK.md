@@ -36,4 +36,4 @@ Keeper users need a trustworthy way to request access, rectification, erasure, r
 - UK ICO right of access: https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/individual-rights/right-of-access/what-should-we-consider-when-responding-to-a-request/
 - California CPPA: https://cppa.ca.gov/
 
-Status: **partial implementation, draft PR only.** No production account data was changed to build or test this flow.
+Status: **partial technical implementation; operational launch blockers remain.** Deploying this workflow does not itself fulfil any request. No production account data was changed to build or test this flow.
