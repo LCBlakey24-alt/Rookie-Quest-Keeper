@@ -15,21 +15,27 @@ const info = {
   generic: 'Use a ready-to-play textured floor, no map upload required.',
   none: 'Use textured stone if no specific battlefield is prepared.',
 };
+// The battleground art is textured; its controls follow the app's flat
+// Neon Coast surfaces, fine borders and restrained inward glow.
+const choiceStyle = selected => ({
+  border: '1px solid rgba(201,210,230,.32)',
+  boxShadow: selected ? 'var(--guild-control-glow-hot, inset 0 0 9px rgba(255,176,102,.23))'
+    : 'var(--guild-control-glow, inset 0 0 7px rgba(79,179,255,.13))',
+  background: 'var(--guild-bg, #0A2342)',
+  color: 'var(--guild-text, #FFFFFF)',
+  cursor: 'pointer',
+});
 const tileButton = selected => ({
-  display: 'grid', gap: 6, padding: 7, minWidth: 0, textAlign: 'left',
-  border: selected ? '2px solid #ef8534' : '1px solid rgba(160,180,197,.32)',
-  borderRadius: 8, color: 'var(--rq-text-primary, #f0eadc)',
-  background: 'var(--rq-card, #10273b)', cursor: 'pointer',
+  ...choiceStyle(selected),
+  display: 'grid', gap: 6, padding: 7, minWidth: 0, textAlign: 'left', borderRadius: 6,
 });
 const previewStyle = texture => ({
-  minHeight: 68, borderRadius: 4, border: '1px solid rgba(255,255,255,.16)',
+  minHeight: 68, borderRadius: 4, border: '1px solid rgba(201,210,230,.25)',
   ...texture,
 });
 const modeStyle = selected => ({
-  cursor: 'pointer', fontSize: 13, padding: '10px 12px', minHeight: 44,
-  border: selected ? '2px solid #eb7c3b' : '1px solid rgba(160,180,197,.32)',
-  background: selected ? 'rgba(231,109,42,.13)' : 'var(--rq-card, #10273b)',
-  color: 'var(--rq-text-primary, #f0eadc)', borderRadius: 6,
+  ...choiceStyle(selected),
+  fontSize: 13, padding: '10px 12px', minHeight: 44, borderRadius: 6,
 });
 
 /**
@@ -54,7 +60,7 @@ export default function BattlefieldPicker({
     || selectedMap?.background_image || selectedMap?.image_url || selectedMap?.image_data || '';
   return (
     <section aria-label="Encounter battlefield" data-testid="battlefield-picker"
-      style={{ display: 'grid', gap: 11, color: 'var(--rq-text-primary, #f0eadc)' }}>
+      style={{ display: 'grid', gap: 11, color: 'var(--guild-text, #FFFFFF)' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 7 }}
         role="group" aria-label="Battlefield source">
         {[
@@ -74,7 +80,7 @@ export default function BattlefieldPicker({
           <label style={{ display: 'grid', gap: 5, fontSize: 12 }}>
             Campaign battle map
             <select aria-label="Saved battlefield map" value={mapId} onChange={event => onMapIdChange?.(event.target.value)}
-              style={{ width: '100%', padding: 10, background: '#122b42', color: '#f0eadc', border: '1px solid #6f8395', borderRadius: 6 }}>
+              style={{ width: '100%', padding: 10, background: 'var(--guild-bg, #0A2342)', color: 'var(--guild-text, #FFFFFF)', border: '1px solid rgba(201,210,230,.32)', borderRadius: 6 }}>
               <option value="">Use an uploaded map below, or choose a map</option>
               {maps.map(item => <option key={item.id} value={String(item.id)}>{item.name || 'Untitled map'}</option>)}
               {mapId && !selectedMap && <option value={mapId}>Previously linked map ({mapId})</option>}
