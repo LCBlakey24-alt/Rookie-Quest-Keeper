@@ -1,4 +1,5 @@
 import { mapFullCharacterPdfFields } from './characterPdfExtendedMapper';
+import { V7_FIELD_NAMES, V7_CHECKBOX_NAMES } from './characterPdfV7FieldSchema';
 
 const character = {
   id: 'self-owned-pc-1', name:'Mira Fenwalker', rules_edition:'2024',
@@ -137,4 +138,25 @@ test('action page does not expose GM-only notes or secretly assume abilities', (
   expect(JSON.stringify(result.values)).not.toContain(character.gm_notes);
   expect(result.values['actions.action.1.name']).toBeUndefined();
   expect(result.values['actions.reaction.1.name']).toBeUndefined();
+});
+
+test('every mapped value belongs to the exact V7 field contract with its expected type', () => {
+  const result=mapFullCharacterPdfFields({
+    ...character, concentrating_on:'Bless', resistances:['Cold'],
+    hit_dice:'2d8+3d10',death_saves_successes:1,exhaustion_level:2,
+  },{
+    attacks,quickActions:{action:'Attack',bonus_action:'Healing Word',reaction:'Shield'},
+    actions:[{name:'Attack',effect:'Strike twice'}],
+    bonusActions:[{name:'Healing Word'}],
+    reactions:[{name:'Shield',trigger:'When hit'}],
+    combatNotes:{defensiveFeatures:'Protection',extraAttacks:'Extra Attack'},
+    resources:[{name:'Channel Divinity',current:1,max:2,restore:'Short Rest'}],
+  });
+  expect(result.exportReady).toBe(true);
+  const valid=new Set(V7_FIELD_NAMES);
+  const checks=new Set(V7_CHECKBOX_NAMES);
+  for (const [key,value] of Object.entries(result.values)) {
+    expect(valid.has(key)).toBe(true);
+    expect(typeof value === 'boolean').toBe(checks.has(key));
+  }
 });
