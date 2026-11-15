@@ -19,14 +19,14 @@ const polar = (degrees, radius) => {
 };
 const hexPoints = (radius) => [0, 1, 2, 3, 4, 5].map((index) => polar(60 * index, radius).map((n) => n.toFixed(2)).join(',')).join(' ');
 
-function segmentPath(index, step) {
+function segmentPath(index, step, outer = RING_OUTER, inner = RING_INNER) {
   const start = index * step - step / 2;
   const end = start + step;
-  const [ax, ay] = polar(start, RING_OUTER);
-  const [bx, by] = polar(end, RING_OUTER);
-  const [cx, cy] = polar(end, RING_INNER);
-  const [dx, dy] = polar(start, RING_INNER);
-  return `M ${ax} ${ay} A ${RING_OUTER} ${RING_OUTER} 0 0 1 ${bx} ${by} L ${cx} ${cy} A ${RING_INNER} ${RING_INNER} 0 0 0 ${dx} ${dy} Z`;
+  const [ax, ay] = polar(start, outer);
+  const [bx, by] = polar(end, outer);
+  const [cx, cy] = polar(end, inner);
+  const [dx, dy] = polar(start, inner);
+  return `M ${ax} ${ay} A ${outer} ${outer} 0 0 1 ${bx} ${by} L ${cx} ${cy} A ${inner} ${inner} 0 0 0 ${dx} ${dy} Z`;
 }
 
 function buzz() {
@@ -68,6 +68,7 @@ function buzz() {
 export default function GuildChoiceWheel({
   options, value, onChange, label, caption, onConfirm,
   disabledIds = [], centreText, centreNote, confirmLabel = 'CONFIRM', confirmAria, compact = false, tickOnTurn = false,
+  innerOptions = [], innerValue, onInnerChange, confirmTestId = 'guild-choice-wheel-confirm',
 }) {
   const count = options.length;
   const step = 360 / Math.max(1, count);
@@ -81,12 +82,17 @@ export default function GuildChoiceWheel({
   const selectedIndex = Math.max(0, options.findIndex((option) => option.id === value));
 
   const [rotation, setRotation] = useState(() => rotationForOption(selectedIndex, 0, count));
+  const hasInnerRing = innerOptions.length > 0;
+  const coreRadius = hasInnerRing ? 23 : 48;
   const [preview, setPreview] = useState(selectedIndex);
   const [dragging, setDragging] = useState(false);
   const [glideMs, setGlideMs] = useState(0);
   const rotationRef = useRef(rotation);
   const svgRef = useRef(null);
+  const wheelTimer = useRef(null);
+  const commitRef = useRef(null);
   const drag = useRef(null);
+  const suppressNextClick = useRef(false);
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, '');
 
   const turnTo = (next) => {
@@ -120,6 +126,43 @@ export default function GuildChoiceWheel({
       onChange(options[index].id);
     }
   };
+
+  commitRef.current = commit;
+
+  // Native non-passive wheel handling: touchpads and mouse wheels rotate by
+  // real angular increments, just like pointer dragging. Only when input
+  // stops does the wheel ease onto its closest segment; no one-die jump.
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg || count < 2) return undefined;
+    const turnOnWheel = (event) => {
+      if (event.ctrlKey || !event.target.closest?.('[data-wheel-index]')) return;
+      const raw = event.deltaY || event.deltaX;
+      if (!raw) return;
+      event.preventDefault();
+      const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 800 : 1;
+      const delta = Math.max(-120, Math.min(120, raw * unit));
+      setGlideMs(0);
+      setDragging(true);
+      const next = rotationRef.current + delta * 0.22;
+      rotationRef.current = next;
+      setRotation(next);
+      setPreview(optionAtTop(next, count));
+      clearTimeout(wheelTimer.current);
+      wheelTimer.current = window.setTimeout(() => {
+        setDragging(false);
+        const targetIndex = optionAtTop(rotationRef.current, count);
+        const target = rotationForOption(targetIndex, rotationRef.current, count);
+        setGlideMs(200);
+        commitRef.current?.(targetIndex, target);
+      }, 140);
+    };
+    svg.addEventListener('wheel', turnOnWheel, { passive: false });
+    return () => {
+      svg.removeEventListener('wheel', turnOnWheel);
+      clearTimeout(wheelTimer.current);
+    };
+  }, [count]);
 
   const centreOf = () => {
     const box = svgRef.current.getBoundingClientRect();
@@ -173,6 +216,10 @@ export default function GuildChoiceWheel({
     if (!state || state.pointerId !== event.pointerId) return;
     drag.current = null;
     if (dragging) {
+      // A mobile drag synthesizes a click after pointerup. Ignore that click
+      // or it would reselect the touched wedge instead of the settled one.
+      suppressNextClick.current = true;
+      window.setTimeout(() => { suppressNextClick.current = false; }, 0);
       svgRef.current.releasePointerCapture?.(event.pointerId);
       setDragging(false);
       // Carry on with the flick's speed, then lock on the wedge it stops at.
@@ -209,11 +256,11 @@ export default function GuildChoiceWheel({
   };
 
   const shown = options[preview] || options[selectedIndex];
-  const name = centreText !== undefined && preview === selectedIndex ? String(centreText) : (shown?.label || '');
+  const name = hasInnerRing && centreText !== undefined ? String(centreText) : centreText !== undefined && preview === selectedIndex ? String(centreText) : (shown?.label || '');
   const nameClass = name.length > 9 ? ' is-long' : name.length > 6 ? ' is-medium' : '';
 
   return (
-    <div className={`guild-wheel${onConfirm ? ' has-confirm' : ''}${compact ? ' is-compact' : ''}`} data-testid="guild-choice-wheel">
+    <div className={`guild-wheel${onConfirm ? ' has-confirm' : ''}${compact ? ' is-compact' : ''}${hasInnerRing ? ' has-inner-ring' : ''}`} data-testid="guild-choice-wheel">
       <svg
         ref={svgRef}
         className={`guild-wheel__svg${dragging ? ' is-dragging' : ''}`}
@@ -226,13 +273,20 @@ export default function GuildChoiceWheel({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
+        onClickCapture={(event) => {
+          if (suppressNextClick.current) {
+            event.preventDefault();
+            event.stopPropagation();
+            suppressNextClick.current = false;
+          }
+        }}
         onKeyDown={onKeyDown}
       >
         <defs>
           {/* Soft light just inside an edge: a blurred stroke clipped to its own shape, so nothing spills outside. */}
           <filter id={`${uid}-blur`} x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.6" /></filter>
           <clipPath id={`${uid}-case`}><polygon points={hexPoints(R)} /></clipPath>
-          <clipPath id={`${uid}-core`}><polygon points={hexPoints(48)} /></clipPath>
+          <clipPath id={`${uid}-core`}><polygon points={hexPoints(coreRadius)} /></clipPath>
           {options.map((option, index) => (
             <clipPath key={option.id} id={`${uid}-seg-${index}`}><path d={segmentPath(index, step)} /></clipPath>
           ))}
@@ -255,6 +309,8 @@ export default function GuildChoiceWheel({
                 aria-disabled={isDisabled(index) || undefined}
                 className={`guild-wheel__segment${isSelected ? ' is-selected' : ''}${isPreview ? ' is-preview' : ''}${isDisabled(index) ? ' is-disabled' : ''}`}
                 style={{ '--wheel-order': index }}
+                data-testid={option.testId || undefined}
+                onClick={() => commit(index)}
               >
                 <path className="guild-wheel__face" d={segmentPath(index, step)} />
                 {/* Light blue inside every wedge; orange inside the one at the top. */}
@@ -263,7 +319,22 @@ export default function GuildChoiceWheel({
                 {/* Printed on the ring: the label turns with its segment, and
                     flips on the lower half so it always reads upright. */}
                 <g transform={`rotate(${index * step + (readsUpsideDown(index * step + rotation) ? 180 : 0)} ${lx} ${ly})`} aria-hidden="true">
-                  {option.short ? (
+                  {option.image && (
+                    <image
+                      className="guild-wheel__die-image"
+                      href={option.image}
+                      x={lx - 10}
+                      y={ly - 15}
+                      width="20"
+                      height="20"
+                      preserveAspectRatio="xMidYMid meet"
+                    />
+                  )}
+                  {option.image ? (
+                    <text className="guild-wheel__die-label" x={lx} y={ly + 10} textAnchor="middle" dominantBaseline="central">
+                      {option.short || option.label}
+                    </text>
+                  ) : option.short ? (
                     <text x={lx} y={option.pips ? ly - 4 : ly} textAnchor="middle" dominantBaseline="central">{option.short}</text>
                   ) : ringLabels[index].lines.map((line) => (
                     // Each line sits on its own radius, measured up the wedge's centre line.
@@ -299,11 +370,59 @@ export default function GuildChoiceWheel({
           })}
         </g>
         <path className="guild-wheel__pointer" d="M -7 -97 L 7 -97 L 0 -86 Z" aria-hidden="true" />
-        <polygon className="guild-wheel__core" points={hexPoints(48)} />
-        <polygon className="guild-wheel__glow guild-wheel__glow--core" points={hexPoints(48)} clipPath={`url(#${uid}-core)`} filter={`url(#${uid}-blur)`} />
+        {hasInnerRing && (
+          <g className="guild-wheel__inner-modes" aria-label="Roll mode">
+            {innerOptions.map((mode, index) => {
+              const [mx, my] = polar(index * (360 / innerOptions.length), 36);
+              const chosen = mode.id === innerValue;
+              return (
+                <g
+                  key={mode.id}
+                  role="button"
+                  tabIndex={mode.disabled ? -1 : 0}
+                  aria-pressed={chosen}
+                  aria-disabled={mode.disabled ? 'true' : undefined}
+                  aria-label={mode.label}
+                  data-testid={mode.testId || undefined}
+                  className={`guild-wheel__inner-mode${chosen ? ' is-selected' : ''}${mode.disabled ? ' is-disabled' : ''}`}
+                  onClick={() => { if (!mode.disabled) onInnerChange?.(mode.id); }}
+                  onKeyDown={(event) => {
+                    // Inner mode controls own their keys; Enter must not
+                    // bubble to the outer wheel and roll the die immediately.
+                    const direction = ['ArrowRight', 'ArrowDown'].includes(event.key) ? 1
+                      : ['ArrowLeft', 'ArrowUp'].includes(event.key) ? -1 : 0;
+                    if (direction) {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      let next = index;
+                      for (let tries = 0; tries < innerOptions.length; tries += 1) {
+                        next = (next + direction + innerOptions.length) % innerOptions.length;
+                        if (!innerOptions[next].disabled) {
+                          onInnerChange?.(innerOptions[next].id);
+                          break;
+                        }
+                      }
+                    } else if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      if (!mode.disabled) onInnerChange?.(mode.id);
+                    }
+                  }}
+                >
+                  <path d={segmentPath(index, 360 / innerOptions.length, 47, 25)} />
+                  <text x={mx} y={my} textAnchor="middle" dominantBaseline="central" aria-hidden="true">
+                    {mode.short || mode.label}
+                  </text>
+                </g>
+              );
+            })}
+          </g>
+        )}
+        <polygon className="guild-wheel__core" points={hexPoints(coreRadius)} />
+        <polygon className="guild-wheel__glow guild-wheel__glow--core" points={hexPoints(coreRadius)} clipPath={`url(#${uid}-core)`} filter={`url(#${uid}-blur)`} />
         {caption && <text className="guild-wheel__caption" x="0" y="-18" textAnchor="middle" aria-hidden="true">{caption}</text>}
-        <text className={`guild-wheel__name${nameClass}`} x="0" y={caption ? 6 : 0} textAnchor="middle" dominantBaseline="central" aria-hidden="true">{name}</text>
-        {onConfirm && <text className="guild-wheel__confirm-label" x="0" y="27" textAnchor="middle" aria-hidden="true">{confirmLabel}</text>}
+        <text className={`guild-wheel__name${nameClass}${hasInnerRing ? ' is-inner-centre' : ''}`} x="0" y={caption ? 6 : 0} textAnchor="middle" dominantBaseline="central" aria-hidden="true">{name}</text>
+        {onConfirm && !hasInnerRing && <text className="guild-wheel__confirm-label" x="0" y="27" textAnchor="middle" aria-hidden="true">{confirmLabel}</text>}
         {!onConfirm && centreNote && <text className="guild-wheel__note" x="0" y="28" textAnchor="middle" aria-hidden="true">{centreNote}</text>}
       </svg>
       {/* The centre hexagon as a real button laid over the drawing, so it is
@@ -314,7 +433,7 @@ export default function GuildChoiceWheel({
           className="guild-wheel__confirm"
           onClick={() => onConfirm(options[selectedIndex].id)}
           aria-label={confirmAria || `Confirm ${options[selectedIndex].label}`}
-          data-testid="guild-choice-wheel-confirm"
+          data-testid={confirmTestId}
         />
       )}
       <p className="guild-wheel__status" role="status" aria-live="polite" data-testid="guild-choice-wheel-status">

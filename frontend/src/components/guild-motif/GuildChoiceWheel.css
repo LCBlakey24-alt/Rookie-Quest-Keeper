@@ -95,3 +95,43 @@ html body #root .guild-wheel__svg:focus-visible { outline: none !important; box-
 /* Dots under a wedge label (spell slots left at that level). */
 .guild-wheel__pip { fill: none; stroke: var(--_muted); stroke-width: 0.8; pointer-events: none; }
 .guild-wheel__pip.is-lit { fill: var(--_hi); stroke: var(--_hi); }
+
+
+/* Optional dice presentation: actual 3D snapshots sit *inside* the same
+   rotating segments as their labels. The whole ring rotates continuously. */
+.guild-wheel__die-image { pointer-events: none; }
+.guild-wheel__segment text.guild-wheel__die-label {
+  font-size: 5.1px;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+.guild-wheel__inner-modes { isolation: isolate; }
+.guild-wheel__inner-mode { outline: none; cursor: pointer; }
+.guild-wheel__inner-mode path {
+  fill: var(--_bg);
+  stroke: var(--guild-stroke-cool, var(--_cool));
+  stroke-width: 0.6;
+  stroke-opacity: 0.6;
+}
+.guild-wheel__inner-mode text {
+  fill: var(--_muted);
+  font: 800 5.5px/1 var(--rq-font-sans, Inter, sans-serif);
+  pointer-events: none;
+}
+.guild-wheel__inner-mode.is-selected path {
+  fill: rgba(var(--_accent-rgb), 0.17);
+  stroke: var(--guild-stroke-hot, var(--_hi));
+  stroke-width: 0.9;
+  stroke-opacity: 1;
+}
+.guild-wheel__inner-mode.is-selected text { fill: var(--_text); }
+.guild-wheel__inner-mode.is-disabled { opacity: 0.27; cursor: not-allowed; }
+.guild-wheel__inner-mode:focus-visible path { stroke: #fff; stroke-width: 1.4; }
+.guild-wheel.has-inner-ring .guild-wheel__core,
+.guild-wheel.has-inner-ring .guild-wheel__glow--core { pointer-events: none; }
+.guild-wheel__name.is-inner-centre { font-size: 9px; }
+html body #root .guild-wheel.has-inner-ring button.guild-wheel__confirm,
+.guild-wheel.has-inner-ring button.guild-wheel__confirm {
+  width: min(22%, 100px) !important;
+  top: calc(50% - 2px);
+}

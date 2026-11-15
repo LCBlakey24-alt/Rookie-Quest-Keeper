@@ -20,8 +20,8 @@ import { shapeForSides } from './diceShapes';
  * WebGL context, and hidden meshes make changing dye instant without showing
  * nine cramped dice at once.
  */
-export function createDiceDyeGallery({ canvas, dyes, sides = 20, layout = 'wheel' }) {
-  const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true });
+export function createDiceDyeGallery({ canvas, dyes, sides = 20, layout = 'wheel', snapshot = false }) {
+  const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true, preserveDrawingBuffer: snapshot });
   renderer.setClearColor(0x000000, 0);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = SRGBColorSpace;

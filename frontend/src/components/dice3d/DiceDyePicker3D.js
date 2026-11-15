@@ -1,143 +1,71 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
+import GuildChoiceWheel from '@/components/guild-motif/GuildChoiceWheel';
 import { DICE_DYES } from './diceDyes';
 import { createDiceDyeGallery } from './diceDyeGallery';
 
-function DyeButtons({ selectedId, onSelect, fallback = false }) {
-  const selectedIndex = Math.max(0, DICE_DYES.findIndex((dye) => dye.id === selectedId));
-  return (
-    <div className={fallback ? 'rq-floating-dice__swatches' : 'rq-dye-gallery__buttons'}>
-      {DICE_DYES.map((dye, index) => (
-        <button
-          key={dye.id}
-          type="button"
-          className={fallback ? 'rq-floating-dice__swatch' : 'rq-dye-gallery__option'}
-          data-rq-colour-swatch="true"
-          data-testid={`dice-dye-${dye.id}`}
-          aria-pressed={selectedId === dye.id}
-          aria-label={dye.name}
-          title={dye.name}
-          style={{
-            '--swatch-body': dye.body,
-            '--swatch-ink': dye.ink,
-            '--dye-angle': `${(index - selectedIndex) * (360 / DICE_DYES.length)}deg`,
-          }}
-          onClick={() => onSelect(dye.id)}
-        >
-          {fallback ? <span aria-hidden="true">20</span> : <span aria-hidden="true">20</span>}
-        </button>
-      ))}
-    </div>
-  );
+// Keep the wheel usable on devices without WebGL. The normal preview is a
+// captured image of the real 3D die, rendered using ONE temporary GPU context.
+function fallbackDieImage(dye) {
+  const artwork = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+    <polygon points="50,4 91,26 91,74 50,96 9,74 9,26" fill="${dye.edge}" stroke="${dye.edge}" stroke-width="3"/>
+    <polygon points="50,12 82,29 82,69 50,89 18,69 18,29" fill="${dye.body}"/>
+    <path d="M50 12 L50 89 M18 29 L82 69 M82 29 L18 69" fill="none" stroke="${dye.edge}" stroke-width="3" opacity=".65"/>
+    <text x="50" y="55" text-anchor="middle" fill="${dye.ink}" font-family="Arial,sans-serif" font-size="28" font-weight="bold">20</text>
+  </svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(artwork)}`;
 }
-
-export function DiceDyePickerFallback({ selectedId, onSelect }) {
-  return <DyeButtons selectedId={selectedId} onSelect={onSelect} fallback />;
-}
+const FALLBACK_IMAGES = Object.fromEntries(DICE_DYES.map(dye => [dye.id, fallbackDieImage(dye)]));
 
 export default function DiceDyePicker3D({ selectedId, onSelect, onConfirm }) {
-  const frameRef = useRef(null);
-  const canvasRef = useRef(null);
-  const galleryRef = useRef(null);
-  const [failed, setFailed] = useState(false);
-  const pointerStartRef = useRef(null);
-  const selectedIndex = useMemo(
-    () => Math.max(0, DICE_DYES.findIndex((dye) => dye.id === selectedId)),
-    [selectedId],
-  );
-  const step = (direction) => {
-    const index = (selectedIndex + direction + DICE_DYES.length) % DICE_DYES.length;
-    onSelect(DICE_DYES[index].id);
-  };
-
-  const handleWheel = (event) => {
-    if (Math.abs(event.deltaY) < 4 && Math.abs(event.deltaX) < 4) return;
-    event.preventDefault();
-    step((event.deltaY || event.deltaX) > 0 ? 1 : -1);
-  };
-
-  const handlePointerDown = (event) => {
-    pointerStartRef.current = { x: event.clientX, y: event.clientY };
-    event.currentTarget.setPointerCapture?.(event.pointerId);
-  };
-
-  const handlePointerUp = (event) => {
-    const start = pointerStartRef.current;
-    pointerStartRef.current = null;
-    if (!start) return;
-    const dx = event.clientX - start.x;
-    const dy = event.clientY - start.y;
-    const distance = Math.abs(dx) > Math.abs(dy) ? dx : dy;
-    if (Math.abs(distance) >= 24) step(distance < 0 ? 1 : -1);
-  };
+  const [previews, setPreviews] = useState(FALLBACK_IMAGES);
+  const options = useMemo(() => DICE_DYES.map((dye) => ({
+    id: dye.id,
+    label: dye.name,
+    short: dye.name === 'Neon Coast' ? 'Neon' : dye.name.split(' ')[0],
+    testId: `dice-dye-${dye.id}`,
+    image: previews[dye.id],
+  })), [previews]);
 
   useEffect(() => {
-    const frame = frameRef.current;
-    const canvas = canvasRef.current;
-    if (!frame || !canvas) return undefined;
-
+    let cancelled = false;
     let gallery;
     try {
-      gallery = createDiceDyeGallery({ canvas, dyes: DICE_DYES });
+      const canvas = document.createElement('canvas');
+      // Don't allocate a separate WebGL context for every dice wedge.
+      // Capture nine images from one shared, short-lived renderer.
+      gallery = createDiceDyeGallery({
+        canvas, dyes: DICE_DYES, sides: 20, layout: 'single', snapshot: true,
+      });
+      gallery.resize(136, 136);
+      const images = {};
+      DICE_DYES.forEach((dye) => {
+        gallery.select(dye.id);
+        const data = canvas.toDataURL('image/png');
+        images[dye.id] = data && data.startsWith('data:image/png') ? data : FALLBACK_IMAGES[dye.id];
+      });
+      if (!cancelled) setPreviews(images);
     } catch {
-      setFailed(true);
-      return undefined;
+      // A 2D die image is deliberately available even on older Android GPUs.
+    } finally {
+      gallery?.dispose();
     }
-    galleryRef.current = gallery;
-    gallery.select(selectedId);
-
-    const resize = () => {
-      const { width, height } = frame.getBoundingClientRect();
-      gallery.resize(width, height);
-    };
-    resize();
-    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null;
-    observer?.observe(frame);
-    window.addEventListener('resize', resize);
-
-    return () => {
-      observer?.disconnect();
-      window.removeEventListener('resize', resize);
-      gallery.dispose();
-      galleryRef.current = null;
-    };
+    return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    galleryRef.current?.select(selectedId);
-  }, [selectedId]);
-
-  if (failed) return <DiceDyePickerFallback selectedId={selectedId} onSelect={onSelect} />;
-
   return (
-    <div
-      className="rq-dye-gallery"
-      ref={frameRef}
-      data-testid="dice-dye-gallery-3d"
-      tabIndex="0"
-      aria-label="Turn the 3D dice style wheel"
-      onWheel={handleWheel}
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={() => { pointerStartRef.current = null; }}
-      onKeyDown={(event) => {
-        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-          event.preventDefault();
-          step(1);
-        }
-        if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-          event.preventDefault();
-          step(-1);
-        }
-      }}
-    >
-      <canvas ref={canvasRef} className="rq-dye-gallery__canvas" aria-hidden="true" />
-      <DyeButtons selectedId={selectedId} onSelect={onSelect} />
-      <button type="button" className="rq-dye-gallery__name" data-testid="dice-dye-confirm" onClick={onConfirm}>
-        <span>CHOOSE STYLE</span>
-        <strong>{DICE_DYES.find((dye) => dye.id === selectedId)?.name || 'Dice style'}</strong>
-      </button>
+    <div className="rq-dice-style-wheel" data-testid="dice-dye-gallery-3d">
+      <GuildChoiceWheel
+        options={options}
+        value={selectedId}
+        onChange={onSelect}
+        onConfirm={onConfirm}
+        label="Choose the 3D dice material"
+        caption="DICE STYLE"
+        confirmLabel="CHOOSE"
+        confirmAria="Choose dice style"
+        confirmTestId="dice-dye-confirm"
+      />
     </div>
   );
 }
-

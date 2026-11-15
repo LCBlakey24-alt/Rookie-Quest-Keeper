@@ -3,11 +3,6 @@ import { fireEvent, render, screen } from '@testing-library/react';
 
 import GlobalDiceSelectionWheel from './GlobalDiceSelectionWheel';
 
-jest.mock('./DiceTypePreview3D', () => ({
-  __esModule: true,
-  default: ({ sides, dyeId }) => <div data-testid="die-type-preview">d{sides}:{dyeId}</div>,
-}));
-
 function Harness() {
   const [sides, setSides] = React.useState(20);
   const [mode, setMode] = React.useState('normal');
@@ -29,7 +24,7 @@ function Harness() {
 describe('global dice selection wheel', () => {
   test('starts with d20 at the active top position', () => {
     render(<Harness />);
-    expect(screen.getByTestId('select-d20-btn')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('select-d20-btn')).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByTestId('roll-d20-btn')).toHaveAccessibleName('Roll d20');
   });
 
@@ -60,16 +55,52 @@ describe('global dice selection wheel', () => {
         dyeId="amber"
       />,
     );
-    expect(screen.getByTestId('roll-advantage-btn')).toBeDisabled();
-    expect(screen.getByTestId('roll-disadvantage-btn')).toBeDisabled();
+    expect(screen.getByTestId('roll-advantage-btn')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByTestId('roll-disadvantage-btn')).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  test('keeps all seven dice on one rotating outer ring with a separate inner mode ring', () => {
+    render(<Harness />);
+    expect(screen.getByTestId('global-dice-wheel').querySelectorAll('[data-wheel-index]')).toHaveLength(7);
+    expect(screen.getByTestId('global-dice-wheel').querySelectorAll('.guild-wheel__inner-mode')).toHaveLength(3);
+    fireEvent.click(screen.getByTestId('roll-advantage-btn'));
+    expect(screen.getByTestId('roll-advantage-btn')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('roll-d20-btn')).toHaveAccessibleName('Roll d20 with advantage');
+  });
+
+  test('non-d20 cannot enable advantage; the centre remains the only roll confirmation', () => {
+    const onRoll = jest.fn();
+    const handleChange = jest.fn();
+    render(<GlobalDiceSelectionWheel
+      selectedSides={6} onSidesChange={() => {}}
+      rollMode="normal" onRollModeChange={handleChange}
+      onRoll={onRoll} dyeId="glow"
+    />);
+    fireEvent.click(screen.getByTestId('roll-advantage-btn'));
+    expect(handleChange).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId('roll-d6-btn'));
+    expect(onRoll).toHaveBeenCalledTimes(1);
+  });
+
+  test('keyboard choosing an inner roll mode cannot accidentally fire the centre Roll', () => {
+    const onRoll = jest.fn();
+    const onMode = jest.fn();
+    render(<GlobalDiceSelectionWheel
+      selectedSides={20} onSidesChange={() => {}}
+      rollMode="normal" onRollModeChange={onMode}
+      onRoll={onRoll} dyeId="glow"
+    />);
+    fireEvent.keyDown(screen.getByTestId('roll-advantage-btn'), { key: 'Enter' });
+    expect(onMode).toHaveBeenCalledWith('advantage');
+    expect(onRoll).not.toHaveBeenCalled();
   });
 
   test('offers explicit previous and next controls for keyboard users', () => {
     render(<Harness />);
     fireEvent.click(screen.getByRole('button', { name: 'Next die' }));
-    expect(screen.getByTestId('select-d100-btn')).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByTestId('die-type-preview')).toHaveTextContent('d100:amber');
+    expect(screen.getByTestId('select-d100-btn')).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByTestId('roll-d100-btn')).toHaveAccessibleName('Roll d100');
     fireEvent.click(screen.getByRole('button', { name: 'Previous die' }));
-    expect(screen.getByTestId('select-d20-btn')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('select-d20-btn')).toHaveAttribute('aria-checked', 'true');
   });
 });

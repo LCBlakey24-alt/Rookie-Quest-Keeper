@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { Bell, CheckCircle2, Dices, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -129,6 +130,7 @@ export default function FloatingDiceRoller() {
   const [selectedSides, setSelectedSides] = useState(20);
   const [rollMode, setRollMode] = useState('normal');
   const [pickerStage, setPickerStage] = useState('style');
+  const [wheelPosition, setWheelPosition] = useState(null);
   const [history, setHistory] = useState([]);
   const [rollFlicker, setRollFlicker] = useState(null);
   const [playerContext, setPlayerContext] = useState(null);
@@ -191,6 +193,44 @@ export default function FloatingDiceRoller() {
     const unsubscribeRemote = subscribeRemoteDisplayState(campaignId, setDisplayState);
     return () => { unsubscribeLocal(); unsubscribeRemote(); };
   }, [playerContext?.campaignId]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const positionWheel = () => {
+      // From Home, the dice replace the *same* hexagon in exactly the same
+      // spot. Elsewhere, they appear as a hexagonal wheel centred on screen.
+      const anchor = document.querySelector('.rqk-home-hub .hex-wheel') ||
+        document.querySelector('.hex-sheet__wheel-anchor .hex-wheel');
+      const bounds = anchor?.getBoundingClientRect();
+      // Landscape phones have little height. Scale the wheel *as a whole*
+      // instead of cropping it or breaking its geometry into a modal.
+      const availableWidth = Math.max(180, window.innerWidth - 24);
+      const availableHeightWidth = Math.max(180, (window.innerHeight - 100) * (182 / 208));
+      const width = Math.min(420, availableWidth, availableHeightWidth, bounds?.width || 390);
+      const height = width * (208 / 182);
+      const x = bounds ? bounds.left + bounds.width / 2 : window.innerWidth / 2;
+      const y = bounds ? bounds.top + bounds.height / 2 : window.innerHeight / 2;
+      const left = Math.max(12, Math.min(window.innerWidth - width - 12, x - width / 2));
+      const top = Math.max(48, Math.min(window.innerHeight - height - 52, y - height / 2));
+      setWheelPosition({ left, top, '--wheel-width': `${width}px` });
+    };
+    positionWheel();
+    window.addEventListener('resize', positionWheel);
+    window.addEventListener('scroll', positionWheel, true);
+    return () => {
+      window.removeEventListener('resize', positionWheel);
+      window.removeEventListener('scroll', positionWheel, true);
+    };
+  }, [open, location.pathname]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape' && !rollFlicker) setOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [open, rollFlicker]);
 
   const latestTotal = history[0]?.total;
   const hasLatestTotal = Number.isFinite(Number(latestTotal));
@@ -262,8 +302,22 @@ export default function FloatingDiceRoller() {
 
   return (
     <div className={`rq-floating-dice ${isCharacterSheet ? 'is-character-sheet' : 'is-app-shell'} ${requestedCheck ? 'has-group-check-request' : ''}`} aria-label="Floating dice roller">
-      {open && (
-        <section className="rq-floating-dice__panel" data-testid="dice-roller-panel" aria-label="Dice roller panel">
+      {open && createPortal(
+        <div className="rq-dice-wheel-overlay" data-testid="dice-wheel-overlay">
+          <button
+            type="button"
+            className="rq-dice-wheel-overlay__dismiss"
+            aria-label="Close dice selection"
+            onClick={() => setOpen(false)}
+          />
+          <section
+            className="rq-floating-dice__panel rq-floating-dice__panel--wheel"
+            data-testid="dice-roller-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Dice wheel"
+            style={wheelPosition || undefined}
+          >
           <header className="rq-floating-dice__header">
             <div className="rq-floating-dice__title">
               <strong>DICE ROLLER</strong>
@@ -292,7 +346,7 @@ export default function FloatingDiceRoller() {
             <div className="rq-floating-dice__journey" aria-label="3D dice selection">
               <div className="rq-floating-dice__journey-header">
                 <span>STEP {pickerStage === 'style' ? '1' : '2'} OF 2</span>
-                <strong>{pickerStage === 'style' ? 'Choose your 3D dice' : 'Choose die type and roll'}</strong>
+                <strong>{pickerStage === 'style' ? 'Dice material' : 'Die type · Roll mode'}</strong>
                 {pickerStage === 'type' && (
                   <button type="button" onClick={() => setPickerStage('style')}>Change style</button>
                 )}
@@ -300,7 +354,7 @@ export default function FloatingDiceRoller() {
 
               {pickerStage === 'style' ? (
                 <fieldset className="rq-floating-dice__dyes">
-                  <legend>Turn the wheel, then press the centre</legend>
+                  <legend className="rq-dice-wheel__screenreader">Turn the wheel freely, then press its centre</legend>
                   <React.Suspense fallback={(
                     <>
                       <DiceDyePickerFallback
@@ -329,6 +383,8 @@ export default function FloatingDiceRoller() {
               )}
             </div>
 
+            <details className="rq-dice-wheel__extras">
+              <summary>Custom roll and recent results</summary>
             <div className="rq-floating-dice__custom">
               <input
                 data-testid="custom-dice-input"
@@ -354,8 +410,11 @@ export default function FloatingDiceRoller() {
                 </div>
               ))}
             </div>
+            </details>
           </div>
         </section>
+        </div>,
+        document.body,
       )}
 
       <button
@@ -389,7 +448,7 @@ export default function FloatingDiceRoller() {
           isFumble={rollFlicker.isFumble}
           theme="player"
           shape="hex"
-          anchorSelector=".rq-global-dice-wheel__centre"
+          anchorSelector=".rq-dice-wheel-overlay .guild-wheel__svg"
         />
       )}
     </div>

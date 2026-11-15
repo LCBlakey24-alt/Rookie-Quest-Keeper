@@ -116,3 +116,191 @@
     width: 100% !important;
   }
 }
+
+
+/* Home-wheel dice journey. The chooser replaces the home/character hexagon
+   in place; no boxed modal, no second colour theme, no snapping carousel. */
+.rq-dice-wheel-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2800;
+  pointer-events: none;
+  --dice-bg: #0a2342;
+  --dice-card: #0a2342;
+  --dice-text: #fff;
+  --dice-muted: #c9d2e6;
+  --dice-blue: #4fb3ff;
+  --dice-accent: #ffb066;
+  --dice-line: rgba(201,210,230,.25);
+  --dice-line-strong: rgba(201,210,230,.35);
+  color: var(--dice-text);
+  font-family: var(--rq-font-sans, Inter, sans-serif);
+}
+.rq-dice-wheel-overlay__dismiss {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: auto;
+  border: 0;
+  background: transparent;
+  cursor: default;
+}
+.rq-dice-wheel-overlay .rq-floating-dice__panel--wheel {
+  position: fixed !important;
+  z-index: 1;
+  width: var(--wheel-width, min(390px, calc(100vw - 24px))) !important;
+  max-height: none !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  pointer-events: auto;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+.rq-dice-wheel-overlay .rq-floating-dice__body {
+  display: block !important;
+  padding: 0 !important;
+}
+.rq-dice-wheel-overlay .rq-floating-dice__header {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 4px);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  padding: 2px 8px !important;
+  background: transparent;
+  border: none;
+}
+.rq-dice-wheel-overlay .rq-floating-dice__title strong {
+  font-size: 11px !important;
+  color: var(--dice-text);
+}
+.rq-dice-wheel-overlay .rq-floating-dice__title span { display: none; }
+.rq-dice-wheel-overlay .rq-floating-dice__close {
+  width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+}
+.rq-dice-wheel-overlay .rq-floating-dice__journey {
+  display: block;
+  width: 100%;
+  position: relative;
+}
+.rq-dice-wheel-overlay .rq-floating-dice__journey-header {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+}
+.rq-dice-wheel-overlay .rq-floating-dice__journey-header span {
+  font-size: 9px;
+  color: var(--dice-muted);
+}
+.rq-dice-wheel-overlay .rq-floating-dice__journey-header strong {
+  font-family: var(--rq-font-sans, Inter, sans-serif);
+  font-size: 11px;
+}
+.rq-dice-wheel-overlay .rq-floating-dice__journey-header button {
+  background: var(--dice-bg);
+  min-height: 40px;
+  border-radius: 6px;
+}
+.rq-dice-wheel-overlay .rq-floating-dice__dyes {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.rq-dice-wheel__screenreader {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+}
+.rq-dice-wheel-overlay .rq-dice-style-wheel,
+.rq-dice-wheel-overlay .rq-global-dice-wheel--nested {
+  width: 100% !important;
+  aspect-ratio: auto !important;
+  margin: 0 !important;
+  touch-action: auto;
+  transform: none !important;
+}
+.rq-dice-wheel-overlay .guild-wheel__svg {
+  width: 100% !important;
+  max-width: none !important;
+}
+.rq-dice-wheel-overlay .rq-global-dice-wheel__access {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  color: var(--dice-muted);
+  font-size: 11px;
+  margin-top: -6px;
+}
+.rq-dice-wheel-overlay .rq-global-dice-wheel__access button {
+  min-width: 42px;
+  min-height: 40px;
+  border-radius: 6px;
+  color: var(--dice-text);
+  background: var(--dice-bg);
+  border: 1px solid var(--dice-line);
+}
+.rq-dice-wheel-overlay .rq-global-dice-wheel__dye { display: none; }
+.rq-dice-wheel-overlay .rq-dice-wheel__extras {
+  position: relative;
+  display: block;
+  margin: 22px auto 0;
+  max-width: 320px;
+  color: var(--dice-muted);
+}
+.rq-dice-wheel-overlay .rq-dice-wheel__extras summary {
+  text-align: center;
+  cursor: pointer;
+  min-height: 40px;
+  padding: 10px;
+  font-size: 11px;
+}
+.rq-dice-wheel-overlay .rq-dice-wheel__extras[open] {
+  padding: 4px 8px 12px;
+  background: var(--dice-bg);
+  border: 1px solid var(--dice-line);
+  border-radius: 8px;
+}
+.rq-dice-wheel-overlay .rq-dice-wheel__extras[open] .rq-floating-dice__history {
+  margin-top: 8px;
+}
+.rq-dice-wheel-overlay .rq-floating-dice__group-check {
+  position: absolute;
+  z-index: 8;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 54px);
+  background: var(--dice-bg);
+}
+@media (max-width: 719px) {
+  .rq-dice-wheel-overlay .rq-dice-wheel__extras {
+    max-width: 90%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rq-dice-wheel-overlay *, .rq-dice-wheel-overlay *::before, .rq-dice-wheel-overlay *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
