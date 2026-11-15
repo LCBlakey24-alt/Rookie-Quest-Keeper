@@ -200,6 +200,22 @@ describe('without turning', () => {
 });
 
 describe('two halves and the round dial', () => {
+  test('the HP choices form a round ring inside the hexagon with a center confirm button', () => {
+    const { svg } = renderDial();
+    const frame = svg.querySelector('.hex-hp__frame .hex-glow__fill');
+    const center = screen.getByTestId('hex-hp-confirm').querySelector('.hex-glow__fill');
+    expect(frame.getAttribute('points').trim().split(/\s+/)).toHaveLength(6);
+    expect(center.getAttribute('points').trim().split(/\s+/)).toHaveLength(6);
+    for (const name of ['hp', 'temp']) {
+      const section = screen.getByTestId(`hex-hp-target-${name}`).querySelector('.hex-glow__fill');
+      const points = section.getAttribute('points').trim().split(/\s+/).map(point => point.split(',').map(Number));
+      // Many points around a constant radius produce a rounded ring rather
+      // than the old straight-sided half hexagons.
+      expect(points.filter(([x, y]) => Math.abs(Math.hypot(x, y) - 84) < 0.01).length).toBeGreaterThan(20);
+      expect(points.filter(([x, y]) => Math.abs(Math.hypot(x, y) - 42) < 0.01).length).toBeGreaterThan(20);
+    }
+  });
+
   test('nothing is chosen at first: the centre asks for a half and there is no dial yet', () => {
     renderDial();
     expect(centreText()).toContain('Tap a half');

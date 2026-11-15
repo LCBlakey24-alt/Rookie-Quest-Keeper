@@ -167,29 +167,30 @@ export default function HexSkillDial({ character, proficiencyBonus, onRoll }) {
 
   return (
     <div className="hex-skills" data-testid="hex-skills">
-      <svg
-        ref={svgRef}
-        className={`hex-wheel hex-skills__dial${dragging ? ' is-spinning' : ''}`}
-        viewBox={wheelViewBox()}
-        data-hex-radius={OUTER_RADIUS}
-        // A radio group, not a listbox: an app-wide theme rule paints a panel
-        // background behind every listbox.
-        role="radiogroup"
-        tabIndex={0}
-        aria-label="Skills: spin a skill to the top, Enter to roll it"
-        onKeyDown={onKeyDown}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-        data-testid="hex-skill-dial"
-        data-rotation={Math.round(rotation)}
-      >
-        <GlowFilter id={filterId} />
-        <GlowPolygon className="hex-wheel__wedge hex-skills__case" points={pointsAttribute(hexVertices(OUTER_RADIUS))} filterId={filterId} />
-        <circle className="hex-skills__ring" cx={0} cy={0} r={RING_OUTER} />
-        <circle className="hex-skills__ring hex-skills__ring--inner" cx={0} cy={0} r={RING_INNER} />
-        <g className="hex-skills__rotor" style={{ transform: `rotate(${rotation}deg)`, ...(glideMs ? { transitionDuration: `${glideMs}ms`, transitionTimingFunction: GLIDE_EASING } : {}) }}>
+      <div className="hex-sheet__wheel-anchor" data-testid="hex-wheel-anchor">
+        <svg
+          ref={svgRef}
+          className={`hex-wheel hex-skills__dial${dragging ? ' is-spinning' : ''}`}
+          viewBox={wheelViewBox()}
+          data-hex-radius={OUTER_RADIUS}
+          // A radio group, not a listbox: an app-wide theme rule paints a panel
+          // background behind every listbox.
+          role="radiogroup"
+          tabIndex={0}
+          aria-label="Skills: spin a skill to the top, Enter to roll it"
+          onKeyDown={onKeyDown}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          data-testid="hex-skill-dial"
+          data-rotation={Math.round(rotation)}
+        >
+          <GlowFilter id={filterId} />
+          <GlowPolygon className="hex-wheel__wedge hex-skills__case" points={pointsAttribute(hexVertices(OUTER_RADIUS))} filterId={filterId} />
+          <circle className="hex-skills__ring" cx={0} cy={0} r={RING_OUTER} />
+          <circle className="hex-skills__ring hex-skills__ring--inner" cx={0} cy={0} r={RING_INNER} />
+          <g className="hex-skills__rotor" style={{ transform: `rotate(${rotation}deg)`, ...(glideMs ? { transitionDuration: `${glideMs}ms`, transitionTimingFunction: GLIDE_EASING } : {}) }}>
           {rows.map((row, index) => {
             const angle = index * STEP;
             const [lx, ly] = polar(angle, LABEL_RADIUS);
@@ -214,9 +215,9 @@ export default function HexSkillDial({ character, proficiencyBonus, onRoll }) {
               </g>
             );
           })}
-        </g>
-        <polygon className="hex-spin__pointer" points={`0,${-RING_OUTER + 6} -5,${-RING_OUTER - 5} 5,${-RING_OUTER - 5}`} aria-hidden="true" />
-        <g
+          </g>
+          <polygon className="hex-spin__pointer" points={`0,${-RING_OUTER + 6} -5,${-RING_OUTER - 5} 5,${-RING_OUTER - 5}`} aria-hidden="true" />
+          <g
           className="hex-wheel__centre hex-skills__centre"
           data-skill-centre
           role="button"
@@ -233,8 +234,9 @@ export default function HexSkillDial({ character, proficiencyBonus, onRoll }) {
           <text className="hex-skills__centre-name" x={0} y={-10} fontSize={current.skill.length > 12 ? 8 : 10} textAnchor="middle" dominantBaseline="central" aria-hidden="true">{current.skill}</text>
           <text className="hex-skills__centre-mod" x={0} y={10} textAnchor="middle" dominantBaseline="central" aria-hidden="true" data-testid="hex-skill-modifier">{signed(current.modifier)}</text>
           <text className="hex-skills__centre-hint" x={0} y={28} textAnchor="middle" dominantBaseline="central" aria-hidden="true">tap to roll</text>
-        </g>
-      </svg>
+          </g>
+        </svg>
+      </div>
 
       <ul className="hex-skills__list" aria-label="All skills">
         {rows.map((row, index) => (
