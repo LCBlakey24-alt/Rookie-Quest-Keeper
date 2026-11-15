@@ -86,3 +86,14 @@ test('multiclass mixed hit dice require extra information instead of wrong die t
   expect(result.exportReady).toBe(false);
   expect(result.values['combat.hit_dice.type']).toBeUndefined();
 });
+
+test('spellbook-only and always-prepared entries cannot disappear silently', () => {
+  const result=mapFullCharacterPdfFields({
+    ...character, spells_prepared:[],cantrips_known:[],
+    spellbook:[{name:'Mage Armor',level:1}],
+    always_prepared_spells:[{name:'Shield',level:1}],
+  },{attacks:attacks.slice(0,1)});
+  expect(result.exportReady).toBe(false);
+  expect(result.overflow.some(item=>item.field==='magic.spellbook')).toBe(true);
+  expect(result.overflow.some(item=>item.field==='magic.always_prepared_spells')).toBe(true);
+});
