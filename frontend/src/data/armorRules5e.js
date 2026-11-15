@@ -28,13 +28,26 @@ export function findArmorRule(itemOrName) {
   const rawName = typeof itemOrName === 'string'
     ? itemOrName
     : itemOrName?.name || itemOrName?.item_name || itemOrName?.label || itemOrName?.title || '';
-  const normalised = normaliseArmorName(rawName);
   const entries = Object.entries(ARMOR_RULES);
+  const found = ([key, value]) => ({ key, ...value, name: value.name || key });
+  // An explicit identity on the item wins over its display name.
+  const explicit = typeof itemOrName === 'object' && itemOrName
+    ? normaliseArmorName(itemOrName.armor_key || itemOrName.armorKey || itemOrName.armor_type || itemOrName.armorType || itemOrName.base_armor || itemOrName.baseArmor || '')
+    : '';
+  if (explicit) {
+    const byIdentity = entries.find(([key, value]) => normaliseArmorName(key) === explicit || normaliseArmorName(value.name || key) === explicit);
+    if (byIdentity) return found(byIdentity);
+  }
+  const normalised = normaliseArmorName(rawName);
+  if (!normalised) return null;
   const exact = entries.find(([key, value]) => normaliseArmorName(value.name || key) === normalised);
-  if (exact) return { key: exact[0], ...exact[1], name: exact[1].name || exact[0] };
-  const fuzzy = entries.find(([key, value]) => normalised.includes(normaliseArmorName(value.name || key)));
-  if (fuzzy) return { key: fuzzy[0], ...fuzzy[1], name: fuzzy[1].name || fuzzy[0] };
-  return null;
+  if (exact) return found(exact);
+  // Otherwise the most specific armour named in it: "Studded Leather Armor +1"
+  // contains both "leather" and "studdedleather"; the longer name is the armour.
+  const contained = entries
+    .filter(([key, value]) => normalised.includes(normaliseArmorName(value.name || key)))
+    .sort(([keyA, a], [keyB, b]) => normaliseArmorName(b.name || keyB).length - normaliseArmorName(a.name || keyA).length);
+  return contained.length ? found(contained[0]) : null;
 }
 
 function namedEnhancementBonus(item) {

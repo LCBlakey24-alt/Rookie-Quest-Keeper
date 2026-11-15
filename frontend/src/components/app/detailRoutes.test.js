@@ -8,7 +8,6 @@ describe('which pages get the compact rail', () => {
     ['/characters/char-1/edit', 'editing a character'],
     ['/combat/camp-1', 'combat'],
     ['/gm-screen/camp-1', 'the GM screen'],
-    ['/homebrew', 'the homebrew workshop'],
   ])('%s is a working surface (%s)', (path) => {
     expect(isDetailRoute(path)).toBe(true);
   });
@@ -16,6 +15,7 @@ describe('which pages get the compact rail', () => {
   test.each([
     ['/', 'the root'],
     ['/home', 'the dashboard'],
+    ['/homebrew', 'the main Homebrew library'],
     ['/characters', 'the character list'],
     ['/campaigns', 'the campaign list'],
     ['/settings', 'settings'],

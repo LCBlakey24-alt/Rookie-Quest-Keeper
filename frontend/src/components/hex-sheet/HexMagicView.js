@@ -92,7 +92,9 @@ export default function HexMagicView({ character, proficiencyBonus = 2, onRollAt
         label: 'Undo',
         onClick: async () => {
           // The sheet's latest state: this view may have closed since the cast.
-          const now = getLatestCharacter?.() || characterRef.current;
+          const now = getLatestCharacter ? getLatestCharacter() : characterRef.current;
+          // The sheet this cast was made on has closed: change nothing.
+          if (!now) { toast.error(`${spell.name} is on a sheet that is no longer open.`); return; }
           const back = option.source === 'cantrip' ? {} : (slotAdjustUpdate(now, option, 1) || {});
           if (updates.concentrating_on && now?.concentrating_on === spell.name) Object.assign(back, before);
           if (!Object.keys(back).length) return;

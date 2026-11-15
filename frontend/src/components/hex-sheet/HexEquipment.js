@@ -72,8 +72,12 @@ export default function HexEquipment({ character, proficiencyBonus, onRoll, onPr
     if (busy) return false;
     setBusy(true);
     const nextInventory = syncInventoryWithEquipment(state.inventory, state.equipped);
-    const armorClass = deriveArmorClass({ ...character, inventory: nextInventory, equipped: state.equipped }, { ignoreStoredAc: true });
-    const ok = await onSave({ inventory: nextInventory, equipped: state.equipped, armor_class: armorClass }, { success: message, error: 'Could not update equipment' });
+    // A manually set AC is the player's own number: equipment changes leave
+    // it alone. Otherwise the AC follows the equipment.
+    const keepsOwnAc = character?.armor_class_manual === true || character?.armor_class_source === 'manual';
+    const updates = { inventory: nextInventory, equipped: state.equipped };
+    if (!keepsOwnAc) updates.armor_class = deriveArmorClass({ ...character, inventory: nextInventory, equipped: state.equipped }, { ignoreStoredAc: true });
+    const ok = await onSave(updates, { success: message, error: 'Could not update equipment' });
     setBusy(false);
     return ok;
   };
