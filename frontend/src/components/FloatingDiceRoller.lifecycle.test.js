@@ -10,15 +10,39 @@ let mockMountSerial = 0;
 
 jest.mock('@/components/DiceRollFlicker', () => ({
   __esModule: true,
-  default: ({ rollId, dyeId }) => {
+  default: ({ rollId, dyeId, onReveal }) => {
     const React = require('react');
     const [mount] = React.useState(() => ++mockMountSerial);
-    return React.createElement('div', {
-      'data-testid': 'roll-presentation',
-      'data-roll-id': rollId,
-      'data-dye-id': dyeId,
-      'data-mount': mount,
-    });
+    return React.createElement(
+      'div',
+      {
+        'data-testid': 'roll-presentation',
+        'data-roll-id': rollId,
+        'data-dye-id': dyeId,
+        'data-mount': mount,
+      },
+      React.createElement('button', { type: 'button', 'data-testid': 'mock-reveal-roll', onClick: onReveal }, 'Reveal'),
+    );
+  },
+}));
+jest.mock('@/components/dice3d/DiceDyePicker3D', () => ({
+  __esModule: true,
+  default: ({ selectedId, onSelect }) => {
+    const React = require('react');
+    const dyes = require('@/components/dice3d/diceDyes').DICE_DYES;
+    return React.createElement('div', { 'data-testid': 'mock-dye-picker-3d' }, dyes.map(dye => React.createElement(
+      'button',
+      {
+        key: dye.id,
+        type: 'button',
+        'data-testid': `dice-dye-${dye.id}`,
+        'data-rq-colour-swatch': 'true',
+        'aria-pressed': selectedId === dye.id,
+        style: { '--swatch-body': dye.body, '--swatch-ink': dye.ink },
+        onClick: () => onSelect(dye.id),
+      },
+      dye.name,
+    )));
   },
 }));
 jest.mock('@/components/dice3d/loadDiceTray3D', () => ({
@@ -55,9 +79,10 @@ jest.mock('@/lib/liveDisplayBus', () => ({
   subscribeRemoteDisplayState: () => () => {},
 }));
 
-function openRoller() {
+async function openRoller() {
   render(<MemoryRouter initialEntries={['/']}><FloatingDiceRoller /></MemoryRouter>);
   fireEvent.click(screen.getByTestId('dice-roller-toggle'));
+  await screen.findByTestId('mock-dye-picker-3d');
 }
 
 describe('fresh physical dice presentation', () => {
@@ -67,22 +92,24 @@ describe('fresh physical dice presentation', () => {
     preloadDiceTray3D.mockClear();
   });
 
-  test('replays the visual component even when successive results match', () => {
-    openRoller();
+  test('replays the visual component even when successive results match', async () => {
+    await openRoller();
     fireEvent.click(screen.getByTestId('roll-d20-btn'));
     const first = screen.getByTestId('roll-presentation');
     const firstRollId = first.getAttribute('data-roll-id');
     const firstMount = first.getAttribute('data-mount');
+    fireEvent.click(screen.getByTestId('mock-reveal-roll'));
 
     fireEvent.click(screen.getByTestId('roll-d20-btn'));
     const second = screen.getByTestId('roll-presentation');
     expect(second.getAttribute('data-roll-id')).not.toBe(firstRollId);
     expect(second.getAttribute('data-mount')).not.toBe(firstMount);
+    fireEvent.click(screen.getByTestId('mock-reveal-roll'));
     expect(screen.getAllByTestId('roll-result')).toHaveLength(2);
   });
 
-  test('captures the chosen dye for each roll, not the picker default', () => {
-    openRoller();
+  test('captures the chosen dye for each roll, not the picker default', async () => {
+    await openRoller();
     const moss = DICE_DYES.find(dye => dye.id === 'moss');
     const swatch = screen.getByTestId('dice-dye-moss');
     expect(swatch).toHaveAttribute('data-rq-colour-swatch', 'true');
@@ -99,7 +126,7 @@ describe('fresh physical dice presentation', () => {
     expect(screen.getByTestId('roll-presentation')).toHaveAttribute('data-dye-id', 'amber');
   });
 
-  test('warms the shared 3D renderer before a global die is chosen', () => {
+  test('warms the shared 3D renderer before a global die is chosen', async () => {
     render(<MemoryRouter initialEntries={['/home']}><FloatingDiceRoller /></MemoryRouter>);
     const toggle = screen.getByTestId('dice-roller-toggle');
 
@@ -107,6 +134,7 @@ describe('fresh physical dice presentation', () => {
     expect(preloadDiceTray3D).toHaveBeenCalledTimes(1);
 
     fireEvent.click(toggle);
+    await screen.findByTestId('mock-dye-picker-3d');
     expect(preloadDiceTray3D).toHaveBeenCalledTimes(2);
   });
 });

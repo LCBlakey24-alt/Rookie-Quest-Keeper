@@ -1,5 +1,5 @@
 """All Pydantic models for the ROOK backend."""
-from pydantic import BaseModel, Field, ConfigDict, EmailStr, AliasChoices, field_validator
+from pydantic import BaseModel, Field, ConfigDict, EmailStr, AliasChoices, StrictBool, field_validator
 from typing import List, Optional, Dict, Any, Literal
 from datetime import datetime, timezone
 import uuid
@@ -83,6 +83,11 @@ class ChangePasswordRequest(BaseModel):
 class UpdateAccountRequest(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
+
+
+class RookAiConsentUpdate(BaseModel):
+    """The authenticated account's optional Rook AI data-sharing choice."""
+    granted: StrictBool
 
 class Campaign(BaseModel):
     model_config = ConfigDict(extra="ignore")
