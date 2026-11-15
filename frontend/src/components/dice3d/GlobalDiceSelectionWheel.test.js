@@ -24,7 +24,7 @@ function Harness() {
 describe('global dice selection wheel', () => {
   test('starts with d20 at the active top position', () => {
     render(<Harness />);
-    expect(screen.getByTestId('select-d20-btn')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('select-d20-btn')).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByTestId('roll-d20-btn')).toHaveAccessibleName('Roll d20');
   });
 
@@ -64,7 +64,7 @@ describe('global dice selection wheel', () => {
     expect(screen.getByTestId('global-dice-wheel').querySelectorAll('[data-wheel-index]')).toHaveLength(7);
     expect(screen.getByTestId('global-dice-wheel').querySelectorAll('.guild-wheel__inner-mode')).toHaveLength(3);
     fireEvent.click(screen.getByTestId('roll-advantage-btn'));
-    expect(screen.getByTestId('roll-advantage-btn')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('roll-advantage-btn')).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByTestId('roll-d20-btn')).toHaveAccessibleName('Roll d20 with advantage');
   });
 
@@ -98,9 +98,9 @@ describe('global dice selection wheel', () => {
   test('offers explicit previous and next controls for keyboard users', () => {
     render(<Harness />);
     fireEvent.click(screen.getByRole('button', { name: 'Next die' }));
-    expect(screen.getByTestId('select-d100-btn')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('select-d100-btn')).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByTestId('roll-d100-btn')).toHaveAccessibleName('Roll d100');
     fireEvent.click(screen.getByRole('button', { name: 'Previous die' }));
-    expect(screen.getByTestId('select-d20-btn')).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('select-d20-btn')).toHaveAttribute('aria-checked', 'true');
   });
 });
