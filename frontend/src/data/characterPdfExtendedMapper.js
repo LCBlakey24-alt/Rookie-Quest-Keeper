@@ -1,12 +1,13 @@
 /**
- * Draft PDF expansion mapping for Keeper's V6 7-page editable 2014/2024 sheets.
+ * Draft PDF expansion mapping for Keeper's V7 8-page editable 2014/2024 sheets.
  * Works only with already authorised player-visible character records (#906).
  * No account IO, PDF binary, or UI changes; the live export remains unimplemented.
  *
- * All output field names are from the V6 template. Overflow is never truncated:
+ * All output field names are from the reviewed V7 template. Overflow is never truncated:
  * the eventual PDF renderer must create continuation pages or refuse the export.
  */
 import { mapCharacterPageOne } from './characterPdfCoreMapper';
+import { passiveScore } from '@/data/skillModifiers';
 
 const isSet = (value) => value !== undefined && value !== null && value !== '';
 const arr = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
@@ -93,8 +94,14 @@ const readField = (source, ...fields) => {
 export function mapFullCharacterPdfFields(character, options = {}) {
   const base = mapCharacterPageOne(character, options);
   const values = { ...base.values };
-  const overflow = base.overflow.filter(record => record.field !== 'attacks');
-  const warnings = [...base.warnings];
+  const rawHitDice = String(character.hit_dice || '');
+  const mixedHitDice = [...rawHitDice.matchAll(/(\d+)d(\d+)/gi)].length > 1;
+  // Page three can show mixed Hit Dice by type; the page-one single die
+  // slot must remain empty, not trigger a missing continuation by itself.
+  const overflow = base.overflow.filter(record => record.field !== 'attacks' &&
+    !(mixedHitDice && record.field === 'combat.hit_dice.type'));
+  const warnings = base.warnings.filter(message =>
+    !(mixedHitDice && message.startsWith('Multiclass Hit Dice')));
   const put = (field, value) => {
     if (!isSet(value)) return;
     if (typeof value === 'boolean') { values[field] = value; return; }
@@ -116,15 +123,43 @@ export function mapFullCharacterPdfFields(character, options = {}) {
     put(prefix+'properties', readField(attack,'details','properties','range'));
   });
   if (attackList.length>10) overflow.push({field:'combat.details.attacks',value:attackList.slice(10)});
-  // Quick slots on page 1 remain summary only. Larger textual detail belongs here.
-  for (const [field,key] of [['combat.action_options','actions'],['combat.reaction_options','reactions']]) {
-    put(field,options.combatNotes?.[key]);
+  // V7 dedicates page two to Actions / Bonus Actions / Reactions. Accept only
+  // explicitly supplied, player-facing action profiles; do not infer actions
+  // from a free-text class feature or invent uses and requirements.
+  const actionGroups = [
+    ['action', 6, options.actions, options.quickActions?.action],
+    ['bonus', 4, options.bonusActions, options.quickActions?.bonus_action],
+    ['reaction', 4, options.reactions, options.quickActions?.reaction],
+  ];
+  for (const [group, capacity, explicit, summary] of actionGroups) {
+    const entries = Array.isArray(explicit) ? arr(explicit)
+      : summary ? [{ name: summary }] : [];
+    entries.slice(0, capacity).forEach((action, index) => {
+      const prefix = 'actions.' + group + '.' + (index + 1) + '.';
+      put(prefix + 'name', title(action));
+      if (group === 'reaction') put(prefix + 'trigger', readField(action, 'trigger', 'requirement'));
+      else put(prefix + 'requirement', readField(action, 'requirement', 'trigger'));
+      put(prefix + 'range', readField(action, 'range'));
+      put(prefix + 'effect', readField(action, 'effect', 'description', 'details'));
+      put(prefix + 'usage', readField(action, 'usage', 'uses', 'cost'));
+    });
+    if (entries.length > capacity) {
+      overflow.push({ field: 'actions.' + group, value: entries.slice(capacity) });
+    }
   }
+  put('combat.details.extra_attack_notes', options.combatNotes?.extraAttacks);
+  put('combat.defensive_features', options.combatNotes?.defensiveFeatures);
   for (const key of ['resistances','immunities','vulnerabilities','senses']) {
     const items=character[key];
     put('combat.'+key,Array.isArray(items) ? items.map(title).join(', ') : items);
   }
   put('combat.notes', options.combatNotes?.additional);
+  if (mixedHitDice) put('combat.hit_dice.breakdown', rawHitDice);
+  const proficiency = numeric(character.proficiency_bonus)
+    ?? numeric(base.values['combat.proficiency_bonus']);
+  if (proficiency !== null && numeric(character.intelligence) !== null) {
+    put('combat.passive_investigation', passiveScore(character, 'Investigation', 'intelligence', proficiency));
+  }
 
   const trackers=extractTrackers(character,options.resources);
   trackers.slice(0,6).forEach((resource,index)=>{
@@ -135,6 +170,15 @@ export function mapFullCharacterPdfFields(character, options = {}) {
     put(prefix+'recharge',readField(resource,'restore','recovery','refresh'));
   });
   if (trackers.length>6) overflow.push({field:'resources',value:trackers.slice(6)});
+  // The actions page has three quick resource slots alongside the six
+  // expanded resource trackers. Both represent the same supplied values.
+  trackers.slice(0,3).forEach((resource,index)=>{
+    const prefix='actions.resources.'+(index+1)+'.';
+    put(prefix+'name',resource.name);
+    put(prefix+'remaining',readField(resource,'current','remaining'));
+    put(prefix+'total',readField(resource,'max','maximum','total'));
+    put(prefix+'recharge',readField(resource,'restore','recovery','refresh'));
+  });
 
   put('magic.casting_ability',character.spellcasting_ability);
   put('magic.save_dc',character.spell_save_dc);
