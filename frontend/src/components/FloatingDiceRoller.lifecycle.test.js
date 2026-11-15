@@ -10,7 +10,7 @@ let mockMountSerial = 0;
 
 jest.mock('@/components/DiceRollFlicker', () => ({
   __esModule: true,
-  default: ({ rollId, dyeId, onReveal }) => {
+  default: ({ rollId, dyeId, onReveal, shape, anchorSelector }) => {
     const React = require('react');
     const [mount] = React.useState(() => ++mockMountSerial);
     return React.createElement(
@@ -20,6 +20,8 @@ jest.mock('@/components/DiceRollFlicker', () => ({
         'data-roll-id': rollId,
         'data-dye-id': dyeId,
         'data-mount': mount,
+        'data-shape': shape,
+        'data-anchor': anchorSelector,
       },
       React.createElement('button', { type: 'button', 'data-testid': 'mock-reveal-roll', onClick: onReveal }, 'Reveal'),
     );
@@ -132,6 +134,25 @@ describe('fresh physical dice presentation', () => {
     fireEvent.click(screen.getByTestId('dice-dye-confirm'));
     fireEvent.click(screen.getByTestId('roll-d20-btn'));
     expect(screen.getByTestId('roll-presentation')).toHaveAttribute('data-dye-id', 'amber');
+  });
+
+
+  test('Home centre opens a wheel in place without creating a boxed dice panel', async () => {
+    render(<MemoryRouter initialEntries={['/home']}><FloatingDiceRoller /></MemoryRouter>);
+    fireEvent(window, new Event('rq-dice-open'));
+    await screen.findByTestId('mock-dye-picker-3d');
+    const overlay = screen.getByTestId('dice-wheel-overlay');
+    const chooser = screen.getByTestId('dice-roller-panel');
+    expect(overlay.parentElement).toBe(document.body);
+    expect(chooser).toHaveClass('rq-floating-dice__panel--wheel');
+    expect(chooser).toHaveAttribute('aria-label', 'Dice wheel');
+    fireEvent.click(screen.getByTestId('dice-dye-confirm'));
+    expect(screen.getByTestId('global-dice-wheel').querySelectorAll('.guild-wheel__inner-mode')).toHaveLength(3);
+    fireEvent.click(screen.getByTestId('roll-d20-btn'));
+    expect(screen.getByTestId('roll-presentation')).toHaveAttribute('data-shape', 'hex');
+    expect(screen.getByTestId('roll-presentation')).toHaveAttribute('data-anchor', '.rq-dice-wheel-overlay .guild-wheel__svg');
+    fireEvent.click(screen.getByTestId('dice-roller-close'));
+    expect(screen.queryByTestId('dice-wheel-overlay')).not.toBeInTheDocument();
   });
 
   test('warms the shared 3D renderer before a global die is chosen', async () => {
