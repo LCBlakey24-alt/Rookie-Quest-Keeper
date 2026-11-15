@@ -21,10 +21,13 @@ function descriptionFor(spell = {}, optionCount = 0) {
 export default function CombatSpellActionCard({ character, spell, typeLabel, onCast }) {
   const [choosing, setChoosing] = useState(false);
   const castState = useMemo(() => getCharacterCastOptions(character, spell), [character, spell]);
+  // A custom spell with no saved level can't be cast until it has one: it
+  // is never assumed to be a cantrip (which would spend no slot).
+  const unknownLevel = spell?.level === null || spell?.level === undefined;
   const level = Number(spell?.level || 0);
-  const cantrip = level <= 0;
+  const cantrip = !unknownLevel && level <= 0;
   const options = castState.options || [];
-  const blocked = !cantrip && options.length === 0;
+  const blocked = unknownLevel || (!cantrip && options.length === 0);
 
   const handleMainClick = () => {
     if (blocked) return;
@@ -49,7 +52,7 @@ export default function CombatSpellActionCard({ character, spell, typeLabel, onC
       <button type="button" className="clean-sheet-action-card" onClick={handleMainClick} disabled={blocked}>
         <span className="clean-sheet-action-type">{spellLevelLabel(spell.level)}</span>
         <strong>{spell.name}</strong>
-        <span>{blocked ? `${descriptionFor(spell)} • no valid spell slots available` : descriptionFor(spell, options.length)}</span>
+        <span>{unknownLevel ? `${descriptionFor(spell)} • set its level in Manage spells to cast it` : blocked ? `${descriptionFor(spell)} • no valid spell slots available` : descriptionFor(spell, options.length)}</span>
       </button>
       {choosing && options.length > 1 && (
         <div className="clean-sheet-pending-damage" aria-label={`Choose spell slot pool for ${spell.name}`}>
