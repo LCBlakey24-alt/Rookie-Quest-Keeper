@@ -1,0 +1,38 @@
+[
+  {
+    "edition": "2014",
+    "mode": "Colour",
+    "pages": 8,
+    "fields": 504,
+    "form_persisted": true,
+    "widget_overlaps": 0,
+    "pdf_kb": 1758
+  },
+  {
+    "edition": "2014",
+    "mode": "BW",
+    "pages": 8,
+    "fields": 504,
+    "form_persisted": true,
+    "widget_overlaps": 0,
+    "pdf_kb": 1053
+  },
+  {
+    "edition": "2024",
+    "mode": "Colour",
+    "pages": 8,
+    "fields": 504,
+    "form_persisted": true,
+    "widget_overlaps": 0,
+    "pdf_kb": 1756
+  },
+  {
+    "edition": "2024",
+    "mode": "BW",
+    "pages": 8,
+    "fields": 504,
+    "form_persisted": true,
+    "widget_overlaps": 0,
+    "pdf_kb": 1051
+  }
+]
