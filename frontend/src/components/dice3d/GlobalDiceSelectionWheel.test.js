@@ -64,7 +64,7 @@ describe('global dice selection wheel', () => {
     expect(screen.getByTestId('global-dice-wheel').querySelectorAll('[data-wheel-index]')).toHaveLength(7);
     expect(screen.getByTestId('global-dice-wheel').querySelectorAll('.guild-wheel__inner-mode')).toHaveLength(3);
     fireEvent.click(screen.getByTestId('roll-advantage-btn'));
-    expect(screen.getByTestId('roll-advantage-btn')).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByTestId('roll-advantage-btn')).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByTestId('roll-d20-btn')).toHaveAccessibleName('Roll d20 with advantage');
   });
 
