@@ -29,10 +29,11 @@ jest.mock('@/components/DiceRollFlicker', () => ({
 
 jest.mock('@/components/dice3d/DiceDyePicker3D', () => ({
   __esModule: true,
-  default: ({ selectedId, onSelect }) => {
+  default: ({ selectedId, onSelect, onConfirm }) => {
     const dyes = require('@/components/dice3d/diceDyes').DICE_DYES;
     return (
       <div data-testid="mock-dye-picker-3d">
+        <button type="button" data-testid="dice-dye-confirm" onClick={onConfirm}>Choose</button>
         {dyes.map((dye) => (
           <button
             key={dye.id}
@@ -47,6 +48,7 @@ jest.mock('@/components/dice3d/DiceDyePicker3D', () => ({
     );
   },
 }));
+jest.mock('@/components/dice3d/DiceTypePreview3D', () => ({ __esModule: true, default: () => <div data-testid="mock-die-preview" /> }));
 
 jest.mock('@/lib/liveDisplayBus', () => ({
   __esModule: true,
@@ -120,6 +122,7 @@ describe('choosing a dice colour', () => {
 
   test('does not publish a result to history or a toast until the dice reveal', async () => {
     await openPanel();
+    fireEvent.click(screen.getByTestId('dice-dye-confirm'));
     fireEvent.click(screen.getByTestId('roll-d20-btn'));
 
     expect(screen.getByTestId('mock-flicker')).toBeInTheDocument();

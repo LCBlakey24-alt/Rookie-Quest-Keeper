@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import { createDiceDyeGallery } from './diceDyeGallery';
+import { DICE_DYES } from './diceDyes';
 import DiceDyePicker3D from './DiceDyePicker3D';
 
 jest.mock('./diceDyeGallery', () => ({
@@ -22,7 +23,8 @@ describe('physical 3D dice dye picker', () => {
 
   test('uses one shared 3D gallery and accessible buttons for every material', () => {
     const onSelect = jest.fn();
-    render(<DiceDyePicker3D selectedId="glow" onSelect={onSelect} />);
+    const onConfirm = jest.fn();
+    render(<DiceDyePicker3D selectedId="glow" onSelect={onSelect} onConfirm={onConfirm} />);
 
     expect(createDiceDyeGallery).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('dice-dye-gallery-3d').querySelectorAll('canvas')).toHaveLength(1);
@@ -31,6 +33,8 @@ describe('physical 3D dice dye picker', () => {
 
     fireEvent.click(screen.getByTestId('dice-dye-garnet'));
     expect(onSelect).toHaveBeenCalledWith('garnet');
+    fireEvent.click(screen.getByTestId('dice-dye-confirm'));
+    expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 
   test('updates the selected physical die without creating another WebGL context', () => {
@@ -39,6 +43,14 @@ describe('physical 3D dice dye picker', () => {
 
     expect(createDiceDyeGallery).toHaveBeenCalledTimes(1);
     expect(gallery.select).toHaveBeenLastCalledWith('moss');
+  });
+
+  test('turns the style wheel with keyboard arrows', () => {
+    const onSelect = jest.fn();
+    render(<DiceDyePicker3D selectedId="amber" onSelect={onSelect} />);
+    fireEvent.keyDown(screen.getByTestId('dice-dye-gallery-3d'), { key: 'ArrowRight' });
+    const amberIndex = DICE_DYES.findIndex((dye) => dye.id === 'amber');
+    expect(onSelect).toHaveBeenCalledWith(DICE_DYES[(amberIndex + 1) % DICE_DYES.length].id);
   });
 
   test('falls back to readable material buttons if WebGL cannot start', () => {

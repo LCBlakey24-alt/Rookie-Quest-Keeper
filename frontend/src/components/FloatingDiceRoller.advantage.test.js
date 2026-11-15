@@ -41,8 +41,9 @@ jest.mock('@/components/DiceRollFlicker', () => ({
 
 jest.mock('@/components/dice3d/DiceDyePicker3D', () => ({
   __esModule: true,
-  default: () => <div data-testid="mock-dye-picker-3d" />,
+  default: ({ onConfirm }) => <div data-testid="mock-dye-picker-3d"><button type="button" data-testid="dice-dye-confirm" onClick={onConfirm}>Choose</button></div>,
 }));
+jest.mock('@/components/dice3d/DiceTypePreview3D', () => ({ __esModule: true, default: () => <div data-testid="mock-die-preview" /> }));
 
 jest.mock('@/lib/liveDisplayBus', () => ({
   __esModule: true,
@@ -59,6 +60,7 @@ async function openPanel() {
   );
   fireEvent.click(screen.getByTestId('dice-roller-toggle'));
   await screen.findByTestId('mock-dye-picker-3d');
+  fireEvent.click(screen.getByTestId('dice-dye-confirm'));
 }
 
 function setFormula(value) {
@@ -78,6 +80,7 @@ describe('advantage and disadvantage use the formula on screen', () => {
     await openPanel();
     setFormula('1d20+5');
     fireEvent.click(screen.getByTestId('roll-advantage-btn'));
+    fireEvent.click(screen.getByTestId('roll-d20-btn'));
 
     const [notation, options] = lastCall();
     expect(notation).toBe('1d20+5');
@@ -88,6 +91,7 @@ describe('advantage and disadvantage use the formula on screen', () => {
     await openPanel();
     setFormula('1d20-2');
     fireEvent.click(screen.getByTestId('roll-disadvantage-btn'));
+    fireEvent.click(screen.getByTestId('roll-d20-btn'));
 
     const [notation, options] = lastCall();
     expect(notation).toBe('1d20-2');
@@ -100,6 +104,7 @@ describe('advantage and disadvantage use the formula on screen', () => {
     // cannot reach 101, so a passing range here cannot overlap the bug.
     setFormula('1d20+100');
     fireEvent.click(screen.getByTestId('roll-advantage-btn'));
+    fireEvent.click(screen.getByTestId('roll-d20-btn'));
     fireEvent.click(screen.getByTestId('mock-reveal-roll'));
 
     const total = Number(screen.getByTestId('roll-result').querySelector('strong').textContent);
@@ -113,6 +118,7 @@ describe('advantage and disadvantage use the formula on screen', () => {
     await openPanel();
     setFormula('2d6+3');
     fireEvent.click(screen.getByTestId('roll-advantage-btn'));
+    fireEvent.click(screen.getByTestId('roll-d20-btn'));
 
     const [notation, options] = lastCall();
     expect(notation).toBe('1d20');
@@ -125,7 +131,20 @@ describe('advantage and disadvantage use the formula on screen', () => {
     await openPanel();
     setFormula('');
     fireEvent.click(screen.getByTestId('roll-disadvantage-btn'));
+    fireEvent.click(screen.getByTestId('roll-d20-btn'));
 
     expect(lastCall()[0]).toBe('1d20');
+  });
+
+  test('choosing a roll mode does not reveal or calculate before centre Roll', async () => {
+    await openPanel();
+    setFormula('1d20+4');
+    fireEvent.click(screen.getByTestId('roll-advantage-btn'));
+
+    expect(rollDiceNotation).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('mock-flicker')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId('roll-d20-btn'));
+    expect(rollDiceNotation).toHaveBeenCalledTimes(1);
   });
 });
