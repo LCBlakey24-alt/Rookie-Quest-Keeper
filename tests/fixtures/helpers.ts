@@ -57,6 +57,7 @@ export async function registerUser(page: Page, email: string, username: string, 
   await page.getByTestId('register-email').fill(email);
   await page.getByTestId('register-username').fill(username);
   await page.getByTestId('register-password').fill(password);
+  await page.getByTestId('register-adult-attestation').check();
   await page.getByTestId('register-btn').click();
 }
 

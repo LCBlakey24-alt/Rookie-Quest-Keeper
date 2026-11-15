@@ -57,6 +57,8 @@ class UserRegister(BaseModel):
     username: Optional[str] = None  # Optional stable account handle; generated from email when omitted
     password: str = Field(..., min_length=8)
     email: EmailStr  # Required for password recovery
+    # A declaration only, NOT verified age or parental consent.
+    adult_self_attested: bool = False
 
 class UserLogin(BaseModel):
     password: str
