@@ -1,0 +1,6561 @@
+{
+  "edition": "2014",
+  "version": "7.0",
+  "page_size": "A4",
+  "format": "AcroForm",
+  "details": "V7 contains dedicated Actions page 2, Expanded Combat page 3, then Spells, Equipment, Features, Journal and Rules. Eight pages; revised schema.",
+  "fields": [
+    {
+      "name": "identity.name",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        39,
+        121,
+        207,
+        18
+      ],
+      "description": "identity.name"
+    },
+    {
+      "name": "identity.class",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        254,
+        121,
+        184,
+        18
+      ],
+      "description": "identity.class"
+    },
+    {
+      "name": "identity.level",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        447,
+        121,
+        49,
+        18
+      ],
+      "description": "identity.level"
+    },
+    {
+      "name": "identity.xp",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        504,
+        121,
+        52,
+        18
+      ],
+      "description": "identity.xp"
+    },
+    {
+      "name": "identity.player",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        39,
+        151,
+        96,
+        15
+      ],
+      "description": "identity.player"
+    },
+    {
+      "name": "identity.species",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        143,
+        151,
+        113,
+        15
+      ],
+      "description": "identity.species"
+    },
+    {
+      "name": "identity.background",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        264,
+        151,
+        142,
+        15
+      ],
+      "description": "identity.background"
+    },
+    {
+      "name": "identity.alignment",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        414,
+        151,
+        142,
+        15
+      ],
+      "description": "identity.alignment"
+    },
+    {
+      "name": "abilities.str.score",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        69.0,
+        221.0,
+        24,
+        16
+      ],
+      "description": "abilities.str.score"
+    },
+    {
+      "name": "abilities.str.modifier",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        69.0,
+        241.5,
+        24,
+        16
+      ],
+      "description": "abilities.str.modifier"
+    },
+    {
+      "name": "abilities.str.save_bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        69.0,
+        262.0,
+        24,
+        16
+      ],
+      "description": "abilities.str.save_bonus"
+    },
+    {
+      "name": "abilities.str.save_proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        95.6,
+        265.6,
+        6.8,
+        6.8
+      ],
+      "description": "STR save proficiency"
+    },
+    {
+      "name": "abilities.dex.score",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        160.3,
+        221.0,
+        24,
+        16
+      ],
+      "description": "abilities.dex.score"
+    },
+    {
+      "name": "abilities.dex.modifier",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        160.3,
+        241.5,
+        24,
+        16
+      ],
+      "description": "abilities.dex.modifier"
+    },
+    {
+      "name": "abilities.dex.save_bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        160.3,
+        262.0,
+        24,
+        16
+      ],
+      "description": "abilities.dex.save_bonus"
+    },
+    {
+      "name": "abilities.dex.save_proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        186.9,
+        265.6,
+        6.8,
+        6.8
+      ],
+      "description": "DEX save proficiency"
+    },
+    {
+      "name": "abilities.con.score",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        251.7,
+        221.0,
+        24,
+        16
+      ],
+      "description": "abilities.con.score"
+    },
+    {
+      "name": "abilities.con.modifier",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        251.7,
+        241.5,
+        24,
+        16
+      ],
+      "description": "abilities.con.modifier"
+    },
+    {
+      "name": "abilities.con.save_bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        251.7,
+        262.0,
+        24,
+        16
+      ],
+      "description": "abilities.con.save_bonus"
+    },
+    {
+      "name": "abilities.con.save_proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        278.3,
+        265.6,
+        6.8,
+        6.8
+      ],
+      "description": "CON save proficiency"
+    },
+    {
+      "name": "abilities.int.score",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        343.0,
+        221.0,
+        24,
+        16
+      ],
+      "description": "abilities.int.score"
+    },
+    {
+      "name": "abilities.int.modifier",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        343.0,
+        241.5,
+        24,
+        16
+      ],
+      "description": "abilities.int.modifier"
+    },
+    {
+      "name": "abilities.int.save_bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        343.0,
+        262.0,
+        24,
+        16
+      ],
+      "description": "abilities.int.save_bonus"
+    },
+    {
+      "name": "abilities.int.save_proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        369.6,
+        265.6,
+        6.8,
+        6.8
+      ],
+      "description": "INT save proficiency"
+    },
+    {
+      "name": "abilities.wis.score",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        434.4,
+        221.0,
+        24,
+        16
+      ],
+      "description": "abilities.wis.score"
+    },
+    {
+      "name": "abilities.wis.modifier",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        434.4,
+        241.5,
+        24,
+        16
+      ],
+      "description": "abilities.wis.modifier"
+    },
+    {
+      "name": "abilities.wis.save_bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        434.4,
+        262.0,
+        24,
+        16
+      ],
+      "description": "abilities.wis.save_bonus"
+    },
+    {
+      "name": "abilities.wis.save_proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        461.0,
+        265.6,
+        6.8,
+        6.8
+      ],
+      "description": "WIS save proficiency"
+    },
+    {
+      "name": "abilities.cha.score",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        525.8,
+        221.0,
+        24,
+        16
+      ],
+      "description": "abilities.cha.score"
+    },
+    {
+      "name": "abilities.cha.modifier",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        525.8,
+        241.5,
+        24,
+        16
+      ],
+      "description": "abilities.cha.modifier"
+    },
+    {
+      "name": "abilities.cha.save_bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        525.8,
+        262.0,
+        24,
+        16
+      ],
+      "description": "abilities.cha.save_bonus"
+    },
+    {
+      "name": "abilities.cha.save_proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        552.4,
+        265.6,
+        6.8,
+        6.8
+      ],
+      "description": "CHA save proficiency"
+    },
+    {
+      "name": "combat.ac",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        39,
+        350,
+        49,
+        19
+      ],
+      "description": "combat.ac"
+    },
+    {
+      "name": "combat.initiative",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        96,
+        350,
+        50,
+        19
+      ],
+      "description": "combat.initiative"
+    },
+    {
+      "name": "combat.speed",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        154,
+        350,
+        49,
+        19
+      ],
+      "description": "combat.speed"
+    },
+    {
+      "name": "combat.proficiency_bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        211,
+        350,
+        51,
+        19
+      ],
+      "description": "combat.proficiency_bonus"
+    },
+    {
+      "name": "combat.passive_perception",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        317,
+        350,
+        58,
+        19
+      ],
+      "description": "combat.passive_perception"
+    },
+    {
+      "name": "combat.passive_insight",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        383,
+        350,
+        57,
+        19
+      ],
+      "description": "combat.passive_insight"
+    },
+    {
+      "name": "combat.spell_save_dc",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        448,
+        350,
+        56,
+        19
+      ],
+      "description": "combat.spell_save_dc"
+    },
+    {
+      "name": "combat.spell_attack_bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        512,
+        350,
+        43,
+        19
+      ],
+      "description": "combat.spell_attack_bonus"
+    },
+    {
+      "name": "combat.inspiration",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        288.6,
+        355.6,
+        6.8,
+        6.8
+      ],
+      "description": "Inspiration"
+    },
+    {
+      "name": "skills.acrobatics.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        432.0,
+        30,
+        14
+      ],
+      "description": "skills.acrobatics.bonus"
+    },
+    {
+      "name": "skills.acrobatics.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        435.6,
+        6.8,
+        6.8
+      ],
+      "description": "Acrobatics: proficient"
+    },
+    {
+      "name": "skills.acrobatics.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        435.6,
+        6.8,
+        6.8
+      ],
+      "description": "Acrobatics: expertise"
+    },
+    {
+      "name": "skills.animal_handling.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        449.8,
+        30,
+        14
+      ],
+      "description": "skills.animal_handling.bonus"
+    },
+    {
+      "name": "skills.animal_handling.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        453.4,
+        6.8,
+        6.8
+      ],
+      "description": "Animal Handling: proficient"
+    },
+    {
+      "name": "skills.animal_handling.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        453.4,
+        6.8,
+        6.8
+      ],
+      "description": "Animal Handling: expertise"
+    },
+    {
+      "name": "skills.arcana.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        467.6,
+        30,
+        14
+      ],
+      "description": "skills.arcana.bonus"
+    },
+    {
+      "name": "skills.arcana.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        471.2,
+        6.8,
+        6.8
+      ],
+      "description": "Arcana: proficient"
+    },
+    {
+      "name": "skills.arcana.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        471.2,
+        6.8,
+        6.8
+      ],
+      "description": "Arcana: expertise"
+    },
+    {
+      "name": "skills.athletics.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        485.4,
+        30,
+        14
+      ],
+      "description": "skills.athletics.bonus"
+    },
+    {
+      "name": "skills.athletics.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        489.0,
+        6.8,
+        6.8
+      ],
+      "description": "Athletics: proficient"
+    },
+    {
+      "name": "skills.athletics.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        489.0,
+        6.8,
+        6.8
+      ],
+      "description": "Athletics: expertise"
+    },
+    {
+      "name": "skills.deception.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        503.2,
+        30,
+        14
+      ],
+      "description": "skills.deception.bonus"
+    },
+    {
+      "name": "skills.deception.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        506.8,
+        6.8,
+        6.8
+      ],
+      "description": "Deception: proficient"
+    },
+    {
+      "name": "skills.deception.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        506.8,
+        6.8,
+        6.8
+      ],
+      "description": "Deception: expertise"
+    },
+    {
+      "name": "skills.history.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        521.0,
+        30,
+        14
+      ],
+      "description": "skills.history.bonus"
+    },
+    {
+      "name": "skills.history.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        524.6,
+        6.8,
+        6.8
+      ],
+      "description": "History: proficient"
+    },
+    {
+      "name": "skills.history.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        524.6,
+        6.8,
+        6.8
+      ],
+      "description": "History: expertise"
+    },
+    {
+      "name": "skills.insight.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        538.8,
+        30,
+        14
+      ],
+      "description": "skills.insight.bonus"
+    },
+    {
+      "name": "skills.insight.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        542.4,
+        6.8,
+        6.8
+      ],
+      "description": "Insight: proficient"
+    },
+    {
+      "name": "skills.insight.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        542.4,
+        6.8,
+        6.8
+      ],
+      "description": "Insight: expertise"
+    },
+    {
+      "name": "skills.intimidation.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        556.6,
+        30,
+        14
+      ],
+      "description": "skills.intimidation.bonus"
+    },
+    {
+      "name": "skills.intimidation.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        560.2,
+        6.8,
+        6.8
+      ],
+      "description": "Intimidation: proficient"
+    },
+    {
+      "name": "skills.intimidation.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        560.2,
+        6.8,
+        6.8
+      ],
+      "description": "Intimidation: expertise"
+    },
+    {
+      "name": "skills.investigation.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        574.4,
+        30,
+        14
+      ],
+      "description": "skills.investigation.bonus"
+    },
+    {
+      "name": "skills.investigation.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        578.0,
+        6.8,
+        6.8
+      ],
+      "description": "Investigation: proficient"
+    },
+    {
+      "name": "skills.investigation.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        578.0,
+        6.8,
+        6.8
+      ],
+      "description": "Investigation: expertise"
+    },
+    {
+      "name": "skills.medicine.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        592.2,
+        30,
+        14
+      ],
+      "description": "skills.medicine.bonus"
+    },
+    {
+      "name": "skills.medicine.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        595.8,
+        6.8,
+        6.8
+      ],
+      "description": "Medicine: proficient"
+    },
+    {
+      "name": "skills.medicine.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        595.8,
+        6.8,
+        6.8
+      ],
+      "description": "Medicine: expertise"
+    },
+    {
+      "name": "skills.nature.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        610.0,
+        30,
+        14
+      ],
+      "description": "skills.nature.bonus"
+    },
+    {
+      "name": "skills.nature.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        613.6,
+        6.8,
+        6.8
+      ],
+      "description": "Nature: proficient"
+    },
+    {
+      "name": "skills.nature.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        613.6,
+        6.8,
+        6.8
+      ],
+      "description": "Nature: expertise"
+    },
+    {
+      "name": "skills.perception.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        627.8,
+        30,
+        14
+      ],
+      "description": "skills.perception.bonus"
+    },
+    {
+      "name": "skills.perception.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        631.4,
+        6.8,
+        6.8
+      ],
+      "description": "Perception: proficient"
+    },
+    {
+      "name": "skills.perception.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        631.4,
+        6.8,
+        6.8
+      ],
+      "description": "Perception: expertise"
+    },
+    {
+      "name": "skills.performance.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        645.6,
+        30,
+        14
+      ],
+      "description": "skills.performance.bonus"
+    },
+    {
+      "name": "skills.performance.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        649.2,
+        6.8,
+        6.8
+      ],
+      "description": "Performance: proficient"
+    },
+    {
+      "name": "skills.performance.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        649.2,
+        6.8,
+        6.8
+      ],
+      "description": "Performance: expertise"
+    },
+    {
+      "name": "skills.persuasion.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        663.4,
+        30,
+        14
+      ],
+      "description": "skills.persuasion.bonus"
+    },
+    {
+      "name": "skills.persuasion.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        667.0,
+        6.8,
+        6.8
+      ],
+      "description": "Persuasion: proficient"
+    },
+    {
+      "name": "skills.persuasion.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        667.0,
+        6.8,
+        6.8
+      ],
+      "description": "Persuasion: expertise"
+    },
+    {
+      "name": "skills.religion.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        681.2,
+        30,
+        14
+      ],
+      "description": "skills.religion.bonus"
+    },
+    {
+      "name": "skills.religion.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        684.8,
+        6.8,
+        6.8
+      ],
+      "description": "Religion: proficient"
+    },
+    {
+      "name": "skills.religion.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        684.8,
+        6.8,
+        6.8
+      ],
+      "description": "Religion: expertise"
+    },
+    {
+      "name": "skills.sleight_of_hand.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        699.0,
+        30,
+        14
+      ],
+      "description": "skills.sleight_of_hand.bonus"
+    },
+    {
+      "name": "skills.sleight_of_hand.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        702.6,
+        6.8,
+        6.8
+      ],
+      "description": "Sleight of Hand: proficient"
+    },
+    {
+      "name": "skills.sleight_of_hand.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        702.6,
+        6.8,
+        6.8
+      ],
+      "description": "Sleight of Hand: expertise"
+    },
+    {
+      "name": "skills.stealth.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        716.8,
+        30,
+        14
+      ],
+      "description": "skills.stealth.bonus"
+    },
+    {
+      "name": "skills.stealth.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        720.4,
+        6.8,
+        6.8
+      ],
+      "description": "Stealth: proficient"
+    },
+    {
+      "name": "skills.stealth.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        720.4,
+        6.8,
+        6.8
+      ],
+      "description": "Stealth: expertise"
+    },
+    {
+      "name": "skills.survival.bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        190,
+        734.6,
+        30,
+        14
+      ],
+      "description": "skills.survival.bonus"
+    },
+    {
+      "name": "skills.survival.proficient",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        233.6,
+        738.2,
+        6.8,
+        6.8
+      ],
+      "description": "Survival: proficient"
+    },
+    {
+      "name": "skills.survival.expertise",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        258.6,
+        738.2,
+        6.8,
+        6.8
+      ],
+      "description": "Survival: expertise"
+    },
+    {
+      "name": "identity.languages",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        40,
+        767,
+        103,
+        18
+      ],
+      "description": "identity.languages"
+    },
+    {
+      "name": "identity.training",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        151,
+        767,
+        114,
+        18
+      ],
+      "description": "identity.training"
+    },
+    {
+      "name": "combat.max_hp",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        299,
+        430,
+        52,
+        17
+      ],
+      "description": "combat.max_hp"
+    },
+    {
+      "name": "combat.current_hp",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        356,
+        430,
+        52,
+        17
+      ],
+      "description": "combat.current_hp"
+    },
+    {
+      "name": "combat.temp_hp",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        413,
+        430,
+        49,
+        17
+      ],
+      "description": "combat.temp_hp"
+    },
+    {
+      "name": "combat.hit_dice.type",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        469,
+        430,
+        42,
+        17
+      ],
+      "description": "combat.hit_dice.type"
+    },
+    {
+      "name": "combat.hit_dice.remaining",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        516,
+        430,
+        18,
+        17
+      ],
+      "description": "combat.hit_dice.remaining"
+    },
+    {
+      "name": "combat.hit_dice.total",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        546,
+        430,
+        13,
+        17
+      ],
+      "description": "combat.hit_dice.total"
+    },
+    {
+      "name": "combat.death_saves.success.1",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        412.6,
+        458.1,
+        6.8,
+        6.8
+      ],
+      "description": "combat.death_saves.success.1"
+    },
+    {
+      "name": "combat.death_saves.failure.1",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        514.6,
+        458.1,
+        6.8,
+        6.8
+      ],
+      "description": "combat.death_saves.failure.1"
+    },
+    {
+      "name": "combat.death_saves.success.2",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        426.6,
+        458.1,
+        6.8,
+        6.8
+      ],
+      "description": "combat.death_saves.success.2"
+    },
+    {
+      "name": "combat.death_saves.failure.2",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        528.6,
+        458.1,
+        6.8,
+        6.8
+      ],
+      "description": "combat.death_saves.failure.2"
+    },
+    {
+      "name": "combat.death_saves.success.3",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        440.6,
+        458.1,
+        6.8,
+        6.8
+      ],
+      "description": "combat.death_saves.success.3"
+    },
+    {
+      "name": "combat.death_saves.failure.3",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        542.6,
+        458.1,
+        6.8,
+        6.8
+      ],
+      "description": "combat.death_saves.failure.3"
+    },
+    {
+      "name": "combat.exhaustion.level.1",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        433.6,
+        479.6,
+        6.8,
+        6.8
+      ],
+      "description": "combat.exhaustion.level.1"
+    },
+    {
+      "name": "combat.exhaustion.level.2",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        456.6,
+        479.6,
+        6.8,
+        6.8
+      ],
+      "description": "combat.exhaustion.level.2"
+    },
+    {
+      "name": "combat.exhaustion.level.3",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        479.6,
+        479.6,
+        6.8,
+        6.8
+      ],
+      "description": "combat.exhaustion.level.3"
+    },
+    {
+      "name": "combat.exhaustion.level.4",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        502.6,
+        479.6,
+        6.8,
+        6.8
+      ],
+      "description": "combat.exhaustion.level.4"
+    },
+    {
+      "name": "combat.exhaustion.level.5",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        525.6,
+        479.6,
+        6.8,
+        6.8
+      ],
+      "description": "combat.exhaustion.level.5"
+    },
+    {
+      "name": "combat.exhaustion.level.6",
+      "edition": "2014",
+      "page": 1,
+      "type": "checkbox",
+      "rect": [
+        548.6,
+        479.6,
+        6.8,
+        6.8
+      ],
+      "description": "combat.exhaustion.level.6"
+    },
+    {
+      "name": "combat.conditions",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        356,
+        508,
+        202,
+        19
+      ],
+      "description": "combat.conditions"
+    },
+    {
+      "name": "attacks.1.name",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        299,
+        591.0,
+        99,
+        20
+      ],
+      "description": "attacks.1.name"
+    },
+    {
+      "name": "attacks.1.attack_bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        404,
+        591.0,
+        29,
+        20
+      ],
+      "description": "attacks.1.attack_bonus"
+    },
+    {
+      "name": "attacks.1.damage",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        439,
+        591.0,
+        75,
+        20
+      ],
+      "description": "attacks.1.damage"
+    },
+    {
+      "name": "attacks.1.range",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        520,
+        591.0,
+        38,
+        20
+      ],
+      "description": "attacks.1.range"
+    },
+    {
+      "name": "attacks.2.name",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        299,
+        615.3,
+        99,
+        20
+      ],
+      "description": "attacks.2.name"
+    },
+    {
+      "name": "attacks.2.attack_bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        404,
+        615.3,
+        29,
+        20
+      ],
+      "description": "attacks.2.attack_bonus"
+    },
+    {
+      "name": "attacks.2.damage",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        439,
+        615.3,
+        75,
+        20
+      ],
+      "description": "attacks.2.damage"
+    },
+    {
+      "name": "attacks.2.range",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        520,
+        615.3,
+        38,
+        20
+      ],
+      "description": "attacks.2.range"
+    },
+    {
+      "name": "attacks.3.name",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        299,
+        639.6,
+        99,
+        20
+      ],
+      "description": "attacks.3.name"
+    },
+    {
+      "name": "attacks.3.attack_bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        404,
+        639.6,
+        29,
+        20
+      ],
+      "description": "attacks.3.attack_bonus"
+    },
+    {
+      "name": "attacks.3.damage",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        439,
+        639.6,
+        75,
+        20
+      ],
+      "description": "attacks.3.damage"
+    },
+    {
+      "name": "attacks.3.range",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        520,
+        639.6,
+        38,
+        20
+      ],
+      "description": "attacks.3.range"
+    },
+    {
+      "name": "attacks.4.name",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        299,
+        663.9,
+        99,
+        20
+      ],
+      "description": "attacks.4.name"
+    },
+    {
+      "name": "attacks.4.attack_bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        404,
+        663.9,
+        29,
+        20
+      ],
+      "description": "attacks.4.attack_bonus"
+    },
+    {
+      "name": "attacks.4.damage",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        439,
+        663.9,
+        75,
+        20
+      ],
+      "description": "attacks.4.damage"
+    },
+    {
+      "name": "attacks.4.range",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        520,
+        663.9,
+        38,
+        20
+      ],
+      "description": "attacks.4.range"
+    },
+    {
+      "name": "attacks.5.name",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        299,
+        688.2,
+        99,
+        20
+      ],
+      "description": "attacks.5.name"
+    },
+    {
+      "name": "attacks.5.attack_bonus",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        404,
+        688.2,
+        29,
+        20
+      ],
+      "description": "attacks.5.attack_bonus"
+    },
+    {
+      "name": "attacks.5.damage",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        439,
+        688.2,
+        75,
+        20
+      ],
+      "description": "attacks.5.damage"
+    },
+    {
+      "name": "attacks.5.range",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        520,
+        688.2,
+        38,
+        20
+      ],
+      "description": "attacks.5.range"
+    },
+    {
+      "name": "combat.concentration_summary",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        299,
+        773,
+        103,
+        17
+      ],
+      "description": "combat.concentration_summary"
+    },
+    {
+      "name": "combat.defences_summary",
+      "edition": "2014",
+      "page": 1,
+      "type": "text",
+      "rect": [
+        410,
+        773,
+        148,
+        17
+      ],
+      "description": "combat.defences_summary"
+    },
+    {
+      "name": "actions.action.1.name",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        40,
+        140.0,
+        122,
+        21
+      ],
+      "description": "actions.action.1.name"
+    },
+    {
+      "name": "actions.action.1.requirement",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        169,
+        140.0,
+        70,
+        21
+      ],
+      "description": "actions.action.1.requirement"
+    },
+    {
+      "name": "actions.action.1.range",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        246,
+        140.0,
+        49,
+        21
+      ],
+      "description": "actions.action.1.range"
+    },
+    {
+      "name": "actions.action.1.effect",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        301,
+        140.0,
+        168,
+        21
+      ],
+      "description": "actions.action.1.effect"
+    },
+    {
+      "name": "actions.action.1.usage",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        475,
+        140.0,
+        77,
+        21
+      ],
+      "description": "actions.action.1.usage"
+    },
+    {
+      "name": "actions.action.2.name",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        40,
+        165.6,
+        122,
+        21
+      ],
+      "description": "actions.action.2.name"
+    },
+    {
+      "name": "actions.action.2.requirement",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        169,
+        165.6,
+        70,
+        21
+      ],
+      "description": "actions.action.2.requirement"
+    },
+    {
+      "name": "actions.action.2.range",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        246,
+        165.6,
+        49,
+        21
+      ],
+      "description": "actions.action.2.range"
+    },
+    {
+      "name": "actions.action.2.effect",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        301,
+        165.6,
+        168,
+        21
+      ],
+      "description": "actions.action.2.effect"
+    },
+    {
+      "name": "actions.action.2.usage",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        475,
+        165.6,
+        77,
+        21
+      ],
+      "description": "actions.action.2.usage"
+    },
+    {
+      "name": "actions.action.3.name",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        40,
+        191.2,
+        122,
+        21
+      ],
+      "description": "actions.action.3.name"
+    },
+    {
+      "name": "actions.action.3.requirement",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        169,
+        191.2,
+        70,
+        21
+      ],
+      "description": "actions.action.3.requirement"
+    },
+    {
+      "name": "actions.action.3.range",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        246,
+        191.2,
+        49,
+        21
+      ],
+      "description": "actions.action.3.range"
+    },
+    {
+      "name": "actions.action.3.effect",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        301,
+        191.2,
+        168,
+        21
+      ],
+      "description": "actions.action.3.effect"
+    },
+    {
+      "name": "actions.action.3.usage",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        475,
+        191.2,
+        77,
+        21
+      ],
+      "description": "actions.action.3.usage"
+    },
+    {
+      "name": "actions.action.4.name",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        40,
+        216.8,
+        122,
+        21
+      ],
+      "description": "actions.action.4.name"
+    },
+    {
+      "name": "actions.action.4.requirement",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        169,
+        216.8,
+        70,
+        21
+      ],
+      "description": "actions.action.4.requirement"
+    },
+    {
+      "name": "actions.action.4.range",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        246,
+        216.8,
+        49,
+        21
+      ],
+      "description": "actions.action.4.range"
+    },
+    {
+      "name": "actions.action.4.effect",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        301,
+        216.8,
+        168,
+        21
+      ],
+      "description": "actions.action.4.effect"
+    },
+    {
+      "name": "actions.action.4.usage",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        475,
+        216.8,
+        77,
+        21
+      ],
+      "description": "actions.action.4.usage"
+    },
+    {
+      "name": "actions.action.5.name",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        40,
+        242.4,
+        122,
+        21
+      ],
+      "description": "actions.action.5.name"
+    },
+    {
+      "name": "actions.action.5.requirement",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        169,
+        242.4,
+        70,
+        21
+      ],
+      "description": "actions.action.5.requirement"
+    },
+    {
+      "name": "actions.action.5.range",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        246,
+        242.4,
+        49,
+        21
+      ],
+      "description": "actions.action.5.range"
+    },
+    {
+      "name": "actions.action.5.effect",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        301,
+        242.4,
+        168,
+        21
+      ],
+      "description": "actions.action.5.effect"
+    },
+    {
+      "name": "actions.action.5.usage",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        475,
+        242.4,
+        77,
+        21
+      ],
+      "description": "actions.action.5.usage"
+    },
+    {
+      "name": "actions.action.6.name",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        40,
+        268.0,
+        122,
+        21
+      ],
+      "description": "actions.action.6.name"
+    },
+    {
+      "name": "actions.action.6.requirement",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        169,
+        268.0,
+        70,
+        21
+      ],
+      "description": "actions.action.6.requirement"
+    },
+    {
+      "name": "actions.action.6.range",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        246,
+        268.0,
+        49,
+        21
+      ],
+      "description": "actions.action.6.range"
+    },
+    {
+      "name": "actions.action.6.effect",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        301,
+        268.0,
+        168,
+        21
+      ],
+      "description": "actions.action.6.effect"
+    },
+    {
+      "name": "actions.action.6.usage",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        475,
+        268.0,
+        77,
+        21
+      ],
+      "description": "actions.action.6.usage"
+    },
+    {
+      "name": "actions.bonus.1.name",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        40,
+        376.0,
+        122,
+        21
+      ],
+      "description": "actions.bonus.1.name"
+    },
+    {
+      "name": "actions.bonus.1.requirement",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        169,
+        376.0,
+        70,
+        21
+      ],
+      "description": "actions.bonus.1.requirement"
+    },
+    {
+      "name": "actions.bonus.1.range",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        246,
+        376.0,
+        49,
+        21
+      ],
+      "description": "actions.bonus.1.range"
+    },
+    {
+      "name": "actions.bonus.1.effect",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        301,
+        376.0,
+        168,
+        21
+      ],
+      "description": "actions.bonus.1.effect"
+    },
+    {
+      "name": "actions.bonus.1.usage",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        475,
+        376.0,
+        77,
+        21
+      ],
+      "description": "actions.bonus.1.usage"
+    },
+    {
+      "name": "actions.bonus.2.name",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        40,
+        401.6,
+        122,
+        21
+      ],
+      "description": "actions.bonus.2.name"
+    },
+    {
+      "name": "actions.bonus.2.requirement",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        169,
+        401.6,
+        70,
+        21
+      ],
+      "description": "actions.bonus.2.requirement"
+    },
+    {
+      "name": "actions.bonus.2.range",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        246,
+        401.6,
+        49,
+        21
+      ],
+      "description": "actions.bonus.2.range"
+    },
+    {
+      "name": "actions.bonus.2.effect",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        301,
+        401.6,
+        168,
+        21
+      ],
+      "description": "actions.bonus.2.effect"
+    },
+    {
+      "name": "actions.bonus.2.usage",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        475,
+        401.6,
+        77,
+        21
+      ],
+      "description": "actions.bonus.2.usage"
+    },
+    {
+      "name": "actions.bonus.3.name",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        40,
+        427.2,
+        122,
+        21
+      ],
+      "description": "actions.bonus.3.name"
+    },
+    {
+      "name": "actions.bonus.3.requirement",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        169,
+        427.2,
+        70,
+        21
+      ],
+      "description": "actions.bonus.3.requirement"
+    },
+    {
+      "name": "actions.bonus.3.range",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        246,
+        427.2,
+        49,
+        21
+      ],
+      "description": "actions.bonus.3.range"
+    },
+    {
+      "name": "actions.bonus.3.effect",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        301,
+        427.2,
+        168,
+        21
+      ],
+      "description": "actions.bonus.3.effect"
+    },
+    {
+      "name": "actions.bonus.3.usage",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        475,
+        427.2,
+        77,
+        21
+      ],
+      "description": "actions.bonus.3.usage"
+    },
+    {
+      "name": "actions.bonus.4.name",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        40,
+        452.8,
+        122,
+        21
+      ],
+      "description": "actions.bonus.4.name"
+    },
+    {
+      "name": "actions.bonus.4.requirement",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        169,
+        452.8,
+        70,
+        21
+      ],
+      "description": "actions.bonus.4.requirement"
+    },
+    {
+      "name": "actions.bonus.4.range",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        246,
+        452.8,
+        49,
+        21
+      ],
+      "description": "actions.bonus.4.range"
+    },
+    {
+      "name": "actions.bonus.4.effect",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        301,
+        452.8,
+        168,
+        21
+      ],
+      "description": "actions.bonus.4.effect"
+    },
+    {
+      "name": "actions.bonus.4.usage",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        475,
+        452.8,
+        77,
+        21
+      ],
+      "description": "actions.bonus.4.usage"
+    },
+    {
+      "name": "actions.reaction.1.name",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        40,
+        571.0,
+        119,
+        21
+      ],
+      "description": "actions.reaction.1.name"
+    },
+    {
+      "name": "actions.reaction.1.trigger",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        165,
+        571.0,
+        116,
+        21
+      ],
+      "description": "actions.reaction.1.trigger"
+    },
+    {
+      "name": "actions.reaction.1.range",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        287,
+        571.0,
+        41,
+        21
+      ],
+      "description": "actions.reaction.1.range"
+    },
+    {
+      "name": "actions.reaction.1.effect",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        335,
+        571.0,
+        133,
+        21
+      ],
+      "description": "actions.reaction.1.effect"
+    },
+    {
+      "name": "actions.reaction.1.usage",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        475,
+        571.0,
+        77,
+        21
+      ],
+      "description": "actions.reaction.1.usage"
+    },
+    {
+      "name": "actions.reaction.2.name",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        40,
+        596.6,
+        119,
+        21
+      ],
+      "description": "actions.reaction.2.name"
+    },
+    {
+      "name": "actions.reaction.2.trigger",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        165,
+        596.6,
+        116,
+        21
+      ],
+      "description": "actions.reaction.2.trigger"
+    },
+    {
+      "name": "actions.reaction.2.range",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        287,
+        596.6,
+        41,
+        21
+      ],
+      "description": "actions.reaction.2.range"
+    },
+    {
+      "name": "actions.reaction.2.effect",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        335,
+        596.6,
+        133,
+        21
+      ],
+      "description": "actions.reaction.2.effect"
+    },
+    {
+      "name": "actions.reaction.2.usage",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        475,
+        596.6,
+        77,
+        21
+      ],
+      "description": "actions.reaction.2.usage"
+    },
+    {
+      "name": "actions.reaction.3.name",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        40,
+        622.2,
+        119,
+        21
+      ],
+      "description": "actions.reaction.3.name"
+    },
+    {
+      "name": "actions.reaction.3.trigger",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        165,
+        622.2,
+        116,
+        21
+      ],
+      "description": "actions.reaction.3.trigger"
+    },
+    {
+      "name": "actions.reaction.3.range",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        287,
+        622.2,
+        41,
+        21
+      ],
+      "description": "actions.reaction.3.range"
+    },
+    {
+      "name": "actions.reaction.3.effect",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        335,
+        622.2,
+        133,
+        21
+      ],
+      "description": "actions.reaction.3.effect"
+    },
+    {
+      "name": "actions.reaction.3.usage",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        475,
+        622.2,
+        77,
+        21
+      ],
+      "description": "actions.reaction.3.usage"
+    },
+    {
+      "name": "actions.reaction.4.name",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        40,
+        647.8,
+        119,
+        21
+      ],
+      "description": "actions.reaction.4.name"
+    },
+    {
+      "name": "actions.reaction.4.trigger",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        165,
+        647.8,
+        116,
+        21
+      ],
+      "description": "actions.reaction.4.trigger"
+    },
+    {
+      "name": "actions.reaction.4.range",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        287,
+        647.8,
+        41,
+        21
+      ],
+      "description": "actions.reaction.4.range"
+    },
+    {
+      "name": "actions.reaction.4.effect",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        335,
+        647.8,
+        133,
+        21
+      ],
+      "description": "actions.reaction.4.effect"
+    },
+    {
+      "name": "actions.reaction.4.usage",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        475,
+        647.8,
+        77,
+        21
+      ],
+      "description": "actions.reaction.4.usage"
+    },
+    {
+      "name": "actions.resources.1.name",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        313,
+        739,
+        111,
+        15.5
+      ],
+      "description": "actions.resources.1.name"
+    },
+    {
+      "name": "actions.resources.1.remaining",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        432,
+        739,
+        25,
+        15.5
+      ],
+      "description": "actions.resources.1.remaining"
+    },
+    {
+      "name": "actions.resources.1.total",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        464,
+        739,
+        25,
+        15.5
+      ],
+      "description": "actions.resources.1.total"
+    },
+    {
+      "name": "actions.resources.1.recharge",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        497,
+        739,
+        58,
+        15.5
+      ],
+      "description": "actions.resources.1.recharge"
+    },
+    {
+      "name": "actions.resources.2.name",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        313,
+        757,
+        111,
+        15.5
+      ],
+      "description": "actions.resources.2.name"
+    },
+    {
+      "name": "actions.resources.2.remaining",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        432,
+        757,
+        25,
+        15.5
+      ],
+      "description": "actions.resources.2.remaining"
+    },
+    {
+      "name": "actions.resources.2.total",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        464,
+        757,
+        25,
+        15.5
+      ],
+      "description": "actions.resources.2.total"
+    },
+    {
+      "name": "actions.resources.2.recharge",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        497,
+        757,
+        58,
+        15.5
+      ],
+      "description": "actions.resources.2.recharge"
+    },
+    {
+      "name": "actions.resources.3.name",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        313,
+        775,
+        111,
+        15.5
+      ],
+      "description": "actions.resources.3.name"
+    },
+    {
+      "name": "actions.resources.3.remaining",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        432,
+        775,
+        25,
+        15.5
+      ],
+      "description": "actions.resources.3.remaining"
+    },
+    {
+      "name": "actions.resources.3.total",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        464,
+        775,
+        25,
+        15.5
+      ],
+      "description": "actions.resources.3.total"
+    },
+    {
+      "name": "actions.resources.3.recharge",
+      "edition": "2014",
+      "page": 2,
+      "type": "text",
+      "rect": [
+        497,
+        775,
+        58,
+        15.5
+      ],
+      "description": "actions.resources.3.recharge"
+    },
+    {
+      "name": "combat.details.attacks.1.name",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        134.0,
+        178,
+        16.4
+      ],
+      "description": "combat.details.attacks.1.name"
+    },
+    {
+      "name": "combat.details.attacks.1.attack_bonus",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        227,
+        134.0,
+        55,
+        16.4
+      ],
+      "description": "combat.details.attacks.1.attack_bonus"
+    },
+    {
+      "name": "combat.details.attacks.1.damage",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        290,
+        134.0,
+        110,
+        16.4
+      ],
+      "description": "combat.details.attacks.1.damage"
+    },
+    {
+      "name": "combat.details.attacks.1.properties",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        410,
+        134.0,
+        143,
+        16.4
+      ],
+      "description": "combat.details.attacks.1.properties"
+    },
+    {
+      "name": "combat.details.attacks.2.name",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        152.2,
+        178,
+        16.4
+      ],
+      "description": "combat.details.attacks.2.name"
+    },
+    {
+      "name": "combat.details.attacks.2.attack_bonus",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        227,
+        152.2,
+        55,
+        16.4
+      ],
+      "description": "combat.details.attacks.2.attack_bonus"
+    },
+    {
+      "name": "combat.details.attacks.2.damage",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        290,
+        152.2,
+        110,
+        16.4
+      ],
+      "description": "combat.details.attacks.2.damage"
+    },
+    {
+      "name": "combat.details.attacks.2.properties",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        410,
+        152.2,
+        143,
+        16.4
+      ],
+      "description": "combat.details.attacks.2.properties"
+    },
+    {
+      "name": "combat.details.attacks.3.name",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        170.5,
+        178,
+        16.4
+      ],
+      "description": "combat.details.attacks.3.name"
+    },
+    {
+      "name": "combat.details.attacks.3.attack_bonus",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        227,
+        170.5,
+        55,
+        16.4
+      ],
+      "description": "combat.details.attacks.3.attack_bonus"
+    },
+    {
+      "name": "combat.details.attacks.3.damage",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        290,
+        170.5,
+        110,
+        16.4
+      ],
+      "description": "combat.details.attacks.3.damage"
+    },
+    {
+      "name": "combat.details.attacks.3.properties",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        410,
+        170.5,
+        143,
+        16.4
+      ],
+      "description": "combat.details.attacks.3.properties"
+    },
+    {
+      "name": "combat.details.attacks.4.name",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        188.8,
+        178,
+        16.4
+      ],
+      "description": "combat.details.attacks.4.name"
+    },
+    {
+      "name": "combat.details.attacks.4.attack_bonus",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        227,
+        188.8,
+        55,
+        16.4
+      ],
+      "description": "combat.details.attacks.4.attack_bonus"
+    },
+    {
+      "name": "combat.details.attacks.4.damage",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        290,
+        188.8,
+        110,
+        16.4
+      ],
+      "description": "combat.details.attacks.4.damage"
+    },
+    {
+      "name": "combat.details.attacks.4.properties",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        410,
+        188.8,
+        143,
+        16.4
+      ],
+      "description": "combat.details.attacks.4.properties"
+    },
+    {
+      "name": "combat.details.attacks.5.name",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        207.0,
+        178,
+        16.4
+      ],
+      "description": "combat.details.attacks.5.name"
+    },
+    {
+      "name": "combat.details.attacks.5.attack_bonus",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        227,
+        207.0,
+        55,
+        16.4
+      ],
+      "description": "combat.details.attacks.5.attack_bonus"
+    },
+    {
+      "name": "combat.details.attacks.5.damage",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        290,
+        207.0,
+        110,
+        16.4
+      ],
+      "description": "combat.details.attacks.5.damage"
+    },
+    {
+      "name": "combat.details.attacks.5.properties",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        410,
+        207.0,
+        143,
+        16.4
+      ],
+      "description": "combat.details.attacks.5.properties"
+    },
+    {
+      "name": "combat.details.attacks.6.name",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        225.2,
+        178,
+        16.4
+      ],
+      "description": "combat.details.attacks.6.name"
+    },
+    {
+      "name": "combat.details.attacks.6.attack_bonus",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        227,
+        225.2,
+        55,
+        16.4
+      ],
+      "description": "combat.details.attacks.6.attack_bonus"
+    },
+    {
+      "name": "combat.details.attacks.6.damage",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        290,
+        225.2,
+        110,
+        16.4
+      ],
+      "description": "combat.details.attacks.6.damage"
+    },
+    {
+      "name": "combat.details.attacks.6.properties",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        410,
+        225.2,
+        143,
+        16.4
+      ],
+      "description": "combat.details.attacks.6.properties"
+    },
+    {
+      "name": "combat.details.attacks.7.name",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        243.5,
+        178,
+        16.4
+      ],
+      "description": "combat.details.attacks.7.name"
+    },
+    {
+      "name": "combat.details.attacks.7.attack_bonus",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        227,
+        243.5,
+        55,
+        16.4
+      ],
+      "description": "combat.details.attacks.7.attack_bonus"
+    },
+    {
+      "name": "combat.details.attacks.7.damage",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        290,
+        243.5,
+        110,
+        16.4
+      ],
+      "description": "combat.details.attacks.7.damage"
+    },
+    {
+      "name": "combat.details.attacks.7.properties",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        410,
+        243.5,
+        143,
+        16.4
+      ],
+      "description": "combat.details.attacks.7.properties"
+    },
+    {
+      "name": "combat.details.attacks.8.name",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        261.8,
+        178,
+        16.4
+      ],
+      "description": "combat.details.attacks.8.name"
+    },
+    {
+      "name": "combat.details.attacks.8.attack_bonus",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        227,
+        261.8,
+        55,
+        16.4
+      ],
+      "description": "combat.details.attacks.8.attack_bonus"
+    },
+    {
+      "name": "combat.details.attacks.8.damage",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        290,
+        261.8,
+        110,
+        16.4
+      ],
+      "description": "combat.details.attacks.8.damage"
+    },
+    {
+      "name": "combat.details.attacks.8.properties",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        410,
+        261.8,
+        143,
+        16.4
+      ],
+      "description": "combat.details.attacks.8.properties"
+    },
+    {
+      "name": "combat.details.attacks.9.name",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        280.0,
+        178,
+        16.4
+      ],
+      "description": "combat.details.attacks.9.name"
+    },
+    {
+      "name": "combat.details.attacks.9.attack_bonus",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        227,
+        280.0,
+        55,
+        16.4
+      ],
+      "description": "combat.details.attacks.9.attack_bonus"
+    },
+    {
+      "name": "combat.details.attacks.9.damage",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        290,
+        280.0,
+        110,
+        16.4
+      ],
+      "description": "combat.details.attacks.9.damage"
+    },
+    {
+      "name": "combat.details.attacks.9.properties",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        410,
+        280.0,
+        143,
+        16.4
+      ],
+      "description": "combat.details.attacks.9.properties"
+    },
+    {
+      "name": "combat.details.attacks.10.name",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        298.2,
+        178,
+        16.4
+      ],
+      "description": "combat.details.attacks.10.name"
+    },
+    {
+      "name": "combat.details.attacks.10.attack_bonus",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        227,
+        298.2,
+        55,
+        16.4
+      ],
+      "description": "combat.details.attacks.10.attack_bonus"
+    },
+    {
+      "name": "combat.details.attacks.10.damage",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        290,
+        298.2,
+        110,
+        16.4
+      ],
+      "description": "combat.details.attacks.10.damage"
+    },
+    {
+      "name": "combat.details.attacks.10.properties",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        410,
+        298.2,
+        143,
+        16.4
+      ],
+      "description": "combat.details.attacks.10.properties"
+    },
+    {
+      "name": "resources.1.name",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        388.0,
+        236,
+        16
+      ],
+      "description": "resources.1.name"
+    },
+    {
+      "name": "resources.1.current",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        285,
+        388.0,
+        64,
+        16
+      ],
+      "description": "resources.1.current"
+    },
+    {
+      "name": "resources.1.maximum",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        359,
+        388.0,
+        58,
+        16
+      ],
+      "description": "resources.1.maximum"
+    },
+    {
+      "name": "resources.1.recharge",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        425,
+        388.0,
+        128,
+        16
+      ],
+      "description": "resources.1.recharge"
+    },
+    {
+      "name": "resources.2.name",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        406.5,
+        236,
+        16
+      ],
+      "description": "resources.2.name"
+    },
+    {
+      "name": "resources.2.current",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        285,
+        406.5,
+        64,
+        16
+      ],
+      "description": "resources.2.current"
+    },
+    {
+      "name": "resources.2.maximum",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        359,
+        406.5,
+        58,
+        16
+      ],
+      "description": "resources.2.maximum"
+    },
+    {
+      "name": "resources.2.recharge",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        425,
+        406.5,
+        128,
+        16
+      ],
+      "description": "resources.2.recharge"
+    },
+    {
+      "name": "resources.3.name",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        425.0,
+        236,
+        16
+      ],
+      "description": "resources.3.name"
+    },
+    {
+      "name": "resources.3.current",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        285,
+        425.0,
+        64,
+        16
+      ],
+      "description": "resources.3.current"
+    },
+    {
+      "name": "resources.3.maximum",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        359,
+        425.0,
+        58,
+        16
+      ],
+      "description": "resources.3.maximum"
+    },
+    {
+      "name": "resources.3.recharge",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        425,
+        425.0,
+        128,
+        16
+      ],
+      "description": "resources.3.recharge"
+    },
+    {
+      "name": "resources.4.name",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        443.5,
+        236,
+        16
+      ],
+      "description": "resources.4.name"
+    },
+    {
+      "name": "resources.4.current",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        285,
+        443.5,
+        64,
+        16
+      ],
+      "description": "resources.4.current"
+    },
+    {
+      "name": "resources.4.maximum",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        359,
+        443.5,
+        58,
+        16
+      ],
+      "description": "resources.4.maximum"
+    },
+    {
+      "name": "resources.4.recharge",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        425,
+        443.5,
+        128,
+        16
+      ],
+      "description": "resources.4.recharge"
+    },
+    {
+      "name": "resources.5.name",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        462.0,
+        236,
+        16
+      ],
+      "description": "resources.5.name"
+    },
+    {
+      "name": "resources.5.current",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        285,
+        462.0,
+        64,
+        16
+      ],
+      "description": "resources.5.current"
+    },
+    {
+      "name": "resources.5.maximum",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        359,
+        462.0,
+        58,
+        16
+      ],
+      "description": "resources.5.maximum"
+    },
+    {
+      "name": "resources.5.recharge",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        425,
+        462.0,
+        128,
+        16
+      ],
+      "description": "resources.5.recharge"
+    },
+    {
+      "name": "resources.6.name",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        480.5,
+        236,
+        16
+      ],
+      "description": "resources.6.name"
+    },
+    {
+      "name": "resources.6.current",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        285,
+        480.5,
+        64,
+        16
+      ],
+      "description": "resources.6.current"
+    },
+    {
+      "name": "resources.6.maximum",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        359,
+        480.5,
+        58,
+        16
+      ],
+      "description": "resources.6.maximum"
+    },
+    {
+      "name": "resources.6.recharge",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        425,
+        480.5,
+        128,
+        16
+      ],
+      "description": "resources.6.recharge"
+    },
+    {
+      "name": "combat.resistances",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        564,
+        119,
+        24
+      ],
+      "description": "combat.resistances"
+    },
+    {
+      "name": "combat.immunities",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        170,
+        564,
+        119,
+        24
+      ],
+      "description": "combat.immunities"
+    },
+    {
+      "name": "combat.vulnerabilities",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        299,
+        564,
+        119,
+        24
+      ],
+      "description": "combat.vulnerabilities"
+    },
+    {
+      "name": "combat.senses",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        427,
+        564,
+        71,
+        24
+      ],
+      "description": "combat.senses"
+    },
+    {
+      "name": "combat.passive_investigation",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        505,
+        564,
+        49,
+        24
+      ],
+      "description": "combat.passive_investigation"
+    },
+    {
+      "name": "combat.hit_dice.breakdown",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        41,
+        610,
+        157,
+        20
+      ],
+      "description": "combat.hit_dice.breakdown"
+    },
+    {
+      "name": "combat.defensive_features",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        211,
+        610,
+        343,
+        20
+      ],
+      "description": "combat.defensive_features"
+    },
+    {
+      "name": "combat.details.extra_attack_notes",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        220,
+        674,
+        332,
+        21
+      ],
+      "description": "combat.details.extra_attack_notes"
+    },
+    {
+      "name": "combat.notes",
+      "edition": "2014",
+      "page": 3,
+      "type": "text",
+      "rect": [
+        42,
+        713,
+        509,
+        68
+      ],
+      "description": "Ongoing effects, combat tactics, critical notes"
+    },
+    {
+      "name": "magic.casting_ability",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        41,
+        138,
+        93,
+        19
+      ],
+      "description": "magic.casting_ability"
+    },
+    {
+      "name": "magic.save_dc",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        142,
+        138,
+        93,
+        19
+      ],
+      "description": "magic.save_dc"
+    },
+    {
+      "name": "magic.attack_bonus",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        243,
+        138,
+        93,
+        19
+      ],
+      "description": "magic.attack_bonus"
+    },
+    {
+      "name": "magic.prepared_count",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        344,
+        138,
+        91,
+        19
+      ],
+      "description": "magic.prepared_count"
+    },
+    {
+      "name": "magic.spell_focus",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        443,
+        138,
+        111,
+        19
+      ],
+      "description": "magic.spell_focus"
+    },
+    {
+      "name": "magic.slots.1.total",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        101,
+        227,
+        44,
+        20
+      ],
+      "description": "magic.slots.1.total"
+    },
+    {
+      "name": "magic.slots.1.spent",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        163,
+        227,
+        42,
+        20
+      ],
+      "description": "magic.slots.1.spent"
+    },
+    {
+      "name": "magic.slots.2.total",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        279,
+        227,
+        44,
+        20
+      ],
+      "description": "magic.slots.2.total"
+    },
+    {
+      "name": "magic.slots.2.spent",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        341,
+        227,
+        42,
+        20
+      ],
+      "description": "magic.slots.2.spent"
+    },
+    {
+      "name": "magic.slots.3.total",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        457,
+        227,
+        44,
+        20
+      ],
+      "description": "magic.slots.3.total"
+    },
+    {
+      "name": "magic.slots.3.spent",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        519,
+        227,
+        42,
+        20
+      ],
+      "description": "magic.slots.3.spent"
+    },
+    {
+      "name": "magic.slots.4.total",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        101,
+        252,
+        44,
+        20
+      ],
+      "description": "magic.slots.4.total"
+    },
+    {
+      "name": "magic.slots.4.spent",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        163,
+        252,
+        42,
+        20
+      ],
+      "description": "magic.slots.4.spent"
+    },
+    {
+      "name": "magic.slots.5.total",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        279,
+        252,
+        44,
+        20
+      ],
+      "description": "magic.slots.5.total"
+    },
+    {
+      "name": "magic.slots.5.spent",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        341,
+        252,
+        42,
+        20
+      ],
+      "description": "magic.slots.5.spent"
+    },
+    {
+      "name": "magic.slots.6.total",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        457,
+        252,
+        44,
+        20
+      ],
+      "description": "magic.slots.6.total"
+    },
+    {
+      "name": "magic.slots.6.spent",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        519,
+        252,
+        42,
+        20
+      ],
+      "description": "magic.slots.6.spent"
+    },
+    {
+      "name": "magic.slots.7.total",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        101,
+        277,
+        44,
+        20
+      ],
+      "description": "magic.slots.7.total"
+    },
+    {
+      "name": "magic.slots.7.spent",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        163,
+        277,
+        42,
+        20
+      ],
+      "description": "magic.slots.7.spent"
+    },
+    {
+      "name": "magic.slots.8.total",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        279,
+        277,
+        44,
+        20
+      ],
+      "description": "magic.slots.8.total"
+    },
+    {
+      "name": "magic.slots.8.spent",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        341,
+        277,
+        42,
+        20
+      ],
+      "description": "magic.slots.8.spent"
+    },
+    {
+      "name": "magic.slots.9.total",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        457,
+        277,
+        44,
+        20
+      ],
+      "description": "magic.slots.9.total"
+    },
+    {
+      "name": "magic.slots.9.spent",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        519,
+        277,
+        42,
+        20
+      ],
+      "description": "magic.slots.9.spent"
+    },
+    {
+      "name": "magic.spells.1.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        41,
+        364.0,
+        25,
+        21
+      ],
+      "description": "magic.spells.1.level"
+    },
+    {
+      "name": "magic.spells.1.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        71,
+        364.0,
+        156,
+        21
+      ],
+      "description": "magic.spells.1.name"
+    },
+    {
+      "name": "magic.spells.1.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        231,
+        364.0,
+        60,
+        21
+      ],
+      "description": "magic.spells.1.notes"
+    },
+    {
+      "name": "magic.spells.2.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        41,
+        389.1,
+        25,
+        21
+      ],
+      "description": "magic.spells.2.level"
+    },
+    {
+      "name": "magic.spells.2.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        71,
+        389.1,
+        156,
+        21
+      ],
+      "description": "magic.spells.2.name"
+    },
+    {
+      "name": "magic.spells.2.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        231,
+        389.1,
+        60,
+        21
+      ],
+      "description": "magic.spells.2.notes"
+    },
+    {
+      "name": "magic.spells.3.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        41,
+        414.2,
+        25,
+        21
+      ],
+      "description": "magic.spells.3.level"
+    },
+    {
+      "name": "magic.spells.3.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        71,
+        414.2,
+        156,
+        21
+      ],
+      "description": "magic.spells.3.name"
+    },
+    {
+      "name": "magic.spells.3.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        231,
+        414.2,
+        60,
+        21
+      ],
+      "description": "magic.spells.3.notes"
+    },
+    {
+      "name": "magic.spells.4.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        41,
+        439.3,
+        25,
+        21
+      ],
+      "description": "magic.spells.4.level"
+    },
+    {
+      "name": "magic.spells.4.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        71,
+        439.3,
+        156,
+        21
+      ],
+      "description": "magic.spells.4.name"
+    },
+    {
+      "name": "magic.spells.4.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        231,
+        439.3,
+        60,
+        21
+      ],
+      "description": "magic.spells.4.notes"
+    },
+    {
+      "name": "magic.spells.5.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        41,
+        464.4,
+        25,
+        21
+      ],
+      "description": "magic.spells.5.level"
+    },
+    {
+      "name": "magic.spells.5.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        71,
+        464.4,
+        156,
+        21
+      ],
+      "description": "magic.spells.5.name"
+    },
+    {
+      "name": "magic.spells.5.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        231,
+        464.4,
+        60,
+        21
+      ],
+      "description": "magic.spells.5.notes"
+    },
+    {
+      "name": "magic.spells.6.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        41,
+        489.5,
+        25,
+        21
+      ],
+      "description": "magic.spells.6.level"
+    },
+    {
+      "name": "magic.spells.6.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        71,
+        489.5,
+        156,
+        21
+      ],
+      "description": "magic.spells.6.name"
+    },
+    {
+      "name": "magic.spells.6.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        231,
+        489.5,
+        60,
+        21
+      ],
+      "description": "magic.spells.6.notes"
+    },
+    {
+      "name": "magic.spells.7.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        41,
+        514.6,
+        25,
+        21
+      ],
+      "description": "magic.spells.7.level"
+    },
+    {
+      "name": "magic.spells.7.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        71,
+        514.6,
+        156,
+        21
+      ],
+      "description": "magic.spells.7.name"
+    },
+    {
+      "name": "magic.spells.7.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        231,
+        514.6,
+        60,
+        21
+      ],
+      "description": "magic.spells.7.notes"
+    },
+    {
+      "name": "magic.spells.8.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        41,
+        539.7,
+        25,
+        21
+      ],
+      "description": "magic.spells.8.level"
+    },
+    {
+      "name": "magic.spells.8.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        71,
+        539.7,
+        156,
+        21
+      ],
+      "description": "magic.spells.8.name"
+    },
+    {
+      "name": "magic.spells.8.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        231,
+        539.7,
+        60,
+        21
+      ],
+      "description": "magic.spells.8.notes"
+    },
+    {
+      "name": "magic.spells.9.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        41,
+        564.8,
+        25,
+        21
+      ],
+      "description": "magic.spells.9.level"
+    },
+    {
+      "name": "magic.spells.9.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        71,
+        564.8,
+        156,
+        21
+      ],
+      "description": "magic.spells.9.name"
+    },
+    {
+      "name": "magic.spells.9.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        231,
+        564.8,
+        60,
+        21
+      ],
+      "description": "magic.spells.9.notes"
+    },
+    {
+      "name": "magic.spells.10.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        41,
+        589.9,
+        25,
+        21
+      ],
+      "description": "magic.spells.10.level"
+    },
+    {
+      "name": "magic.spells.10.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        71,
+        589.9,
+        156,
+        21
+      ],
+      "description": "magic.spells.10.name"
+    },
+    {
+      "name": "magic.spells.10.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        231,
+        589.9,
+        60,
+        21
+      ],
+      "description": "magic.spells.10.notes"
+    },
+    {
+      "name": "magic.spells.11.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        41,
+        615.0,
+        25,
+        21
+      ],
+      "description": "magic.spells.11.level"
+    },
+    {
+      "name": "magic.spells.11.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        71,
+        615.0,
+        156,
+        21
+      ],
+      "description": "magic.spells.11.name"
+    },
+    {
+      "name": "magic.spells.11.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        231,
+        615.0,
+        60,
+        21
+      ],
+      "description": "magic.spells.11.notes"
+    },
+    {
+      "name": "magic.spells.12.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        41,
+        640.1,
+        25,
+        21
+      ],
+      "description": "magic.spells.12.level"
+    },
+    {
+      "name": "magic.spells.12.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        71,
+        640.1,
+        156,
+        21
+      ],
+      "description": "magic.spells.12.name"
+    },
+    {
+      "name": "magic.spells.12.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        231,
+        640.1,
+        60,
+        21
+      ],
+      "description": "magic.spells.12.notes"
+    },
+    {
+      "name": "magic.spells.13.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        304,
+        364.0,
+        25,
+        21
+      ],
+      "description": "magic.spells.13.level"
+    },
+    {
+      "name": "magic.spells.13.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        334,
+        364.0,
+        150,
+        21
+      ],
+      "description": "magic.spells.13.name"
+    },
+    {
+      "name": "magic.spells.13.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        489,
+        364.0,
+        65,
+        21
+      ],
+      "description": "magic.spells.13.notes"
+    },
+    {
+      "name": "magic.spells.14.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        304,
+        389.1,
+        25,
+        21
+      ],
+      "description": "magic.spells.14.level"
+    },
+    {
+      "name": "magic.spells.14.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        334,
+        389.1,
+        150,
+        21
+      ],
+      "description": "magic.spells.14.name"
+    },
+    {
+      "name": "magic.spells.14.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        489,
+        389.1,
+        65,
+        21
+      ],
+      "description": "magic.spells.14.notes"
+    },
+    {
+      "name": "magic.spells.15.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        304,
+        414.2,
+        25,
+        21
+      ],
+      "description": "magic.spells.15.level"
+    },
+    {
+      "name": "magic.spells.15.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        334,
+        414.2,
+        150,
+        21
+      ],
+      "description": "magic.spells.15.name"
+    },
+    {
+      "name": "magic.spells.15.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        489,
+        414.2,
+        65,
+        21
+      ],
+      "description": "magic.spells.15.notes"
+    },
+    {
+      "name": "magic.spells.16.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        304,
+        439.3,
+        25,
+        21
+      ],
+      "description": "magic.spells.16.level"
+    },
+    {
+      "name": "magic.spells.16.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        334,
+        439.3,
+        150,
+        21
+      ],
+      "description": "magic.spells.16.name"
+    },
+    {
+      "name": "magic.spells.16.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        489,
+        439.3,
+        65,
+        21
+      ],
+      "description": "magic.spells.16.notes"
+    },
+    {
+      "name": "magic.spells.17.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        304,
+        464.4,
+        25,
+        21
+      ],
+      "description": "magic.spells.17.level"
+    },
+    {
+      "name": "magic.spells.17.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        334,
+        464.4,
+        150,
+        21
+      ],
+      "description": "magic.spells.17.name"
+    },
+    {
+      "name": "magic.spells.17.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        489,
+        464.4,
+        65,
+        21
+      ],
+      "description": "magic.spells.17.notes"
+    },
+    {
+      "name": "magic.spells.18.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        304,
+        489.5,
+        25,
+        21
+      ],
+      "description": "magic.spells.18.level"
+    },
+    {
+      "name": "magic.spells.18.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        334,
+        489.5,
+        150,
+        21
+      ],
+      "description": "magic.spells.18.name"
+    },
+    {
+      "name": "magic.spells.18.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        489,
+        489.5,
+        65,
+        21
+      ],
+      "description": "magic.spells.18.notes"
+    },
+    {
+      "name": "magic.spells.19.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        304,
+        514.6,
+        25,
+        21
+      ],
+      "description": "magic.spells.19.level"
+    },
+    {
+      "name": "magic.spells.19.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        334,
+        514.6,
+        150,
+        21
+      ],
+      "description": "magic.spells.19.name"
+    },
+    {
+      "name": "magic.spells.19.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        489,
+        514.6,
+        65,
+        21
+      ],
+      "description": "magic.spells.19.notes"
+    },
+    {
+      "name": "magic.spells.20.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        304,
+        539.7,
+        25,
+        21
+      ],
+      "description": "magic.spells.20.level"
+    },
+    {
+      "name": "magic.spells.20.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        334,
+        539.7,
+        150,
+        21
+      ],
+      "description": "magic.spells.20.name"
+    },
+    {
+      "name": "magic.spells.20.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        489,
+        539.7,
+        65,
+        21
+      ],
+      "description": "magic.spells.20.notes"
+    },
+    {
+      "name": "magic.spells.21.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        304,
+        564.8,
+        25,
+        21
+      ],
+      "description": "magic.spells.21.level"
+    },
+    {
+      "name": "magic.spells.21.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        334,
+        564.8,
+        150,
+        21
+      ],
+      "description": "magic.spells.21.name"
+    },
+    {
+      "name": "magic.spells.21.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        489,
+        564.8,
+        65,
+        21
+      ],
+      "description": "magic.spells.21.notes"
+    },
+    {
+      "name": "magic.spells.22.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        304,
+        589.9,
+        25,
+        21
+      ],
+      "description": "magic.spells.22.level"
+    },
+    {
+      "name": "magic.spells.22.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        334,
+        589.9,
+        150,
+        21
+      ],
+      "description": "magic.spells.22.name"
+    },
+    {
+      "name": "magic.spells.22.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        489,
+        589.9,
+        65,
+        21
+      ],
+      "description": "magic.spells.22.notes"
+    },
+    {
+      "name": "magic.spells.23.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        304,
+        615.0,
+        25,
+        21
+      ],
+      "description": "magic.spells.23.level"
+    },
+    {
+      "name": "magic.spells.23.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        334,
+        615.0,
+        150,
+        21
+      ],
+      "description": "magic.spells.23.name"
+    },
+    {
+      "name": "magic.spells.23.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        489,
+        615.0,
+        65,
+        21
+      ],
+      "description": "magic.spells.23.notes"
+    },
+    {
+      "name": "magic.spells.24.level",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        304,
+        640.1,
+        25,
+        21
+      ],
+      "description": "magic.spells.24.level"
+    },
+    {
+      "name": "magic.spells.24.name",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        334,
+        640.1,
+        150,
+        21
+      ],
+      "description": "magic.spells.24.name"
+    },
+    {
+      "name": "magic.spells.24.notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        489,
+        640.1,
+        65,
+        21
+      ],
+      "description": "magic.spells.24.notes"
+    },
+    {
+      "name": "magic.concentration.current",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        41,
+        746,
+        169,
+        22
+      ],
+      "description": "magic.concentration.current"
+    },
+    {
+      "name": "magic.pact.remaining",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        219,
+        746,
+        50,
+        22
+      ],
+      "description": "magic.pact.remaining"
+    },
+    {
+      "name": "magic.pact.total",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        276,
+        746,
+        47,
+        22
+      ],
+      "description": "magic.pact.total"
+    },
+    {
+      "name": "magic.special_notes",
+      "edition": "2014",
+      "page": 4,
+      "type": "text",
+      "rect": [
+        336,
+        746,
+        217,
+        34
+      ],
+      "description": "magic.special_notes"
+    },
+    {
+      "name": "currency.cp",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        134,
+        94,
+        23
+      ],
+      "description": "currency.cp"
+    },
+    {
+      "name": "currency.sp",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        144,
+        134,
+        94,
+        23
+      ],
+      "description": "currency.sp"
+    },
+    {
+      "name": "currency.ep",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        247,
+        134,
+        94,
+        23
+      ],
+      "description": "currency.ep"
+    },
+    {
+      "name": "currency.gp",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        350,
+        134,
+        94,
+        23
+      ],
+      "description": "currency.gp"
+    },
+    {
+      "name": "currency.pp",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        453,
+        134,
+        94,
+        23
+      ],
+      "description": "currency.pp"
+    },
+    {
+      "name": "inventory.items.1.name",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        228.0,
+        245,
+        17.0
+      ],
+      "description": "inventory.items.1.name"
+    },
+    {
+      "name": "inventory.items.1.quantity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        296,
+        228.0,
+        57,
+        17.0
+      ],
+      "description": "inventory.items.1.quantity"
+    },
+    {
+      "name": "inventory.items.1.weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        362,
+        228.0,
+        47,
+        17.0
+      ],
+      "description": "inventory.items.1.weight"
+    },
+    {
+      "name": "inventory.items.1.notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        418,
+        228.0,
+        136,
+        17.0
+      ],
+      "description": "inventory.items.1.notes"
+    },
+    {
+      "name": "inventory.items.2.name",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        246.6,
+        245,
+        17.0
+      ],
+      "description": "inventory.items.2.name"
+    },
+    {
+      "name": "inventory.items.2.quantity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        296,
+        246.6,
+        57,
+        17.0
+      ],
+      "description": "inventory.items.2.quantity"
+    },
+    {
+      "name": "inventory.items.2.weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        362,
+        246.6,
+        47,
+        17.0
+      ],
+      "description": "inventory.items.2.weight"
+    },
+    {
+      "name": "inventory.items.2.notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        418,
+        246.6,
+        136,
+        17.0
+      ],
+      "description": "inventory.items.2.notes"
+    },
+    {
+      "name": "inventory.items.3.name",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        265.2,
+        245,
+        17.0
+      ],
+      "description": "inventory.items.3.name"
+    },
+    {
+      "name": "inventory.items.3.quantity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        296,
+        265.2,
+        57,
+        17.0
+      ],
+      "description": "inventory.items.3.quantity"
+    },
+    {
+      "name": "inventory.items.3.weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        362,
+        265.2,
+        47,
+        17.0
+      ],
+      "description": "inventory.items.3.weight"
+    },
+    {
+      "name": "inventory.items.3.notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        418,
+        265.2,
+        136,
+        17.0
+      ],
+      "description": "inventory.items.3.notes"
+    },
+    {
+      "name": "inventory.items.4.name",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        283.8,
+        245,
+        17.0
+      ],
+      "description": "inventory.items.4.name"
+    },
+    {
+      "name": "inventory.items.4.quantity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        296,
+        283.8,
+        57,
+        17.0
+      ],
+      "description": "inventory.items.4.quantity"
+    },
+    {
+      "name": "inventory.items.4.weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        362,
+        283.8,
+        47,
+        17.0
+      ],
+      "description": "inventory.items.4.weight"
+    },
+    {
+      "name": "inventory.items.4.notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        418,
+        283.8,
+        136,
+        17.0
+      ],
+      "description": "inventory.items.4.notes"
+    },
+    {
+      "name": "inventory.items.5.name",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        302.4,
+        245,
+        17.0
+      ],
+      "description": "inventory.items.5.name"
+    },
+    {
+      "name": "inventory.items.5.quantity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        296,
+        302.4,
+        57,
+        17.0
+      ],
+      "description": "inventory.items.5.quantity"
+    },
+    {
+      "name": "inventory.items.5.weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        362,
+        302.4,
+        47,
+        17.0
+      ],
+      "description": "inventory.items.5.weight"
+    },
+    {
+      "name": "inventory.items.5.notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        418,
+        302.4,
+        136,
+        17.0
+      ],
+      "description": "inventory.items.5.notes"
+    },
+    {
+      "name": "inventory.items.6.name",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        321.0,
+        245,
+        17.0
+      ],
+      "description": "inventory.items.6.name"
+    },
+    {
+      "name": "inventory.items.6.quantity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        296,
+        321.0,
+        57,
+        17.0
+      ],
+      "description": "inventory.items.6.quantity"
+    },
+    {
+      "name": "inventory.items.6.weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        362,
+        321.0,
+        47,
+        17.0
+      ],
+      "description": "inventory.items.6.weight"
+    },
+    {
+      "name": "inventory.items.6.notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        418,
+        321.0,
+        136,
+        17.0
+      ],
+      "description": "inventory.items.6.notes"
+    },
+    {
+      "name": "inventory.items.7.name",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        339.6,
+        245,
+        17.0
+      ],
+      "description": "inventory.items.7.name"
+    },
+    {
+      "name": "inventory.items.7.quantity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        296,
+        339.6,
+        57,
+        17.0
+      ],
+      "description": "inventory.items.7.quantity"
+    },
+    {
+      "name": "inventory.items.7.weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        362,
+        339.6,
+        47,
+        17.0
+      ],
+      "description": "inventory.items.7.weight"
+    },
+    {
+      "name": "inventory.items.7.notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        418,
+        339.6,
+        136,
+        17.0
+      ],
+      "description": "inventory.items.7.notes"
+    },
+    {
+      "name": "inventory.items.8.name",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        358.2,
+        245,
+        17.0
+      ],
+      "description": "inventory.items.8.name"
+    },
+    {
+      "name": "inventory.items.8.quantity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        296,
+        358.2,
+        57,
+        17.0
+      ],
+      "description": "inventory.items.8.quantity"
+    },
+    {
+      "name": "inventory.items.8.weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        362,
+        358.2,
+        47,
+        17.0
+      ],
+      "description": "inventory.items.8.weight"
+    },
+    {
+      "name": "inventory.items.8.notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        418,
+        358.2,
+        136,
+        17.0
+      ],
+      "description": "inventory.items.8.notes"
+    },
+    {
+      "name": "inventory.items.9.name",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        376.8,
+        245,
+        17.0
+      ],
+      "description": "inventory.items.9.name"
+    },
+    {
+      "name": "inventory.items.9.quantity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        296,
+        376.8,
+        57,
+        17.0
+      ],
+      "description": "inventory.items.9.quantity"
+    },
+    {
+      "name": "inventory.items.9.weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        362,
+        376.8,
+        47,
+        17.0
+      ],
+      "description": "inventory.items.9.weight"
+    },
+    {
+      "name": "inventory.items.9.notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        418,
+        376.8,
+        136,
+        17.0
+      ],
+      "description": "inventory.items.9.notes"
+    },
+    {
+      "name": "inventory.items.10.name",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        395.4,
+        245,
+        17.0
+      ],
+      "description": "inventory.items.10.name"
+    },
+    {
+      "name": "inventory.items.10.quantity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        296,
+        395.4,
+        57,
+        17.0
+      ],
+      "description": "inventory.items.10.quantity"
+    },
+    {
+      "name": "inventory.items.10.weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        362,
+        395.4,
+        47,
+        17.0
+      ],
+      "description": "inventory.items.10.weight"
+    },
+    {
+      "name": "inventory.items.10.notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        418,
+        395.4,
+        136,
+        17.0
+      ],
+      "description": "inventory.items.10.notes"
+    },
+    {
+      "name": "inventory.items.11.name",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        414.0,
+        245,
+        17.0
+      ],
+      "description": "inventory.items.11.name"
+    },
+    {
+      "name": "inventory.items.11.quantity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        296,
+        414.0,
+        57,
+        17.0
+      ],
+      "description": "inventory.items.11.quantity"
+    },
+    {
+      "name": "inventory.items.11.weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        362,
+        414.0,
+        47,
+        17.0
+      ],
+      "description": "inventory.items.11.weight"
+    },
+    {
+      "name": "inventory.items.11.notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        418,
+        414.0,
+        136,
+        17.0
+      ],
+      "description": "inventory.items.11.notes"
+    },
+    {
+      "name": "inventory.items.12.name",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        432.6,
+        245,
+        17.0
+      ],
+      "description": "inventory.items.12.name"
+    },
+    {
+      "name": "inventory.items.12.quantity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        296,
+        432.6,
+        57,
+        17.0
+      ],
+      "description": "inventory.items.12.quantity"
+    },
+    {
+      "name": "inventory.items.12.weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        362,
+        432.6,
+        47,
+        17.0
+      ],
+      "description": "inventory.items.12.weight"
+    },
+    {
+      "name": "inventory.items.12.notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        418,
+        432.6,
+        136,
+        17.0
+      ],
+      "description": "inventory.items.12.notes"
+    },
+    {
+      "name": "inventory.items.13.name",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        451.2,
+        245,
+        17.0
+      ],
+      "description": "inventory.items.13.name"
+    },
+    {
+      "name": "inventory.items.13.quantity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        296,
+        451.2,
+        57,
+        17.0
+      ],
+      "description": "inventory.items.13.quantity"
+    },
+    {
+      "name": "inventory.items.13.weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        362,
+        451.2,
+        47,
+        17.0
+      ],
+      "description": "inventory.items.13.weight"
+    },
+    {
+      "name": "inventory.items.13.notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        418,
+        451.2,
+        136,
+        17.0
+      ],
+      "description": "inventory.items.13.notes"
+    },
+    {
+      "name": "inventory.items.14.name",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        469.8,
+        245,
+        17.0
+      ],
+      "description": "inventory.items.14.name"
+    },
+    {
+      "name": "inventory.items.14.quantity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        296,
+        469.8,
+        57,
+        17.0
+      ],
+      "description": "inventory.items.14.quantity"
+    },
+    {
+      "name": "inventory.items.14.weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        362,
+        469.8,
+        47,
+        17.0
+      ],
+      "description": "inventory.items.14.weight"
+    },
+    {
+      "name": "inventory.items.14.notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        418,
+        469.8,
+        136,
+        17.0
+      ],
+      "description": "inventory.items.14.notes"
+    },
+    {
+      "name": "inventory.items.15.name",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        488.4,
+        245,
+        17.0
+      ],
+      "description": "inventory.items.15.name"
+    },
+    {
+      "name": "inventory.items.15.quantity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        296,
+        488.4,
+        57,
+        17.0
+      ],
+      "description": "inventory.items.15.quantity"
+    },
+    {
+      "name": "inventory.items.15.weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        362,
+        488.4,
+        47,
+        17.0
+      ],
+      "description": "inventory.items.15.weight"
+    },
+    {
+      "name": "inventory.items.15.notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        418,
+        488.4,
+        136,
+        17.0
+      ],
+      "description": "inventory.items.15.notes"
+    },
+    {
+      "name": "inventory.items.16.name",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        507.0,
+        245,
+        17.0
+      ],
+      "description": "inventory.items.16.name"
+    },
+    {
+      "name": "inventory.items.16.quantity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        296,
+        507.0,
+        57,
+        17.0
+      ],
+      "description": "inventory.items.16.quantity"
+    },
+    {
+      "name": "inventory.items.16.weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        362,
+        507.0,
+        47,
+        17.0
+      ],
+      "description": "inventory.items.16.weight"
+    },
+    {
+      "name": "inventory.items.16.notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        418,
+        507.0,
+        136,
+        17.0
+      ],
+      "description": "inventory.items.16.notes"
+    },
+    {
+      "name": "inventory.items.17.name",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        525.6,
+        245,
+        17.0
+      ],
+      "description": "inventory.items.17.name"
+    },
+    {
+      "name": "inventory.items.17.quantity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        296,
+        525.6,
+        57,
+        17.0
+      ],
+      "description": "inventory.items.17.quantity"
+    },
+    {
+      "name": "inventory.items.17.weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        362,
+        525.6,
+        47,
+        17.0
+      ],
+      "description": "inventory.items.17.weight"
+    },
+    {
+      "name": "inventory.items.17.notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        418,
+        525.6,
+        136,
+        17.0
+      ],
+      "description": "inventory.items.17.notes"
+    },
+    {
+      "name": "inventory.attunement.1",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        612,
+        165,
+        26
+      ],
+      "description": "inventory.attunement.1"
+    },
+    {
+      "name": "inventory.attunement.2",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        215,
+        612,
+        165,
+        26
+      ],
+      "description": "inventory.attunement.2"
+    },
+    {
+      "name": "inventory.attunement.3",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        389,
+        612,
+        165,
+        26
+      ],
+      "description": "inventory.attunement.3"
+    },
+    {
+      "name": "inventory.carry_weight",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        708,
+        83,
+        20
+      ],
+      "description": "inventory.carry_weight"
+    },
+    {
+      "name": "inventory.capacity",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        131,
+        708,
+        116,
+        20
+      ],
+      "description": "inventory.capacity"
+    },
+    {
+      "name": "inventory.storage",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        256,
+        708,
+        299,
+        20
+      ],
+      "description": "inventory.storage"
+    },
+    {
+      "name": "inventory.treasure_notes",
+      "edition": "2014",
+      "page": 5,
+      "type": "text",
+      "rect": [
+        41,
+        747,
+        513,
+        35
+      ],
+      "description": "Treasures, parcels, valuables, or other notes"
+    },
+    {
+      "name": "story.appearance.age_height",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        172,
+        137,
+        179,
+        19
+      ],
+      "description": "story.appearance.age_height"
+    },
+    {
+      "name": "story.appearance.eyes_hair",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        362,
+        137,
+        191,
+        19
+      ],
+      "description": "story.appearance.eyes_hair"
+    },
+    {
+      "name": "story.appearance.description",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        172,
+        174,
+        382,
+        41
+      ],
+      "description": "story.appearance.description"
+    },
+    {
+      "name": "story.appearance.portrait_url",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        172,
+        228,
+        381,
+        18
+      ],
+      "description": "story.appearance.portrait_url"
+    },
+    {
+      "name": "features.1.name",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        41,
+        306.0,
+        174,
+        18
+      ],
+      "description": "features.1.name"
+    },
+    {
+      "name": "features.1.effect",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        226,
+        306.0,
+        326,
+        18
+      ],
+      "description": "features.1.effect"
+    },
+    {
+      "name": "features.2.name",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        41,
+        325.0,
+        174,
+        18
+      ],
+      "description": "features.2.name"
+    },
+    {
+      "name": "features.2.effect",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        226,
+        325.0,
+        326,
+        18
+      ],
+      "description": "features.2.effect"
+    },
+    {
+      "name": "features.3.name",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        41,
+        344.0,
+        174,
+        18
+      ],
+      "description": "features.3.name"
+    },
+    {
+      "name": "features.3.effect",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        226,
+        344.0,
+        326,
+        18
+      ],
+      "description": "features.3.effect"
+    },
+    {
+      "name": "features.4.name",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        41,
+        363.0,
+        174,
+        18
+      ],
+      "description": "features.4.name"
+    },
+    {
+      "name": "features.4.effect",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        226,
+        363.0,
+        326,
+        18
+      ],
+      "description": "features.4.effect"
+    },
+    {
+      "name": "features.5.name",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        41,
+        382.0,
+        174,
+        18
+      ],
+      "description": "features.5.name"
+    },
+    {
+      "name": "features.5.effect",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        226,
+        382.0,
+        326,
+        18
+      ],
+      "description": "features.5.effect"
+    },
+    {
+      "name": "features.6.name",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        41,
+        401.0,
+        174,
+        18
+      ],
+      "description": "features.6.name"
+    },
+    {
+      "name": "features.6.effect",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        226,
+        401.0,
+        326,
+        18
+      ],
+      "description": "features.6.effect"
+    },
+    {
+      "name": "features.7.name",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        41,
+        420.0,
+        174,
+        18
+      ],
+      "description": "features.7.name"
+    },
+    {
+      "name": "features.7.effect",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        226,
+        420.0,
+        326,
+        18
+      ],
+      "description": "features.7.effect"
+    },
+    {
+      "name": "story.traits",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        41,
+        497,
+        250,
+        38
+      ],
+      "description": "story.traits"
+    },
+    {
+      "name": "story.ideals",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        304,
+        497,
+        250,
+        38
+      ],
+      "description": "story.ideals"
+    },
+    {
+      "name": "story.bonds",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        41,
+        548,
+        250,
+        38
+      ],
+      "description": "story.bonds"
+    },
+    {
+      "name": "story.flaws",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        304,
+        548,
+        250,
+        38
+      ],
+      "description": "story.flaws"
+    },
+    {
+      "name": "story.backstory",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        41,
+        654,
+        513,
+        63
+      ],
+      "description": "Backstory / character-defining events"
+    },
+    {
+      "name": "story.allies",
+      "edition": "2014",
+      "page": 6,
+      "type": "text",
+      "rect": [
+        41,
+        737,
+        513,
+        42
+      ],
+      "description": "Allies, rivals, factions and relationships"
+    },
+    {
+      "name": "journal.campaign",
+      "edition": "2014",
+      "page": 7,
+      "type": "text",
+      "rect": [
+        41,
+        133,
+        175,
+        21
+      ],
+      "description": "journal.campaign"
+    },
+    {
+      "name": "journal.session",
+      "edition": "2014",
+      "page": 7,
+      "type": "text",
+      "rect": [
+        225,
+        133,
+        102,
+        21
+      ],
+      "description": "journal.session"
+    },
+    {
+      "name": "journal.location",
+      "edition": "2014",
+      "page": 7,
+      "type": "text",
+      "rect": [
+        336,
+        133,
+        103,
+        21
+      ],
+      "description": "journal.location"
+    },
+    {
+      "name": "journal.quest",
+      "edition": "2014",
+      "page": 7,
+      "type": "text",
+      "rect": [
+        448,
+        133,
+        105,
+        21
+      ],
+      "description": "journal.quest"
+    },
+    {
+      "name": "journal.notes.1",
+      "edition": "2014",
+      "page": 7,
+      "type": "text",
+      "rect": [
+        41,
+        226,
+        512,
+        165
+      ],
+      "description": "journal.notes.1"
+    },
+    {
+      "name": "journal.notes.2",
+      "edition": "2014",
+      "page": 7,
+      "type": "text",
+      "rect": [
+        41,
+        408,
+        512,
+        165
+      ],
+      "description": "journal.notes.2"
+    },
+    {
+      "name": "journal.quests",
+      "edition": "2014",
+      "page": 7,
+      "type": "text",
+      "rect": [
+        41,
+        657,
+        512,
+        57
+      ],
+      "description": "Quests / leads / unresolved questions"
+    },
+    {
+      "name": "journal.milestones",
+      "edition": "2014",
+      "page": 7,
+      "type": "text",
+      "rect": [
+        41,
+        740,
+        512,
+        37
+      ],
+      "description": "Milestones / plans before next session"
+    }
+  ]
+}
