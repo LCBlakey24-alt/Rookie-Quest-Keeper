@@ -202,12 +202,16 @@ export default function FloatingDiceRoller() {
       const anchor = document.querySelector('.rqk-home-hub .hex-wheel') ||
         document.querySelector('.hex-sheet__wheel-anchor .hex-wheel');
       const bounds = anchor?.getBoundingClientRect();
-      const width = Math.max(180, Math.min(420, window.innerWidth - 24, bounds?.width || 390));
+      // Landscape phones have little height. Scale the wheel *as a whole*
+      // instead of cropping it or breaking its geometry into a modal.
+      const availableWidth = Math.max(180, window.innerWidth - 24);
+      const availableHeightWidth = Math.max(180, (window.innerHeight - 100) * (182 / 208));
+      const width = Math.min(420, availableWidth, availableHeightWidth, bounds?.width || 390);
       const height = width * (208 / 182);
       const x = bounds ? bounds.left + bounds.width / 2 : window.innerWidth / 2;
       const y = bounds ? bounds.top + bounds.height / 2 : window.innerHeight / 2;
       const left = Math.max(12, Math.min(window.innerWidth - width - 12, x - width / 2));
-      const top = Math.max(28, Math.min(window.innerHeight - height - 12, y - height / 2));
+      const top = Math.max(48, Math.min(window.innerHeight - height - 52, y - height / 2));
       setWheelPosition({ left, top, '--wheel-width': `${width}px` });
     };
     positionWheel();
