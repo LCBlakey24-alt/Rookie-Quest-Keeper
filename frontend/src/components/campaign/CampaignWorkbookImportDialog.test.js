@@ -69,6 +69,19 @@ describe('CampaignWorkbookImportDialog', () => {
     expect(screen.queryByRole('button', { name: 'Confirm import' })).not.toBeInTheDocument();
   });
 
+  test('does not report a completed import as failed when the library refresh fails', async () => {
+    const onImported = jest.fn().mockRejectedValue(new Error('Refresh failed'));
+    render(<CampaignWorkbookImportDialog campaigns={[]} onImported={onImported} onClose={jest.fn()} />);
+    fireEvent.change(screen.getByLabelText('Completed .docx workbook'), { target: { files: [uploadFile()] } });
+    fireEvent.click(screen.getByRole('button', { name: 'Preview contents' }));
+    expect(await screen.findByText('1 sections found')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm import' }));
+
+    expect(await screen.findByText('Import completed. The campaign has been updated.')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(/Import completed.*could not refresh/i);
+    expect(screen.getByRole('alert')).not.toHaveTextContent(/Could not import workbook/i);
+  });
+
   test('rejects the wrong extension before making any requests', () => {
     render(<CampaignWorkbookImportDialog campaigns={[]} onClose={jest.fn()} />);
     const bad = new File(['bad'], 'notes.txt', { type: 'text/plain' });

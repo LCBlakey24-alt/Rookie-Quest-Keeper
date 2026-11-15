@@ -123,7 +123,16 @@ export default function CampaignWorkbookImportDialog({
       );
       if (version.current !== checkVersion) return;
       setResult(response.data);
-      await onImported?.(response.data);
+      try {
+        await onImported?.(response.data);
+      } catch {
+        // The server has already committed the import. A follow-up library
+        // refresh failure must not tell the GM that the import itself failed
+        // or invite a duplicate retry.
+        if (version.current === checkVersion) {
+          setError('Import completed, but the campaign list could not refresh. Reload Keeper to see the saved records.');
+        }
+      }
     } catch (failure) {
       if (version.current === checkVersion) setError(readError(failure, 'Could not import workbook.'));
     } finally {
