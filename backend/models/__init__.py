@@ -1714,7 +1714,7 @@ class Review(BaseModel):
     username: str
     rating: int  # 1-5 stars
     comment: str
-    is_approved: bool = False  # Auto-approve 4-5 stars, admin can manage
+    is_approved: bool = False  # Every star rating awaits the same moderation process
     is_featured: bool = False  # Shows on landing page
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 

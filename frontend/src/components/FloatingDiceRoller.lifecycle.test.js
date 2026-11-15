@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 import { DICE_DYES } from '@/components/dice3d/diceDyes';
+import { preloadDiceTray3D } from '@/components/dice3d/loadDiceTray3D';
 import FloatingDiceRoller from './FloatingDiceRoller';
 
 let mockMountSerial = 0;
@@ -19,6 +20,10 @@ jest.mock('@/components/DiceRollFlicker', () => ({
       'data-mount': mount,
     });
   },
+}));
+jest.mock('@/components/dice3d/loadDiceTray3D', () => ({
+  __esModule: true,
+  preloadDiceTray3D: jest.fn(() => Promise.resolve(null)),
 }));
 
 // Force identical numerical results: two identical 12s must still be two
@@ -59,6 +64,7 @@ describe('fresh physical dice presentation', () => {
   beforeEach(() => {
     window.localStorage.clear();
     mockMountSerial = 0;
+    preloadDiceTray3D.mockClear();
   });
 
   test('replays the visual component even when successive results match', () => {
@@ -91,5 +97,16 @@ describe('fresh physical dice presentation', () => {
     expect(screen.getByTestId('roll-presentation')).toHaveAttribute('data-dye-id', 'moss');
     fireEvent.click(screen.getByTestId('roll-d20-btn'));
     expect(screen.getByTestId('roll-presentation')).toHaveAttribute('data-dye-id', 'amber');
+  });
+
+  test('warms the shared 3D renderer before a global die is chosen', () => {
+    render(<MemoryRouter initialEntries={['/home']}><FloatingDiceRoller /></MemoryRouter>);
+    const toggle = screen.getByTestId('dice-roller-toggle');
+
+    fireEvent.pointerEnter(toggle);
+    expect(preloadDiceTray3D).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(toggle);
+    expect(preloadDiceTray3D).toHaveBeenCalledTimes(2);
   });
 });
