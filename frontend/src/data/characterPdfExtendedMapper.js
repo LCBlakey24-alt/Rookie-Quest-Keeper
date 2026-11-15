@@ -168,8 +168,14 @@ export function mapFullCharacterPdfFields(character, options = {}) {
   });
   if(spells.length>24) overflow.push({field:'magic.spells',value:spells.slice(24)});
   if(arr(character.spellbook).length && prepared.length){
-    // Spellbook is deliberately NOT merged into active/prepared magic.spells.
-    warnings.push('Wizard spellbook is separate from prepared spells; optional spellbook appendix required.');
+    // Never pretend a Wizard's spellbook entries are all prepared.
+    // Preserve the unprepared entries for a mandatory continuation page.
+    const active = new Set(prepared.map(spell=>spellName(spell).toLowerCase()));
+    const unprepared=arr(character.spellbook).filter(spell=>!active.has(spellName(spell).toLowerCase()));
+    if(unprepared.length){
+      overflow.push({field:'magic.spellbook',value:unprepared});
+      warnings.push('Wizard spellbook entries need a separate appendix; only prepared spells appear in the play list.');
+    }
   }
   const pact=character.resources?.pact_magic || {};
   put('magic.pact.remaining',readField(pact,'current','remaining'));
@@ -198,7 +204,17 @@ export function mapFullCharacterPdfFields(character, options = {}) {
   put('inventory.storage',options.inventoryNotes?.storage);
   put('inventory.treasure_notes',options.inventoryNotes?.treasure);
 
-  const features=arr(character.class_features).length?arr(character.class_features):arr(character.features);
+  const featureCandidates=[
+    ...arr(character.class_features), ...arr(character.features),
+    ...arr(character.racial_traits), ...arr(character.species_traits),
+    ...arr(character.background_features), ...arr(character.feats),
+  ];
+  const seenFeatures=new Set();
+  const features=featureCandidates.filter(feature=>{
+    const key=title(feature).toLowerCase();
+    if(!key || seenFeatures.has(key))return false;
+    seenFeatures.add(key);return true;
+  });
   features.slice(0,7).forEach((feature,index)=>{
     const prefix='features.'+(index+1)+'.';
     put(prefix+'name',title(feature));
