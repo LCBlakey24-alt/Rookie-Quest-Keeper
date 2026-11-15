@@ -31,14 +31,16 @@ export default function HexTraitsView({ character, classFeatureSummary = [], rul
 
   return (
     <section className="hex-traits" aria-label="Traits and feats" data-testid="hex-traits">
-      <GuildChoiceWheel
-        label="Traits"
-        caption="TRAITS"
-        options={sections.map((section) => ({ id: section.id, label: section.label }))}
-        value={current.id}
-        onChange={(id) => { setSectionId(id); setOpen(null); }}
-        centreNote={`${current.items.length} ${current.items.length === 1 ? 'trait' : 'traits'}`}
-      />
+      <div className="hex-sheet__wheel-anchor" data-testid="hex-wheel-anchor">
+        <GuildChoiceWheel
+          label="Traits"
+          caption="TRAITS"
+          options={sections.map((section) => ({ id: section.id, label: section.label }))}
+          value={current.id}
+          onChange={(id) => { setSectionId(id); setOpen(null); }}
+          centreNote={`${current.items.length} ${current.items.length === 1 ? 'trait' : 'traits'}`}
+        />
+      </div>
       <div className="hex-traits__list" data-testid="hex-traits-list">
         {current.facts.length > 0 && (
           <dl className="hex-traits__facts" data-testid="hex-traits-facts">

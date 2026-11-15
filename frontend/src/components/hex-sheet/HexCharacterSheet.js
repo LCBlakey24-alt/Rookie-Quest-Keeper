@@ -490,6 +490,11 @@ export default function HexCharacterSheet() {
   }
 
   const rollRow = current.view === 'roll' ? rows.find((row) => row.key === current.ability) : null;
+  // HP and Skills own an anchor around just their SVG because each component
+  // also renders controls or a list below it. The remaining wheel-only views
+  // can share this wrapper directly. Keeping auxiliary content outside the
+  // anchor prevents it from pulling the wheel upwards as modes change.
+  const wheelOwnsAnchor = Boolean(wheel) && !['hp', 'skills', 'equipment'].includes(current.view);
 
   if (loading && !character) {
     return (
@@ -509,7 +514,7 @@ export default function HexCharacterSheet() {
   }
 
   return (
-    <div className={`hex-sheet${['combat', 'equipment', 'skills', 'magic', 'traits'].includes(current.view) ? ' hex-sheet--with-list' : ''}${current.view === 'hp' ? ' hex-sheet--hp' : ''}`} style={themeVars} data-theme={themeId} data-testid="hex-sheet">
+    <div className={`hex-sheet${['combat', 'equipment', 'skills', 'magic', 'traits'].includes(current.view) ? ' hex-sheet--with-list' : ''}${current.view === 'hp' ? ' hex-sheet--hp' : ''}`} style={themeVars} data-theme={themeId} data-view={current.view} data-testid="hex-sheet">
       {/* The slowly turning hexagons behind every page, drawn inside the sheet
           so they show over its own background, in the chosen theme's colour. */}
       <HexBackdrop />
@@ -574,7 +579,11 @@ export default function HexCharacterSheet() {
       </nav>
 
       <main className="hex-sheet__wheel-area">
-        {wheel}
+        {wheelOwnsAnchor ? (
+          <div className="hex-sheet__wheel-anchor" data-testid="hex-wheel-anchor">
+            {wheel}
+          </div>
+        ) : wheel}
         {current.view === 'hp' && character && (
           <HexRecovery
             character={character}

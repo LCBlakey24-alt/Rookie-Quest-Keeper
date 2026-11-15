@@ -117,15 +117,17 @@ export default function HexMagicView({ character, proficiencyBonus = 2, onRollAt
 
   return (
     <section className="hex-magic" aria-label="Magic" data-testid="hex-magic">
-      <GuildChoiceWheel
-        label="Spell level"
-        caption="SPELLS"
-        options={levels.map((entry) => ({ id: entry.id, label: entry.label, short: entry.short, pips: entry.pips }))}
-        value={current.id}
-        onChange={(id) => { setLevelId(id); setOpenSpell(null); }}
-        centreText={current.level === 0 ? 'Cantrips' : ordinal(current.level)}
-        centreNote={current.pips ? `${current.pips.left} of ${current.pips.total} slots` : 'At will'}
-      />
+      <div className="hex-sheet__wheel-anchor" data-testid="hex-wheel-anchor">
+        <GuildChoiceWheel
+          label="Spell level"
+          caption="SPELLS"
+          options={levels.map((entry) => ({ id: entry.id, label: entry.label, short: entry.short, pips: entry.pips }))}
+          value={current.id}
+          onChange={(id) => { setLevelId(id); setOpenSpell(null); }}
+          centreText={current.level === 0 ? 'Cantrips' : ordinal(current.level)}
+          centreNote={current.pips ? `${current.pips.left} of ${current.pips.total} slots` : 'At will'}
+        />
+      </div>
 
       <div className="hex-magic__list" data-testid="hex-magic-list">
         {listed.length === 0 && (

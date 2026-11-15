@@ -145,9 +145,14 @@ button.hex-sheet__vital:hover, button.hex-sheet__vital:focus-visible { border-co
 body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floating-dice__toggle { display: none; }
 
 /* Trail ----------------------------------------------------------------- */
-.hex-sheet__trail { display: flex; align-items: center; gap: 10px; min-height: 40px; }
+.hex-sheet__trail {
+  position: relative; z-index: 5;
+  display: flex; align-items: center; gap: 10px;
+  min-height: 44px; flex: 0 0 44px;
+}
 .hex-sheet__back {
-  min-height: 40px; min-width: 84px; padding: 0 12px; border-radius: 999px;
+  position: relative; z-index: 1;
+  min-height: 44px; min-width: 84px; padding: 0 12px; border-radius: 999px;
   border: 1px solid var(--hex-orange) !important; background: transparent; box-shadow: var(--hex-glow); color: var(--hex-text);
   display: inline-flex; align-items: center; gap: 4px; font: inherit; font-weight: 700; cursor: pointer;
 }
@@ -159,8 +164,14 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 
 /* Wheel ----------------------------------------------------------------- */
 .hex-sheet__wheel-area {
+  position: relative; z-index: 1;
   flex: 1 1 auto; min-height: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+}
+.hex-sheet__wheel-anchor {
+  position: relative; z-index: 1;
+  flex: 0 0 auto; width: 100%; min-height: 0;
+  display: grid; place-items: start center;
 }
 .hex-wheel {
   display: block;
@@ -268,6 +279,18 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .hex-sheet button:focus-visible, .hex-sheet a:focus-visible { outline: 2px solid var(--hex-orange); outline-offset: 2px; }
 
 /* Larger screens: more room around the same layout. -------------------- */
+@media (max-width: 719px) {
+  /* Every interactive wheel begins at the same flow anchor. Auxiliary
+     controls and lists follow it, so they cannot recenter or pull it under
+     the navigation trail when a mode changes. */
+  .hex-sheet__wheel-area { justify-content: flex-start; }
+  .hex-sheet__crumbs {
+    flex-wrap: nowrap; min-width: 0; overflow-x: auto; overflow-y: hidden;
+    white-space: nowrap; scrollbar-width: none;
+  }
+  .hex-sheet__crumbs::-webkit-scrollbar { display: none; }
+}
+
 @media (min-width: 720px) {
   .hex-sheet { padding-inline: max(24px, calc((100vw - 760px) / 2)); }
   .hex-sheet__header { grid-template-columns: 56px 1fr 76px; }

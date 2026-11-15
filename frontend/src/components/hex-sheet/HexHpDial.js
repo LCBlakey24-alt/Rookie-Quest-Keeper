@@ -326,23 +326,24 @@ export default function HexHpDial({ character, initialTarget = 'hp', onConfirm, 
 
   return (
     <div className="hex-hp" data-testid="hex-hp-dial">
-      <svg
-        ref={svgRef}
-        className={`hex-wheel hex-hp__svg${armed ? ' is-armed' : ''}${dragging ? ' is-rotating' : ''}${returning ? ' is-returning' : ''}`}
-        viewBox={wheelViewBox()}
-        data-hex-radius={OUTER_RADIUS + 2}
-        role="group"
-        aria-label="Hit point dial"
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-      >
-        <GlowFilter id={filterId} />
-        <g aria-hidden="true">
-          <GlowPolygon className="hex-wheel__frame hex-hp__frame" points={pointsAttribute(hexVertices(OUTER_RADIUS + 2))} filterId={filterId} />
-        </g>
-        <g role="radiogroup" aria-label="Adjust which pool">
+      <div className="hex-sheet__wheel-anchor" data-testid="hex-wheel-anchor">
+        <svg
+          ref={svgRef}
+          className={`hex-wheel hex-hp__svg${armed ? ' is-armed' : ''}${dragging ? ' is-rotating' : ''}${returning ? ' is-returning' : ''}`}
+          viewBox={wheelViewBox()}
+          data-hex-radius={OUTER_RADIUS + 2}
+          role="group"
+          aria-label="Hit point dial"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+        >
+          <GlowFilter id={filterId} />
+          <g aria-hidden="true">
+            <GlowPolygon className="hex-wheel__frame hex-hp__frame" points={pointsAttribute(hexVertices(OUTER_RADIUS + 2))} filterId={filterId} />
+          </g>
+          <g role="radiogroup" aria-label="Adjust which pool">
           {HALVES.map((half, order) => (
             <g
               key={half.id}
@@ -367,9 +368,9 @@ export default function HexHpDial({ character, initialTarget = 'hp', onConfirm, 
               <text className="hex-hp__value" x={0} y={half.valueY} fontSize={15} textAnchor="middle" dominantBaseline="central" aria-hidden="true">{values[half.id]}</text>
             </g>
           ))}
-        </g>
+          </g>
 
-        {showRing && (
+          {showRing && (
           <g className="hex-hp__ring" aria-hidden="true" data-testid="hex-hp-ring">
             <circle className="hex-hp__ring-face" cx={0} cy={0} r={RING_RADIUS} />
             <g className="hex-hp__rotor" style={{ transform: `rotate(${rotation}deg)` }} data-testid="hex-hp-rotor" data-rotation={Math.round(rotation)}>
@@ -392,9 +393,9 @@ export default function HexHpDial({ character, initialTarget = 'hp', onConfirm, 
             <path className="hex-hp__trail" d={trailPath(rotation)} />
             <polygon className="hex-hp__pointer" points={`0,${-RING_RADIUS} -5,${-RING_RADIUS - 8} 5,${-RING_RADIUS - 8}`} />
           </g>
-        )}
+          )}
 
-        <g
+          <g
           className={`hex-wheel__centre hex-hp__centre${delta > 0 ? ' is-positive' : delta < 0 ? ' is-negative' : ''}`}
           data-dial-centre
           role="button"
@@ -408,8 +409,9 @@ export default function HexHpDial({ character, initialTarget = 'hp', onConfirm, 
           <GlowPolygon className="hex-wheel__centre-shape" points={pointsAttribute(hexVertices(CENTRE_RADIUS))} filterId={filterId} />
           <text className="hex-wheel__centre-label" x={0} y={-5} fontSize={bigCentre ? 20 : 9} textAnchor="middle" dominantBaseline="central" aria-hidden="true">{centreLine}</text>
           <text className="hex-wheel__centre-sublabel" x={0} y={12} fontSize={centreSub.length > 22 ? 4.2 : 5.2} textAnchor="middle" dominantBaseline="central" aria-hidden="true">{centreSub}</text>
-        </g>
-      </svg>
+          </g>
+        </svg>
+      </div>
 
       <div className="hex-hp__controls">
         <button type="button" className="hex-hp__step" aria-label="Take away 1" onClick={() => setDelta(delta - 1)} disabled={saving} data-testid="hex-hp-minus">
