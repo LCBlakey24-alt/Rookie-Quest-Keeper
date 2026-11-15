@@ -82,6 +82,19 @@ describe('global dice selection wheel', () => {
     expect(onRoll).toHaveBeenCalledTimes(1);
   });
 
+  test('keyboard choosing an inner roll mode cannot accidentally fire the centre Roll', () => {
+    const onRoll = jest.fn();
+    const onMode = jest.fn();
+    render(<GlobalDiceSelectionWheel
+      selectedSides={20} onSidesChange={() => {}}
+      rollMode="normal" onRollModeChange={onMode}
+      onRoll={onRoll} dyeId="glow"
+    />);
+    fireEvent.keyDown(screen.getByTestId('roll-advantage-btn'), { key: 'Enter' });
+    expect(onMode).toHaveBeenCalledWith('advantage');
+    expect(onRoll).not.toHaveBeenCalled();
+  });
+
   test('offers explicit previous and next controls for keyboard users', () => {
     render(<Harness />);
     fireEvent.click(screen.getByRole('button', { name: 'Next die' }));
