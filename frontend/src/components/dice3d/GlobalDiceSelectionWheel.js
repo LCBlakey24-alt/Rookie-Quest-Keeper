@@ -40,7 +40,6 @@ export default function GlobalDiceSelectionWheel({
         onChange={id => onSidesChange(Number(id))}
         onConfirm={onRoll}
         label="Dice type"
-        caption="DIE TYPE"
         innerOptions={modes}
         innerValue={rollMode}
         onInnerChange={onRollModeChange}
