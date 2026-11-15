@@ -1,4 +1,4 @@
-# Character PDF export — developer handoff
+> **CURRENT PROTOTYPE UPDATE — V7 (15 November 2026):** The reviewed source of truth is [design/character-sheet-v7/HANDOFF.md](../design/character-sheet-v7/HANDOFF.md), which links the **actual four V7 editable PDF binaries** and original logo, two complete 504-field maps, print previews, source scripts, tests and play-table audit. V7 has **eight A4 pages / 504 fields** rather than the older V6 **seven pages / 422 fields** described historically below. **PR #911 still uses V6 and must be migrated to V7 before merging.** V7 is archived as a prototype, not a live Keeper feature.\n\n# Character PDF export — developer handoff
 
 **Status (15 Nov 2026):** Prototype PDFs produced outside the website. **No live character-to-PDF export has been deployed.** Implementation tracked by [#906](https://github.com/LCBlakey24-alt/Rookie-Quest-Keeper/issues/906). This document records design/engineering intent, not a fully approved live schema.
 
