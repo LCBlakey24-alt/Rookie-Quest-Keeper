@@ -42,9 +42,9 @@ export function isDetailRoute(pathname) {
  * Which routes are "inside" a section rather than the home dashboard.
  *
  * On a phone the home dashboard is the hub: it lists My Characters, My
- * Campaigns, Homebrew, Community and the rest. Every other page hides the
- * bottom tab bar and shows a hexagon back button in the top-left corner
- * that returns to the dashboard. Desktop and tablet keep their side rail.
+ * Campaigns, Homebrew, Community and the rest. Inner pages keep a hexagon
+ * back button in the top bar, while the shared bottom tab bar now remains
+ * visible across AppShell sections. Desktop and tablet keep their side rail.
  */
 const HUB_ROUTES = ['/', '/home'];
 

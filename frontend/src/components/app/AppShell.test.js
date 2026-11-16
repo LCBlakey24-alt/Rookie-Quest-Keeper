@@ -82,6 +82,24 @@ describe('Keeper simplified navigation', () => {
     expect(shell).toHaveAttribute('data-rq-focus', 'detail');
   });
 
+  test.each([
+    ['/home', 'Home'],
+    ['/characters', 'Characters'],
+    ['/campaigns', 'Campaigns'],
+    ['/homebrew', 'Homebrew'],
+    ['/community', 'Community'],
+    ['/characters/new', 'Characters'],
+    ['/player/campaign/c1', 'Campaigns'],
+  ])('keeps the five-tab mobile dock on %s', async (path, active) => {
+    mockPathname = path;
+    window.innerWidth = 390;
+    await act(async () => { render(<AppShell><main>Section content</main></AppShell>); });
+    const nav = screen.getByRole('navigation', { name: 'Main app sections' });
+    expect(within(nav).getAllByRole('link')).toHaveLength(5);
+    expect(within(nav).getAllByRole('link').find(link => link.getAttribute('aria-current') === 'page')).toHaveTextContent(active);
+    expect(nav.closest('.rqk-app-rail')).toBeInTheDocument();
+  });
+
   test('keeps player campaign details under the Campaigns tab', async () => {
     mockPathname = '/player/campaign/c1';
     window.innerWidth = 390;
