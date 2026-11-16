@@ -76,7 +76,7 @@
 
 @media (max-width: 560px) {
   .rqk-pwa-banner {
-    grid-template-columns: 30px minmax(0, 1fr) auto;
+    grid-template-columns: 30px minmax(0, 1fr) auto auto;
     align-items: center;
     gap: 6px;
   }
