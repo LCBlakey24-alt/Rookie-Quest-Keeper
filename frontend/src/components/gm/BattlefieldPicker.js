@@ -80,7 +80,7 @@ export default function BattlefieldPicker({
           <label style={{ display: 'grid', gap: 5, fontSize: 12 }}>
             Campaign battle map
             <select aria-label="Saved battlefield map" value={mapId} onChange={event => onMapIdChange?.(event.target.value)}
-              style={{ width: '100%', padding: 10, background: 'var(--guild-bg, #0A2342)', color: 'var(--guild-text, #FFFFFF)', border: '1px solid rgba(201,210,230,.32)', borderRadius: 6 }}>
+              style={{ width: '100%', minHeight: 44, padding: 10, fontSize: 16, background: 'var(--guild-bg, #0A2342)', color: 'var(--guild-text, #FFFFFF)', border: '1px solid rgba(201,210,230,.32)', borderRadius: 6 }}>
               <option value="">Use an uploaded map below, or choose a map</option>
               {maps.map(item => <option key={item.id} value={String(item.id)}>{item.name || 'Untitled map'}</option>)}
               {mapId && !selectedMap && <option value={mapId}>Previously linked map ({mapId})</option>}

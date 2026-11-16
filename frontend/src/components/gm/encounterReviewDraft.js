@@ -78,8 +78,11 @@ export function createEmptyDraft(campaignId, encounterId, ownerId = '') {
     extraNpcIds: [],
     quickCombatants: [],
     quickDraft: { ...EMPTY_QUICK_DRAFT },
-    // null uses the saved encounter map; '' explicitly launches without one.
+    // null uses the saved encounter battlefield; choices are always scoped
+    // to this account, campaign and encounter, not saved into the template.
     battleMapId: null,
+    battlefieldMode: null,
+    terrainType: null,
     savedAt: 0,
   };
 }
@@ -157,6 +160,8 @@ export function draftHasUnsavedWork(draft) {
     || (draft.extraNpcIds || []).length
     || (draft.quickCombatants || []).length
     || draft.battleMapId !== null && draft.battleMapId !== undefined
+    || draft.battlefieldMode !== null && draft.battlefieldMode !== undefined
+    || draft.terrainType !== null && draft.terrainType !== undefined
     || typing,
   );
 }

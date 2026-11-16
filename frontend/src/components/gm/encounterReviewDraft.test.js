@@ -281,3 +281,36 @@ test('battle-map selection persists with this encounter only, including explicit
   expect(draftHasUnsavedWork({ ...draft, battleMapId: '' })).toBe(true);
   expect(draftHasUnsavedWork(createEmptyDraft('camp-1', 'enc-1', 'gm-1'))).toBe(false);
 });
+
+describe('account-scoped battlefield review choices', () => {
+  test('terrain choice and mode persist only for this account, campaign and encounter', () => {
+    const storage = memoryStore();
+    const draft = {
+      ...createEmptyDraft('campaign-a', 'encounter-2', 'gm-a'),
+      battlefieldMode: 'generic', terrainType: 'grass',
+      excludedPlayerIds: ['player-4'],
+      quickCombatants: [{ id: 'quick-beast', name: 'Temporary Beast', hp: 11 }],
+    };
+    expect(writeDraft(draft, { accountId: 'gm-a', storage })).toBe('saved');
+    const returned = readDraft('campaign-a', 'encounter-2', { accountId: 'gm-a', storage });
+    expect(returned).toMatchObject({
+      battlefieldMode: 'generic', terrainType: 'grass',
+      excludedPlayerIds: ['player-4'],
+      quickCombatants: [{ id: 'quick-beast', hp: 11 }],
+    });
+    expect(readDraft('campaign-a', 'encounter-3', { accountId: 'gm-a', storage })).toBeNull();
+    expect(readDraft('campaign-b', 'encounter-2', { accountId: 'gm-a', storage })).toBeNull();
+    expect(readDraft('campaign-a', 'encounter-2', { accountId: 'gm-b', storage })).toBeNull();
+  });
+
+  test('selection survives a failed data refresh and is flagged as work to protect', () => {
+    const original = { ...createEmptyDraft('campaign-a', 'encounter-2', 'gm-a'),
+      battlefieldMode: 'saved', battleMapId: 'map-a', terrainType: 'snow' };
+    expect(reconcileDraft(original, { mapIds: [], playerIds: null })).toMatchObject({
+      battlefieldMode: 'saved', battleMapId: 'map-a', terrainType: 'snow',
+    });
+    expect(draftHasUnsavedWork(original)).toBe(true);
+    expect(draftHasUnsavedWork({ ...createEmptyDraft('campaign-a', 'encounter-2'), battlefieldMode: 'none' })).toBe(true);
+    expect(draftHasUnsavedWork({ ...createEmptyDraft('campaign-a', 'encounter-2'), terrainType: 'mud' })).toBe(true);
+  });
+});

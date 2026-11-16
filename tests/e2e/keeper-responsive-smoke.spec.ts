@@ -204,25 +204,48 @@ for (const size of appSizes) {
     await expect(page.getByText(/No preparation needed/i)).toBeVisible();
     await expect(page.getByTestId('live-data-warning')).toHaveCount(0);
 
-    // The battle-map choice belongs in keyboard order between encounter
-    // selection and the Reset/Start controls. Preserve 44px tap targets.
-    const battleMap = launcher.getByRole('combobox', { name: 'Battle map for this encounter' });
+    // Review's replacement battlefield picker has three keyboard-focusable
+    // mode buttons. The saved-map combobox is intentionally conditional.
+    // Exercise the actual UI rather than the removed top-level map selector.
+    const battlefield = launcher.getByTestId('battlefield-picker');
+    const source = battlefield.getByRole('group', { name: 'Battlefield source' });
+    const savedMode = source.getByRole('button', { name: 'Saved battle map' });
+    const genericMode = source.getByRole('button', { name: 'Generic textured floor' });
+    const noneMode = source.getByRole('button', { name: 'No selection' });
     const reset = launcher.getByRole('button', { name: 'Reset review' });
-    const [choiceBounds, mapBounds, resetBounds, launchBounds] = await Promise.all([
-      choice.boundingBox(), battleMap.boundingBox(), reset.boundingBox(), launch.boundingBox(),
-    ]);
-    expect(choiceBounds?.height).toBeGreaterThanOrEqual(44);
-    expect(mapBounds?.height).toBeGreaterThanOrEqual(44);
-    expect(resetBounds?.height).toBeGreaterThanOrEqual(44);
-    expect(launchBounds?.height).toBeGreaterThanOrEqual(44);
+    await expect(noneMode).toHaveAttribute('aria-pressed', 'true');
+    const targets = [choice, savedMode, genericMode, noneMode, reset, launch];
+    const bounds = await Promise.all(targets.map(target => target.boundingBox()));
+    for (const [index, bound] of bounds.entries()) {
+      expect(bound?.height, `Encounter target ${index + 1} needs a 44px hit area`).toBeGreaterThanOrEqual(44);
+    }
+
     await choice.focus();
     await expect(choice).toBeFocused();
-    await page.keyboard.press('Tab');
-    await expect(battleMap).toBeFocused();
-    await page.keyboard.press('Tab');
-    await expect(reset).toBeFocused();
-    await page.keyboard.press('Tab');
-    await expect(launch).toBeFocused();
+    for (const control of [savedMode, genericMode, noneMode, reset, launch]) {
+      await page.keyboard.press('Tab');
+      await expect(control).toBeFocused();
+    }
+
+    // Saved maps remain keyboard-usable, without requiring an uploaded map
+    // to exist in this demo campaign.
+    await savedMode.focus();
+    await page.keyboard.press('Enter');
+    await expect(savedMode).toHaveAttribute('aria-pressed', 'true');
+    const savedMap = battlefield.getByRole('combobox', { name: 'Saved battlefield map' });
+    await expect(savedMap).toBeVisible();
+    expect((await savedMap.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+    await genericMode.focus();
+    await page.keyboard.press('Enter');
+    await expect(genericMode).toHaveAttribute('aria-pressed', 'true');
+    const grass = battlefield.getByTestId('terrain-choice-grass');
+    await expect(grass).toBeVisible();
+    await grass.focus();
+    await page.keyboard.press('Enter');
+    await expect(grass).toHaveAttribute('aria-pressed', 'true');
+    await noneMode.focus();
+    await page.keyboard.press('Enter');
+    await expect(noneMode).toHaveAttribute('aria-pressed', 'true');
     await assertFitsViewport(page, size.width);
 
     await testInfo.attach(`encounter-review-${size.label}`, {
