@@ -155,15 +155,26 @@ describe('fresh physical dice presentation', () => {
     expect(screen.queryByTestId('dice-wheel-overlay')).not.toBeInTheDocument();
   });
 
-  test('warms the shared 3D renderer before a global die is chosen', async () => {
+  test('does not start a second 3D renderer during material selection', async () => {
+    render(<MemoryRouter initialEntries={['/home']}><FloatingDiceRoller /></MemoryRouter>);
+    fireEvent(window, new Event('rq-dice-open'));
+    await screen.findByTestId('mock-dye-picker-3d');
+    expect(preloadDiceTray3D).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByTestId('dice-dye-confirm'));
+    expect(screen.getByTestId('global-dice-wheel')).toBeInTheDocument();
+    expect(preloadDiceTray3D).toHaveBeenCalledTimes(1);
+  });
+
+  test('the rail can prewarm on hover without also loading a second scene on opening', async () => {
     render(<MemoryRouter initialEntries={['/home']}><FloatingDiceRoller /></MemoryRouter>);
     const toggle = screen.getByTestId('dice-roller-toggle');
-
     fireEvent.pointerEnter(toggle);
     expect(preloadDiceTray3D).toHaveBeenCalledTimes(1);
-
     fireEvent.click(toggle);
     await screen.findByTestId('mock-dye-picker-3d');
+    expect(preloadDiceTray3D).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByTestId('dice-dye-confirm'));
     expect(preloadDiceTray3D).toHaveBeenCalledTimes(2);
   });
 });
