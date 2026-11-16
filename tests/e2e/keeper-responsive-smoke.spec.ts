@@ -253,7 +253,7 @@ for (const size of [
 test('GM More opens offline-copy manager and can close it without a floating launcher', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await avoidThirdPartyRequests(page);
-  await page.goto('/campaign/preview-campaign?demo=1');
+  await page.goto('/campaign/preview-campaign?demo=1&mode=creation');
   await expect(page.getByTestId('gm-active-workspace')).toBeVisible();
   await expect(page.locator('.rqk-offline-launcher')).toHaveCount(0);
   // The PWA manager discovers the route using a light 600ms observer.
@@ -287,7 +287,7 @@ for (const size of [
   test('dice opens from integrated navigation without a floating launcher on ' + size.label, async ({ page }) => {
     await page.setViewportSize({ width: size.width, height: size.height });
     await avoidThirdPartyRequests(page);
-    await page.goto('/campaign/preview-campaign?demo=1');
+    await page.goto('/campaign/preview-campaign?demo=1&mode=creation');
     await expect(page.getByTestId('gm-active-workspace')).toBeVisible();
     const floating = page.getByTestId('dice-roller-toggle');
     await expect(floating).toBeHidden();
@@ -790,7 +790,7 @@ for (const size of [
   test('campaign workspace sidebar stays beside the app rail on ' + size.label, async ({ page }) => {
     await page.setViewportSize({ width: size.width, height: size.height });
     await avoidThirdPartyRequests(page);
-    await page.goto('/campaign/preview-campaign?demo=1');
+    await page.goto('/campaign/preview-campaign?demo=1&mode=creation');
     const heading = page.getByRole('heading', { name: 'Preview campaign', exact: true });
     await expect(heading).toBeVisible();
     await expect(page.getByTestId('gm-active-workspace')).toBeVisible();
@@ -1023,5 +1023,40 @@ for (const width of [1024, 1180]) {
     await combat.click();
     await expect(page.getByTestId('live-encounter-launcher')).toBeVisible();
     await assertFitsViewport(page, width);
+  });
+}
+
+
+// Campaign entry is two-stage: choose a specific campaign, then select the
+// workspace. Keep the chooser usable on phone, landscape tablet and desktop.
+for (const size of [
+  { label: 'phone', width: 390, height: 844 },
+  { label: 'tablet landscape', width: 1024, height: 768 },
+  { label: 'desktop', width: 1440, height: 900 },
+]) {
+  test(`Campaign mode chooser navigates into both GM workspaces on ${size.label}`, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/campaign/preview-campaign?demo=1');
+
+    const chooser = page.getByTestId('campaign-mode-selector');
+    await expect(chooser).toBeVisible();
+    await expect(chooser.getByRole('heading', { name: 'Preview campaign' })).toBeVisible();
+    await expect(page.getByTestId('campaign-mode-creation')).toBeVisible();
+    await expect(page.getByTestId('campaign-mode-live')).toBeVisible();
+    await assertFitsViewport(page, size.width);
+
+    await page.getByTestId('campaign-mode-creation').click();
+    await expect(page).toHaveURL(/\\?mode=creation/);
+    await expect(page.getByTestId('gm-active-workspace')).toBeVisible();
+    await page.getByRole('button', { name: 'Back to campaign modes' }).click();
+    await expect(chooser).toBeVisible();
+
+    await page.getByTestId('campaign-mode-live').click();
+    await expect(page).toHaveURL(new RegExp('/gm-screen/preview-campaign'));
+    await expect(page.getByTestId('live-session-grid')).toBeVisible();
+    await page.getByRole('button', { name: 'Modes', exact: true }).click();
+    await expect(chooser).toBeVisible();
+    await assertFitsViewport(page, size.width);
   });
 }

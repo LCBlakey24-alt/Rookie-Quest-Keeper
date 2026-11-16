@@ -15,6 +15,26 @@ There should be no required **Tonight's Session** layer between the two.
 
 ---
 
+## Campaign entry journey
+
+The GM starts at **My Campaigns**, where they can open one of their own campaigns or create a new one.
+
+Opening a campaign first shows that **campaign's mode selector**:
+
+- **Creation Mode** — campaign structure, quests, NPCs, world, maps, encounters, rewards, notes and settings, with full editing.
+- **Live Play Mode** — table-first GM interface with fast access to quests, encounters, party, NPCs, notes, rules and player display.
+
+These are two ways of working with the **same campaign**, not separate campaign copies or an extra required session object. A GM can switch directly between modes or return to the chooser.
+
+Routing:
+- `/campaign/:campaignId` — campaign-specific mode selector.
+- `/campaign/:campaignId?mode=creation` — Creation Mode.
+- `/gm-screen/:campaignId` — Live Play Mode.
+- Existing `#tab-...` campaign preparation deep links still open their target tool directly.
+- Player-only joined campaigns retain their distinct player route and never enter the GM mode selector.
+
+---
+
 ## Campaign Prep
 
 The GM campaign page is the campaign library and planning workspace.

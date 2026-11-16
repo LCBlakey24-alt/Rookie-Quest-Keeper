@@ -253,7 +253,7 @@ export default function MyCampaignsPage() {
       setCampaignForm(initialCampaignForm);
       setShowCreateCampaign(false);
       await loadCampaigns();
-      if (campaignId) navigate(`/campaign/${campaignId}#tab-campaign-rules`);
+      if (campaignId) navigate(`/campaign/${campaignId}`);
     } catch (error) {
       toast.error(error?.formattedDetail || error?.response?.data?.detail || 'Failed to create campaign');
     } finally {

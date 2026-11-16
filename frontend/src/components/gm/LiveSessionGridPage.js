@@ -2,7 +2,7 @@ import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ArrowLeft, Dices, LogOut, Monitor, Sword } from 'lucide-react';
+import { ArrowLeft, BookOpen, Dices, LogOut, Monitor, Sword } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/apiClient';
 import DiceRollFlicker from '@/components/DiceRollFlicker';
@@ -11,6 +11,7 @@ import { loadLiveSessionSections } from '@/data/livePlayLoaders';
 import { recordRemoteRoll } from '@/lib/sessionRollStats';
 import { generateCombatReadyNpc } from '@/lib/npcStatBlockFactory';
 import LiveSessionGridMode from '@/components/gm/LiveSessionGridMode';
+import { campaignCreationRoute, campaignModeRoute } from '@/components/gm/dashboard/campaignModeNavigation';
 import './LiveSessionGridPage.css';
 import LiveStoryFocusPanel from '@/components/gm/LiveStoryFocusPanel';
 import GroupCheckRequestPanel from '@/components/gm/GroupCheckRequestPanel';
@@ -287,7 +288,7 @@ export default function LiveSessionGridPage() {
       <main className="rqk-live-page" style={pageStyle}>
         <header className="rqk-live-page__header" style={headerStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-            <Button onClick={() => navigate(`/campaign/${campaignId}`)} className="btn-outline" style={smallButtonStyle}><ArrowLeft size={16} /> Campaign Prep</Button>
+            <Button onClick={() => navigate(campaignModeRoute(campaignId))} className="btn-outline" style={smallButtonStyle}><ArrowLeft size={16} /> Modes</Button>
             <div style={{ minWidth: 0 }}>
               <p className="rqk-live-page__eyebrow" style={eyebrowStyle}>Live Play Mode</p>
               <h1 style={titleStyle}><Sword size={22} color={theme.accent.primary} /> {campaign?.name || 'Live Session'}</h1>
@@ -296,7 +297,8 @@ export default function LiveSessionGridPage() {
             </div>
           </div>
           <div className="rqk-live-page__actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            <label style={explodingToggleStyle} title="When enabled, non-d20 dice that roll their maximum roll again and add the extra result."><input type="checkbox" checked={explodingDiceEnabled} onChange={(event) => setExplodingDiceEnabled(event.target.checked)} />Exploding dice</label>
+            <Button onClick={() => navigate(campaignCreationRoute(campaignId))} className="btn-outline" style={smallButtonStyle}><BookOpen size={16} /> Creation Mode</Button>
+             <label style={explodingToggleStyle} title="When enabled, non-d20 dice that roll their maximum roll again and add the extra result."><input type="checkbox" checked={explodingDiceEnabled} onChange={(event) => setExplodingDiceEnabled(event.target.checked)} />Exploding dice</label>
             <Button onClick={() => rollQuickDice('1d20', 'D20')} className="btn-outline" style={smallButtonStyle}><Dices size={16} /> D20</Button>
             <Button onClick={() => setShowEndSessionReview(true)} className="btn-outline" style={smallButtonStyle}><Monitor size={16} /> End Session</Button>
              
