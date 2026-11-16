@@ -132,17 +132,9 @@ export function AppRoutes() {
   const skipNextAuthProbeRef = useRef(false);
   const isPublicBrandRoute = PUBLIC_BRAND_PATHS.has(location.pathname) || location.pathname.startsWith('/auth') || location.pathname === '/reset-password';
 
-  const handleAuthLogin = useCallback((token, nextUsername, nextIsAdmin) => {
+  const handleAuthLogin = useCallback((token, nextUsername) => {
     if (!preview) {
       setStoredAuthUsername(nextUsername || '');
-      if (typeof nextIsAdmin === 'boolean') {
-        try {
-          sessionStorage.setItem(
-            `rqk.admin-check:${nextUsername || 'unknown'}`,
-            JSON.stringify({ isAdmin: nextIsAdmin, checkedAt: Date.now() }),
-          );
-        } catch {}
-      }
     }
     skipNextAuthProbeRef.current = true;
     setAuthToken(token);

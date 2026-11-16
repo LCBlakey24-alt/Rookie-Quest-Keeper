@@ -89,7 +89,7 @@ test('successful sign-in persists the username alongside the session', async () 
   await waitFor(() => expect(localStorage.getItem('dm_username')).toBe('New Keeper'));
   expect(await screen.findByRole('heading', { name: 'Dashboard for New Keeper' })).toBeInTheDocument();
   expect(apiClient.get).not.toHaveBeenCalled();
-  expect(JSON.parse(sessionStorage.getItem('rqk.admin-check:New Keeper'))).toMatchObject({ isAdmin: true });
+  expect(sessionStorage.getItem('rqk.admin-check:New Keeper')).toBeNull();
 });
 
 test('the landing and sign-in routes still render if browser storage is denied', async () => {

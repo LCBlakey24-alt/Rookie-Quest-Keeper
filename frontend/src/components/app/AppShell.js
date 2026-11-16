@@ -5,7 +5,8 @@ import { requestDiceOpen } from '@/lib/diceOpenRequest';
 import { BookOpen, Dices, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import HexBackButton from '@/components/guild-motif/HexBackButton';
-import { AUTH_USERNAME_KEY } from '@/lib/auth';
+import { getAuthToken, getStoredAuthUsername } from '@/lib/auth';
+import { getOfflineCacheScope } from '@/offline/offlineApiCache';
 import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import { useDeviceLayout } from '@/layouts/deviceLayout';
 import '@/styles/appShellRail.css';
@@ -27,55 +28,56 @@ import '@/styles/mobileNavigation.css';
 import '@/styles/appShellInnerRoutes.css';
 
 const ADMIN_CACHE_TTL_MS = 5 * 60 * 1000;
-let adminCheckInFlight = null;
+// This is only a navigation hint; the backend authorises every admin request.
+// Never persist admin claims by a display username, because account switching
+// or two accounts with the same display name can reuse the wrong role.
+const adminStatusBySession = new Map();
+const adminChecksBySession = new Map();
 
-function adminCacheKey() {
-  if (typeof window === 'undefined') return '';
-  const username = localStorage.getItem(AUTH_USERNAME_KEY) || 'unknown';
-  return `rqk.admin-check:${username}`;
+function currentAdminScope() {
+  const token = getAuthToken();
+  if (!token) return null;
+  // Token is used as an opaque in-memory key, never written to sessionStorage.
+  // Include the username to handle changes in account scope during a session.
+  return `${getStoredAuthUsername()}\u0000${token}`;
 }
 
-function readCachedAdminStatus() {
-  if (typeof window === 'undefined') return null;
-  try {
-    const key = adminCacheKey();
-    if (!key) return null;
-    const cached = JSON.parse(sessionStorage.getItem(key) || 'null');
-    if (!cached || typeof cached.isAdmin !== 'boolean' || !Number.isFinite(cached.checkedAt)) return null;
-    if (Date.now() - cached.checkedAt > ADMIN_CACHE_TTL_MS) {
-      sessionStorage.removeItem(key);
-      return null;
-    }
-    return cached.isAdmin;
-  } catch {
+function readCachedAdminStatus(scope) {
+  if (!scope) return null;
+  const cached = adminStatusBySession.get(scope);
+  if (!cached) return null;
+  if (Date.now() - cached.checkedAt > ADMIN_CACHE_TTL_MS) {
+    adminStatusBySession.delete(scope);
     return null;
   }
+  return cached.isAdmin;
 }
 
-function storeAdminStatus(isAdmin) {
-  if (typeof window === 'undefined') return;
-  try {
-    const key = adminCacheKey();
-    if (key) sessionStorage.setItem(key, JSON.stringify({ isAdmin: Boolean(isAdmin), checkedAt: Date.now() }));
-  } catch {}
-}
+function loadAdminStatus(scope) {
+  if (!scope) return Promise.resolve(false);
+  const cached = readCachedAdminStatus(scope);
+  if (cached !== null) return Promise.resolve(cached);
+  const pending = adminChecksBySession.get(scope);
+  if (pending) return pending;
 
-async function loadAdminStatus() {
-  const cached = readCachedAdminStatus();
-  if (cached !== null) return cached;
-  if (adminCheckInFlight) return adminCheckInFlight;
-
-  adminCheckInFlight = apiClient.get('/admin/check')
+  // Requests are deduplicated within the same signed-in session only.
+  // A late request from a previous account cannot seed another user's cache.
+  // The request interceptor checks this account identity before reading the
+  // bearer token. An account switched in the same event loop cannot send its
+  // admin check under the next account's credentials.
+  const request = apiClient.get('/admin/check', { rqkExpectedAuthScope: getOfflineCacheScope() })
     .then((response) => {
       const isAdmin = Boolean(response.data?.is_admin);
-      storeAdminStatus(isAdmin);
+      if (currentAdminScope() === scope) {
+        adminStatusBySession.set(scope, { isAdmin, checkedAt: Date.now() });
+      }
       return isAdmin;
     })
     .finally(() => {
-      adminCheckInFlight = null;
+      if (adminChecksBySession.get(scope) === request) adminChecksBySession.delete(scope);
     });
-
-  return adminCheckInFlight;
+  adminChecksBySession.set(scope, request);
+  return request;
 }
 
 const mainNavItems = [
@@ -236,7 +238,7 @@ export default function AppShell({ children }) {
   const location = useLocation();
   const deviceLayout = useDeviceLayout();
   const isMobile = deviceLayout === 'mobile';
-  const [isAdmin, setIsAdmin] = useState(() => readCachedAdminStatus() ?? false);
+  const [isAdmin, setIsAdmin] = useState(() => readCachedAdminStatus(currentAdminScope()) ?? false);
   const availableNavItems = isAdmin ? [...mainNavItems, adminNavItem] : mainNavItems;
   const visibleNavItems = isMobile
     ? availableNavItems.filter((item) => item.mobilePrimary)
@@ -251,20 +253,40 @@ export default function AppShell({ children }) {
 
   useEffect(() => {
     let active = true;
+    let requestVersion = 0;
 
-    loadAdminStatus()
-      .then((nextIsAdmin) => {
-        if (active) setIsAdmin(nextIsAdmin);
-      })
-      .catch(() => {
-        // A temporary account-service problem should not create repeated retry
-        // traffic or disturb the rest of the workspace. The next shell mount
-        // can try again because failures are deliberately not cached.
-        if (active) setIsAdmin(false);
-      });
+    const refreshForCurrentAccount = () => {
+      const scope = currentAdminScope();
+      const version = ++requestVersion;
+      // Immediately remove the previous account's admin navigation while the
+      // newly selected account's status is being checked.
+      setIsAdmin(readCachedAdminStatus(scope) ?? false);
+      if (!scope) return;
+
+      loadAdminStatus(scope)
+        .then((nextIsAdmin) => {
+          if (active && requestVersion === version && currentAdminScope() === scope) {
+            setIsAdmin(nextIsAdmin);
+          }
+        })
+        .catch(() => {
+          // Network failures do not grant admin navigation and do not cache a
+          // denial. A later mount or account change can retry the check.
+          if (active && requestVersion === version && currentAdminScope() === scope) {
+            setIsAdmin(false);
+          }
+        });
+    };
+
+    refreshForCurrentAccount();
+    window.addEventListener('rqk:auth-scope-changed', refreshForCurrentAccount);
+    window.addEventListener('storage', refreshForCurrentAccount);
 
     return () => {
       active = false;
+      requestVersion += 1;
+      window.removeEventListener('rqk:auth-scope-changed', refreshForCurrentAccount);
+      window.removeEventListener('storage', refreshForCurrentAccount);
     };
   }, []);
 
