@@ -1,3 +1,4 @@
+import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { requestDiceOpen } from '@/lib/diceOpenRequest';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -20,7 +21,6 @@ import { buildLongRestUpdates, buildShortRestUpdates, restBlockReason } from '@/
 import { rollD20 } from '@/components/clean-sheet/cleanSheetUtils';
 import { getConcentrationName, getConcentrationSaveDc, getConcentrationSaveModifier, needsConcentrationReplacement } from '@/data/characterConcentrationRules';
 
-import HexLoader from '@/components/guild-motif/HexLoader';
 import HexEquipment from './HexEquipment';
 import HexHpDial from './HexHpDial';
 import HexRecovery from './HexRecovery';
@@ -513,9 +513,11 @@ export default function HexCharacterSheet() {
 
   if (loading && !character) {
     return (
-      <div className="hex-sheet hex-sheet--state" style={themeVars} role="status" aria-live="polite">
-        <HexLoader label="Opening character…" />
-      </div>
+      <RouteLoadingScreen
+        label="Character sheet is loading"
+        status="Opening character…"
+        description="Preparing your character sheet for play."
+      />
     );
   }
 

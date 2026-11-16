@@ -1,3 +1,4 @@
+import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import React, { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, BookOpen, FileText, Mail, Clock, Flag, RefreshCw, Download } from 'lucide-react';
@@ -110,6 +111,18 @@ export function PlayerCampaignWorkspace({ campaignId }) {
     ? { ...tab, badge: unreadHandouts }
     : tab);
   const sheetReturnState = playerSheetReturnState(`/player/campaign/${campaignId}`);
+
+  // Show the shared opening screen only on a first load. Refreshing an open
+  // campaign preserves its last-known information and interactive controls.
+  if (loading && !campaign) {
+    return (
+      <RouteLoadingScreen
+        label="Player campaign is loading"
+        status="Opening player campaign…"
+        description="Gathering your campaign, party and shared resources."
+      />
+    );
+  }
 
   return (
     <main className="player-campaign-page">

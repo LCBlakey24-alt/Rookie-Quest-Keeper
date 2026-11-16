@@ -1,3 +1,4 @@
+import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -273,7 +274,13 @@ export default function LiveSessionGridPage() {
     }
   };
 
-  if (loading) return <div className="loading-screen"><HexLoader label="Opening Live Play…" /></div>;
+  if (loading) return (
+    <RouteLoadingScreen
+      label="Live Play is loading"
+      status="Opening Live Play…"
+      description="Gathering your party, encounters and session controls."
+    />
+  );
 
   return (
     <>

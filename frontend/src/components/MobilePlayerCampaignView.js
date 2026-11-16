@@ -1,3 +1,4 @@
+import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
@@ -401,15 +402,13 @@ function MobileLoadWarning({ text }) {
 
 function MobileLoadingState({ title }) {
   return (
-    <main data-testid="mobile-player-loading" style={pageStyle}>
-      <section role="status" aria-live="polite" aria-busy="true" style={mobileLoadingCardStyle}>
-        <span style={mobileLoadingMarkStyle}>RQK</span>
-        <span style={mobileLoadingSpinnerStyle} aria-hidden="true" />
-        <h1 style={mobileLoadingTitleStyle}>{title}</h1>
-        <p style={mobileLoadingTextStyle}>Gathering your characters, campaigns, party notes, and mobile table tools.</p>
-      </section>
-      <style>{mobileLoadingCss}</style>
-    </main>
+    <div data-testid="mobile-player-loading">
+      <RouteLoadingScreen
+        label="Mobile player workspace is loading"
+        status={title}
+        description="Gathering your characters, campaigns and party notes."
+      />
+    </div>
   );
 }
 
@@ -470,29 +469,4 @@ const summaryTileStyle = { background: theme.panel, border: `1px solid ${theme.b
 const mobileActionGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 };
 const emptyBoxStyle = { border: `1px dashed ${theme.border}`, background: theme.panelAlt, padding: 12, color: theme.muted, display: 'grid', gap: 5, fontSize: 12, lineHeight: 1.4 };
 const mobileWarningStyle = { display: 'flex', alignItems: 'flex-start', gap: 9, padding: '10px 11px', border: '1px solid rgba(245,158,11,0.44)', borderLeft: '4px solid #f59e0b', background: 'rgba(245,158,11,0.08)', color: '#f59e0b' };
-const mobileLoadingCardStyle = {
-  width: 'min(560px, calc(100vw - 32px))',
-  minHeight: 254,
-  margin: 'auto',
-  padding: '26px 22px',
-  display: 'grid',
-  justifyItems: 'center',
-  alignContent: 'center',
-  gap: 12,
-  textAlign: 'center',
-  border: `1px solid ${theme.border}`,
-  borderLeft: `5px solid ${theme.red}`,
-  borderRadius: 0,
-  background: theme.panel,
-  boxShadow: 'none',
-};
-const mobileLoadingMarkStyle = { minHeight: 28, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0 12px', border: `1px solid ${theme.border}`, borderRadius: 999, color: theme.redBright, fontSize: 11, fontWeight: 950, letterSpacing: '0.16em' };
-const mobileLoadingSpinnerStyle = { width: 48, height: 48, borderRadius: '50%', border: '4px solid rgba(181,203,226,0.18)', borderTopColor: theme.redBright, animation: 'rqMobileLoadingSpin 0.86s linear infinite' };
-const mobileLoadingTitleStyle = { margin: 0, color: theme.text, fontFamily: 'var(--rq-title-font, Cinzel, Georgia, serif)', fontSize: 'clamp(1.45rem, 6vw, 2.05rem)', lineHeight: 1.08, letterSpacing: '0.03em' };
-const mobileLoadingTextStyle = { margin: 0, color: theme.muted, fontSize: 13, lineHeight: 1.5, maxWidth: 380 };
-const mobileLoadingCss = `
-  @keyframes rqMobileLoadingSpin { to { transform: rotate(360deg); } }
-  @media (prefers-reduced-motion: reduce) {
-    [data-testid="mobile-player-loading"] span[aria-hidden="true"] { animation: none !important; }
-  }
-`;
+

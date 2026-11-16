@@ -1,3 +1,4 @@
+import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Check, Heart, LockKeyhole, Shield, UserRound } from 'lucide-react';
@@ -77,7 +78,13 @@ export default function CharacterProfileEditor() {
   }
 
   if (loading) {
-    return <main className="full-creator-page"><div className="full-creator-loading">Loading character editor…</div></main>;
+    return (
+      <RouteLoadingScreen
+        label="Character editor is loading"
+        status="Opening character editor…"
+        description="Loading your existing character details."
+      />
+    );
   }
 
   if (!character) return null;
