@@ -22,11 +22,12 @@ jest.mock('@/styles/railFeedbackButtons.css', () => ({}), { virtual: true });
 
 describe('Keeper simplified navigation', () => {
   const originalWidth = window.innerWidth;
+  let sessionNumber = 0;
 
   beforeEach(() => {
     mockPathname = '/campaigns';
     localStorage.setItem('dm_username', 'TestKeeper');
-    localStorage.setItem('dm_token', 'testkeeper-session');
+    localStorage.setItem('dm_token', `testkeeper-session-${++sessionNumber}`);
     sessionStorage.clear();
     apiClient.get.mockResolvedValue({ data: { is_admin: false } });
   });
