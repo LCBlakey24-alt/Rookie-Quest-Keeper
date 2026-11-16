@@ -6,6 +6,7 @@ import { BookOpen, Dices, Home, MessageSquare, MoreHorizontal, ShieldCheck, Sett
 import apiClient from '@/lib/apiClient';
 import HexBackButton from '@/components/guild-motif/HexBackButton';
 import { getAuthToken, getStoredAuthUsername } from '@/lib/auth';
+import { getOfflineCacheScope } from '@/offline/offlineApiCache';
 import { BrandMiniLogo } from '@/components/ui/BrandLogo';
 import { useDeviceLayout } from '@/layouts/deviceLayout';
 import '@/styles/appShellRail.css';
@@ -61,10 +62,15 @@ function loadAdminStatus(scope) {
 
   // Requests are deduplicated within the same signed-in session only.
   // A late request from a previous account cannot seed another user's cache.
-  const request = apiClient.get('/admin/check')
+  // The request interceptor checks this account identity before reading the
+  // bearer token. An account switched in the same event loop cannot send its
+  // admin check under the next account's credentials.
+  const request = apiClient.get('/admin/check', { rqkExpectedAuthScope: getOfflineCacheScope() })
     .then((response) => {
       const isAdmin = Boolean(response.data?.is_admin);
-      adminStatusBySession.set(scope, { isAdmin, checkedAt: Date.now() });
+      if (currentAdminScope() === scope) {
+        adminStatusBySession.set(scope, { isAdmin, checkedAt: Date.now() });
+      }
       return isAdmin;
     })
     .finally(() => {
