@@ -21,7 +21,12 @@ jest.mock('@/lib/liveDisplayBus', () => ({
   publishCampaignDisplayState: jest.fn(() => Promise.resolve()),
   clearCampaignDisplayState: jest.fn(() => Promise.resolve()),
 }));
-jest.mock('@/components/MapBuilder/MapCanvas', () => ({ zoom, tokens }) => <div data-testid="map-canvas" data-zoom={String(zoom)} data-tokens={String(tokens?.length || 0)} />);
+jest.mock('@/components/MapBuilder/MapCanvas', () => ({ zoom, tokens, mapData, showGrid, backgroundImageUrl }) => (
+  <div data-testid="map-canvas" data-zoom={String(zoom)}
+    data-tokens={String(tokens?.length || 0)} data-map-id={mapData?.id || ''}
+    data-grid={String(showGrid)} data-image={backgroundImageUrl || ''}
+    data-terrain={mapData?.terrain?.[0]?.[0] || ''} />
+));
 jest.mock('@/components/NPCCombatRecruiter', () => () => <div />);
 jest.mock('@/components/gm/QuickBestiaryCombatPicker', () => () => <div />);
 jest.mock('@/components/gm/TargetedAttackPanel', () => () => <div />);
@@ -630,7 +635,7 @@ test('a prepared encounter opens a combined battlefield with its map and GM enem
   expect(roster).toHaveTextContent('17');
   // The saved map arrives asynchronously; tokens are positioned in the next effect.
   await waitFor(() => expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-tokens', '2'));
-  expect(screen.getByRole('combobox', { name: '' })).toHaveValue('map-forest');
+  expect(screen.getByRole('combobox', { name: 'Battlefield map source' })).toHaveValue('map-forest');
 
   const zoom = screen.getByTestId('map-canvas');
   expect(zoom).toHaveAttribute('data-zoom', '1');
@@ -679,7 +684,7 @@ test('hidden encounter creatures never reach the player display broadcast', asyn
   expect(JSON.stringify(combatPayload)).not.toContain('Secret Dragon');
 });
 
-test('without a linked map, encounter still starts with GM controls and an honest map chooser', async () => {
+test('without a linked map, encounter starts on a generic stone floor without losing GM controls', async () => {
   render(
     <MemoryRouter initialEntries={[{
       pathname: `/combat/${CAMPAIGN}`,
@@ -693,7 +698,102 @@ test('without a linked map, encounter still starts with GM controls and an hones
     </MemoryRouter>,
   );
   expect(await screen.findByTestId('combat-table-page')).toBeInTheDocument();
-  expect(screen.getByText('No battle map selected')).toBeInTheDocument();
+  expect(await screen.findByTestId('generic-combat-map')).toBeInTheDocument();
+  expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-map-id', 'generic-stone');
+  expect(screen.getByRole('combobox', { name: 'Battlefield map source' })).toHaveValue('');
   expect(document.querySelector('.combat-list')).toHaveTextContent('Bandit Captain');
   expect(screen.getByRole('button', { name: 'Battle' })).toHaveAttribute('aria-pressed', 'true');
+});
+
+
+describe('GM battlefield appears and recovers without losing live combat state', () => {
+  test('an existing fight resumes onto its saved textured terrain, token cells and grid choice', async () => {
+    const positions = [{ id: 'c1', x: 9, y: 4 }, { id: 'c2', x: 12, y: 5 }];
+    saveFight({ terrain_type: 'mud', map_override_generic: true, show_grid: false,
+      mapTokens: positions, round: 6 });
+    openColdTab();
+    expect(await screen.findByTestId('generic-combat-map')).toBeInTheDocument();
+    const canvas = screen.getByTestId('map-canvas');
+    await waitFor(() => expect(canvas).toHaveAttribute('data-map-id', 'generic-mud'));
+    expect(canvas).toHaveAttribute('data-terrain', 'mud');
+    expect(canvas).toHaveAttribute('data-grid', 'false');
+    expect(canvas).toHaveAttribute('data-tokens', '2');
+    expect(document.querySelector('.combat-round')).toHaveTextContent('6');
+    const persisted = JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN)));
+    expect(persisted.mapTokens).toEqual(positions);
+    expect(persisted.combatants[0].hp).toBe(22);
+    expect(persisted.terrain_type).toBe('mud');
+  });
+
+  test('a new generic encounter immediately has a mapped floor and adjustable terrain', async () => {
+    const template = {
+      id: 'enc-fallback', name: 'Dunes at Dusk',
+      battlefield_mode: 'generic', terrain_type: 'sand',
+      grid_cols: 12, grid_rows: 10, show_grid: false,
+      combatants: [{ id: 'scorpion', name: 'Scorpion', type: 'enemy',
+        hp: 18, maxHp: 18, initiative: 7 }],
+    };
+    render(
+      <MemoryRouter initialEntries={[{ pathname: `/combat/${CAMPAIGN}`,
+        state: { source: 'live-play', scenario: template } }]}>
+        <Routes><Route path="/combat/:campaignId" element={<CombatPageTable />} /></Routes>
+      </MemoryRouter>,
+    );
+    await screen.findByTestId('combat-table-page');
+    expect(await screen.findByTestId('generic-combat-map')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-map-id', 'generic-sand'));
+    expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-grid', 'false');
+    expect(screen.getByRole('combobox', { name: 'Generic battlefield terrain' })).toHaveValue('sand');
+    fireEvent.change(screen.getByRole('combobox', { name: 'Generic battlefield terrain' }), { target: { value: 'grass' } });
+    await waitFor(() => expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-map-id', 'generic-grass'));
+    expect(template.terrain_type).toBe('sand');
+    expect(template.combatants[0].hp).toBe(18);
+    const saved = JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN)));
+    expect(saved.terrain_type).toBe('grass');
+    expect(saved.combatants[0].hp).toBe(18);
+  });
+
+  test('a saved campaign map can switch to generic terrain without resetting HP or tokens', async () => {
+    const positions = [{ id: 'c1', x: 7, y: 8 }, { id: 'c2', x: 4, y: 9 }];
+    apiClient.get.mockImplementation(url => Promise.resolve({
+      data: url.endsWith('/maps')
+        ? [{ id: 'map-forest', name: 'Forest Path', width: 15, height: 11,
+          terrain: Array.from({ length: 11 }, () => Array(15).fill('grass')),
+          tokens: [{ id: 'c1', x: 2, y: 3 }] }]
+        : [],
+    }));
+    saveFight({ selectedMapId: 'map-forest', map_override_generic: false,
+      mapTokens: positions });
+    openColdTab();
+    expect(await screen.findByTestId('saved-combat-map')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-map-id', 'map-forest'));
+    expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-tokens', '2');
+    fireEvent.change(screen.getByRole('combobox', { name: 'Battlefield map source' }), {
+      target: { value: '' },
+    });
+    await waitFor(() => expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-map-id', 'generic-stone'));
+    const stored = JSON.parse(localStorage.getItem(combatCheckpointKey(CAMPAIGN)));
+    expect(stored.mapTokens).toEqual(positions);
+    expect(stored.combatants.map(item => item.hp)).toEqual([22, 3]);
+    expect(stored.map_override_generic).toBe(true);
+  });
+
+  test('a legacy uploaded encounter image still renders inside the token canvas', async () => {
+    const template = {
+      id: 'legacy-image', name: 'Uploaded Ruins',
+      map_url: 'https://example.test/battle-ruins.png',
+      combatants: [{ id: 'skeleton', name: 'Skeleton', type: 'enemy', hp: 11, maxHp: 11, initiative: 2 }],
+    };
+    render(
+      <MemoryRouter initialEntries={[{ pathname: `/combat/${CAMPAIGN}`,
+        state: { source: 'live-play', scenario: template } }]}>
+        <Routes><Route path="/combat/:campaignId" element={<CombatPageTable />} /></Routes>
+      </MemoryRouter>,
+    );
+    await screen.findByTestId('combat-table-page');
+    const source = screen.getByRole('combobox', { name: 'Battlefield map source' });
+    expect(source).toHaveValue('__encounter_image__');
+    expect(screen.getByTestId('map-canvas')).toHaveAttribute('data-image', 'https://example.test/battle-ruins.png');
+    expect(template.map_url).toBe('https://example.test/battle-ruins.png');
+  });
 });
