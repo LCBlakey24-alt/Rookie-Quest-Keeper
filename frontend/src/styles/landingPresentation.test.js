@@ -74,3 +74,16 @@ describe('Guild Ledger public landing presentation', () => {
     expect(product).toContain('-webkit-text-fill-color: #203040 !important');
   });
 });
+
+
+describe('public install affordance', () => {
+  test('offers optional platform-specific install help without redirecting users', () => {
+    const page = read('../components/LandingPage.js');
+    const styles = read('./landingGuild.css');
+    expect(page).toContain('landing-install-guide');
+    expect(page).toContain('Android phone or tablet');
+    expect(page).toContain('iPhone or iPad');
+    expect(page).toContain('Desktop:');
+    expect(styles).toContain('.landing-install-guide summary');
+  });
+});
