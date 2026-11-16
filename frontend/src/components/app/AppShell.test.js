@@ -26,6 +26,7 @@ describe('Keeper simplified navigation', () => {
   beforeEach(() => {
     mockPathname = '/campaigns';
     localStorage.setItem('dm_username', 'TestKeeper');
+    localStorage.setItem('dm_token', 'testkeeper-session');
     sessionStorage.clear();
     apiClient.get.mockResolvedValue({ data: { is_admin: false } });
   });
@@ -34,6 +35,7 @@ describe('Keeper simplified navigation', () => {
     window.innerWidth = originalWidth;
     sessionStorage.clear();
     localStorage.removeItem('dm_username');
+    localStorage.removeItem('dm_token');
   });
 
   test('retains canonical vector branding with no Player home navigation', () => {
@@ -115,6 +117,77 @@ describe('Keeper simplified navigation', () => {
     const trigger = screen.getByRole('button', { name: 'Open more tools, current section Account settings' });
     fireEvent.click(trigger);
     expect(within(screen.getByRole('dialog')).getByRole('link', { name: 'Account settings' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  test('does not share a pending admin response across account switches', async () => {
+    window.innerWidth = 1440;
+    let resolveFirst;
+    let resolveSecond;
+    const first = new Promise(resolve => { resolveFirst = resolve; });
+    const second = new Promise(resolve => { resolveSecond = resolve; });
+    apiClient.get
+      .mockImplementationOnce(() => first)
+      .mockImplementationOnce(() => second);
+
+    render(<AppShell><main>Session content</main></AppShell>);
+    expect(apiClient.get).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      localStorage.setItem('dm_username', 'Different Keeper');
+      localStorage.setItem('dm_token', 'another-account-session');
+      window.dispatchEvent(new Event('rqk:auth-scope-changed'));
+    });
+    expect(apiClient.get).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
+
+    await act(async () => {
+      resolveFirst({ data: { is_admin: true } });
+      await first;
+    });
+    expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
+
+    await act(async () => {
+      resolveSecond({ data: { is_admin: false } });
+      await second;
+    });
+    expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
+    expect(sessionStorage.getItem('rqk.admin-check:Different Keeper')).toBeNull();
+  });
+
+  test('removes admin navigation immediately on sign-out or account change', async () => {
+    window.innerWidth = 1440;
+    apiClient.get.mockResolvedValue({ data: { is_admin: true } });
+    render(<AppShell><main>Admin content</main></AppShell>);
+    expect(await screen.findByRole('link', { name: 'Admin' })).toBeInTheDocument();
+
+    apiClient.get.mockImplementation(() => new Promise(() => {}));
+    act(() => {
+      localStorage.setItem('dm_username', 'Ordinary Keeper');
+      localStorage.setItem('dm_token', 'ordinary-session');
+      window.dispatchEvent(new Event('rqk:auth-scope-changed'));
+    });
+    expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
+
+    act(() => {
+      localStorage.removeItem('dm_token');
+      window.dispatchEvent(new Event('rqk:auth-scope-changed'));
+    });
+    expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument();
+  });
+
+  test('does not reuse an admin role when a different account has the same username', async () => {
+    window.innerWidth = 1440;
+    apiClient.get.mockResolvedValueOnce({ data: { is_admin: true } })
+      .mockResolvedValueOnce({ data: { is_admin: false } });
+    render(<AppShell><main>Shared device</main></AppShell>);
+    expect(await screen.findByRole('link', { name: 'Admin' })).toBeInTheDocument();
+
+    act(() => {
+      localStorage.setItem('dm_token', 'same-username-different-session');
+      window.dispatchEvent(new Event('rqk:auth-scope-changed'));
+    });
+    await waitFor(() => expect(apiClient.get).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.queryByRole('link', { name: 'Admin' })).not.toBeInTheDocument());
   });
 
   test('keeps the five primary mobile tabs and exposes Admin in More only after backend approval', async () => {
