@@ -14,6 +14,7 @@ import './FloatingDiceRoller.css';
 import './FloatingDiceRollerExperience.css';
 import { characterIdFromPath } from '@/lib/characterRoute';
 import GlobalDiceSelectionWheel from '@/components/dice3d/GlobalDiceSelectionWheel';
+import { consumePendingDiceOpen, DICE_OPEN_EVENT } from '@/lib/diceOpenRequest';
 
 const HISTORY_LIMIT = 5;
 const DiceDyePicker3D = React.lazy(() => import('@/components/dice3d/DiceDyePicker3D'));
@@ -141,16 +142,23 @@ export default function FloatingDiceRoller() {
 
   useEffect(() => {
     const openDice = () => {
+      consumePendingDiceOpen();
       setPickerStage('style');
       setOpen(true);
     };
-    window.addEventListener('rq-dice-open', openDice);
-    return () => window.removeEventListener('rq-dice-open', openDice);
+    window.addEventListener(DICE_OPEN_EVENT, openDice);
+    // The Home centre may have been clicked while React.lazy fetched this
+    // chunk. Honour that one request after mount instead of losing the tap.
+    if (consumePendingDiceOpen()) openDice();
+    return () => window.removeEventListener(DICE_OPEN_EVENT, openDice);
   }, []);
 
   useEffect(() => {
-    if (open) preloadDiceTray3D();
-  }, [open]);
+    // The material wheel is already preparing optional WebGL thumbnails.
+    // On Android a second simultaneous 3D scene can stall the first touch.
+    // Warm the physical tray after moving to die type, before Roll is pressed.
+    if (open && pickerStage === 'type') preloadDiceTray3D();
+  }, [open, pickerStage]);
 
   useEffect(() => {
     let cancelled = false;

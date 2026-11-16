@@ -320,6 +320,51 @@ for (const size of [
   });
 }
 
+// The installed PWA can be fine in unit tests but unusable by touch from
+// the Home hub. Exercise the actual Home centre → material → die-type flow
+// in Chromium, including the landscape Android viewport.
+for (const size of [
+  { label: 'phone', width: 390, height: 844 },
+  { label: 'landscape phone', width: 844, height: 390 },
+]) {
+  test(`Home 3D dice wheel opens and stays operable on ${size.label}`, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/home?demo=1');
+    const hub = page.getByTestId('home-hub-wheel');
+    await expect(hub).toBeVisible();
+    await hub.getByRole('button', { name: 'Open the dice roller' }).click();
+    const overlay = page.getByTestId('dice-wheel-overlay');
+    await expect(overlay).toBeVisible();
+    const picker = overlay.getByTestId('dice-dye-gallery-3d');
+    await expect(picker).toBeVisible();
+    await expect(picker.locator('[data-wheel-index]')).toHaveCount(9);
+    const firstRing = picker.locator('.guild-wheel__ring');
+    const initial = await firstRing.getAttribute('style');
+    const material = picker.getByTestId('dice-dye-moss');
+    await material.click();
+    await expect(material).toHaveAttribute('aria-checked', 'true');
+    expect(await firstRing.getAttribute('style')).not.toEqual(initial);
+    await picker.getByTestId('dice-dye-confirm').click();
+    const types = overlay.getByTestId('global-dice-wheel');
+    await expect(types).toBeVisible();
+    await expect(types.locator('.guild-wheel__inner-mode')).toHaveCount(3);
+    await types.getByTestId('select-d6-btn').click();
+    await expect(types.getByTestId('select-d6-btn')).toHaveAttribute('aria-checked', 'true');
+    await expect(types.getByTestId('roll-advantage-btn')).toHaveAttribute('aria-disabled', 'true');
+    const wheelBox = await types.locator('.guild-wheel__svg').boundingBox();
+    expect(wheelBox).not.toBeNull();
+    expect(wheelBox!.x).toBeGreaterThanOrEqual(-1);
+    expect(wheelBox!.x + wheelBox!.width).toBeLessThanOrEqual(size.width + 2);
+    expect(wheelBox!.y).toBeGreaterThanOrEqual(-1);
+    expect(wheelBox!.y + wheelBox!.height).toBeLessThanOrEqual(size.height + 2);
+    await overlay.getByTestId('dice-roller-close').click();
+    await expect(overlay).toHaveCount(0);
+    await expect(hub).toBeVisible();
+    await assertFitsViewport(page, size.width);
+  });
+}
+
 for (const size of appSizes) {
   test(`public landing and sign-in fit ${size.label} (${size.width}x${size.height})`, async ({ page }) => {
     await page.setViewportSize({ width: size.width, height: size.height });

@@ -25,6 +25,8 @@ describe('Home-style 3D dice material wheel', () => {
   afterAll(() => { window.PointerEvent = RealPointerEvent; });
 
   beforeEach(() => {
+    jest.useFakeTimers();
+    createDiceDyeGallery.mockClear();
     gallery = { resize: jest.fn(), select: jest.fn(), dispose: jest.fn() };
     createDiceDyeGallery.mockReturnValue(gallery);
     png = jest.spyOn(HTMLCanvasElement.prototype, 'toDataURL')
@@ -42,6 +44,9 @@ describe('Home-style 3D dice material wheel', () => {
     expect(wheel.querySelectorAll('.guild-wheel__die-image')).toHaveLength(DICE_DYES.length);
     expect(screen.getByTestId('dice-dye-glow')).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByTestId('dice-dye-garnet')).toHaveAttribute('aria-checked', 'false');
+    // The real wheel must be usable before any expensive GPU allocation.
+    expect(createDiceDyeGallery).not.toHaveBeenCalled();
+    act(() => { jest.advanceTimersByTime(110); });
     expect(createDiceDyeGallery).toHaveBeenCalledTimes(1);
     expect(gallery.select).toHaveBeenCalledTimes(DICE_DYES.length);
     expect(gallery.dispose).toHaveBeenCalledTimes(1);
@@ -108,11 +113,44 @@ describe('Home-style 3D dice material wheel', () => {
     expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 
-  test('3D thumbnails use only one temporary GPU context and release it', () => {
+  test('3D thumbnails use one temporary GPU context only after the opening paint', () => {
     const view = render(<DiceDyePicker3D selectedId="amber" onSelect={() => {}} />);
+    expect(createDiceDyeGallery).not.toHaveBeenCalled();
+    act(() => { jest.advanceTimersByTime(110); });
     expect(createDiceDyeGallery).toHaveBeenCalledTimes(1);
     expect(gallery.dispose).toHaveBeenCalledTimes(1);
     view.unmount();
     expect(gallery.dispose).toHaveBeenCalledTimes(1);
+  });
+
+  test('closing the wheel before the deferred preview prevents a stale GPU allocation', () => {
+    const view = render(<DiceDyePicker3D selectedId="amber" onSelect={() => {}} />);
+    expect(screen.getByTestId('dice-dye-amber')).toBeInTheDocument();
+    view.unmount();
+    act(() => { jest.advanceTimersByTime(200); });
+    expect(createDiceDyeGallery).not.toHaveBeenCalled();
+  });
+
+  test('fast touchscreen flicks cannot send the die ring spinning several full turns', () => {
+    const onSelect = jest.fn();
+    render(<DiceDyePicker3D selectedId="glow" onSelect={onSelect} />);
+    const svg = screen.getByRole('radiogroup');
+    svg.getBoundingClientRect = () => ({ left: 0, top: 0, width: 200, height: 200, right: 200, bottom: 200 });
+    let time = 0;
+    const now = jest.spyOn(performance, 'now').mockImplementation(() => time);
+    try {
+      const wedge = screen.getByTestId('dice-dye-glow');
+      fireEvent.pointerDown(wedge, { pointerId: 1, button: 0, clientX: 100, clientY: 20 });
+      time = 2;
+      fireEvent.pointerMove(wedge, { pointerId: 1, clientX: 125, clientY: 25 });
+      time = 3;
+      fireEvent.pointerUp(wedge, { pointerId: 1, clientX: 125, clientY: 25 });
+      const ring = svg.querySelector('.guild-wheel__ring');
+      const match = ring.style.transform.match(/rotate\((-?[\d.]+)deg\)/);
+      expect(match).toBeTruthy();
+      expect(Math.abs(Number(match[1]))).toBeLessThanOrEqual(120);
+    } finally {
+      now.mockRestore();
+    }
   });
 });

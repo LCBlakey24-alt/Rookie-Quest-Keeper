@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { requestDiceOpen } from '@/lib/diceOpenRequest';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, Settings, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
@@ -656,7 +657,7 @@ export default function HexCharacterSheet() {
           </div>
         )}
         {current.view === 'dice' && (
-          <button type="button" className="hex-sheet__text-button" onClick={() => window.dispatchEvent(new Event('rq-dice-open'))} data-testid="hex-more-dice">
+          <button type="button" className="hex-sheet__text-button" onClick={() => requestDiceOpen()} data-testid="hex-more-dice">
             <span className="hex-glass" aria-hidden="true" />
             Mixed dice and custom rolls
           </button>

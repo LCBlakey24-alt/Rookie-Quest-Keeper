@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { isDetailRoute, isInnerRoute } from '@/components/app/detailRoutes';
+import { requestDiceOpen } from '@/lib/diceOpenRequest';
 import { BookOpen, Dices, Home, MessageSquare, MoreHorizontal, ShieldCheck, Settings, Sparkles, UploadCloud, UsersRound, Wand2, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
 import HexBackButton from '@/components/guild-motif/HexBackButton';
@@ -138,7 +139,7 @@ function openRook() {
 }
 
 function openDice() {
-  window.dispatchEvent(new Event('rq-dice-open'));
+  requestDiceOpen();
 }
 
 function MobileMorePanel({ items, pathname, onClose, onFeedback, onRook, onDice }) {

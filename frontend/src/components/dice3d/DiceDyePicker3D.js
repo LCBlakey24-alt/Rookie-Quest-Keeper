@@ -30,27 +30,46 @@ export default function DiceDyePicker3D({ selectedId, onSelect, onConfirm }) {
   useEffect(() => {
     let cancelled = false;
     let gallery;
-    try {
-      const canvas = document.createElement('canvas');
-      // Don't allocate a separate WebGL context for every dice wedge.
-      // Capture nine images from one shared, short-lived renderer.
-      gallery = createDiceDyeGallery({
-        canvas, dyes: DICE_DYES, sides: 20, layout: 'single', snapshot: true,
-      });
-      gallery.resize(136, 136);
-      const images = {};
-      DICE_DYES.forEach((dye) => {
-        gallery.select(dye.id);
-        const data = canvas.toDataURL('image/png');
-        images[dye.id] = data && data.startsWith('data:image/png') ? data : FALLBACK_IMAGES[dye.id];
-      });
-      if (!cancelled) setPreviews(images);
-    } catch {
-      // A 2D die image is deliberately available even on older Android GPUs.
-    } finally {
-      gallery?.dispose();
+    let idleId;
+    let fallbackTimer;
+    // Always paint the lightweight, interactive wheel FIRST. Creating nine
+    // atlas textures and reading WebGL pixels synchronously during mount can
+    // stall touch handling or lose the renderer on Android/PWA devices.
+    const capturePreviews = () => {
+      if (cancelled) return;
+      try {
+        const canvas = document.createElement('canvas');
+        // One short-lived GPU context for the entire set; never nine.
+        gallery = createDiceDyeGallery({
+          canvas, dyes: DICE_DYES, sides: 20, layout: 'single', snapshot: true,
+        });
+        gallery.resize(136, 136);
+        const images = {};
+        DICE_DYES.forEach((dye) => {
+          gallery.select(dye.id);
+          const data = canvas.toDataURL('image/png');
+          images[dye.id] = data && data.startsWith('data:image/png') ? data : FALLBACK_IMAGES[dye.id];
+        });
+        if (!cancelled) setPreviews(images);
+      } catch {
+        // SVG dice remain selectable, even if WebGL context creation fails.
+      } finally {
+        gallery?.dispose();
+        gallery = null;
+      }
+    };
+    if (typeof window.requestIdleCallback === 'function') {
+      idleId = window.requestIdleCallback(capturePreviews, { timeout: 1800 });
+    } else {
+      // Defer until after the opening paint when requestIdleCallback is absent.
+      fallbackTimer = window.setTimeout(capturePreviews, 100);
     }
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      if (idleId !== undefined) window.cancelIdleCallback?.(idleId);
+      if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer);
+      gallery?.dispose();
+    };
   }, []);
 
   return (
@@ -65,6 +84,7 @@ export default function DiceDyePicker3D({ selectedId, onSelect, onConfirm }) {
         confirmLabel="CHOOSE"
         confirmAria="Choose dice style"
         confirmTestId="dice-dye-confirm"
+        maxFlickVelocity={0.22}
       />
     </div>
   );

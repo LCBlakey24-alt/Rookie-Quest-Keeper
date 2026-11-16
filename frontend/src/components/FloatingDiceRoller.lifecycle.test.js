@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { DICE_DYES } from '@/components/dice3d/diceDyes';
 import { preloadDiceTray3D } from '@/components/dice3d/loadDiceTray3D';
 import FloatingDiceRoller from './FloatingDiceRoller';
+import { requestDiceOpen } from '@/lib/diceOpenRequest';
 
 let mockMountSerial = 0;
 
@@ -155,15 +156,39 @@ describe('fresh physical dice presentation', () => {
     expect(screen.queryByTestId('dice-wheel-overlay')).not.toBeInTheDocument();
   });
 
-  test('warms the shared 3D renderer before a global die is chosen', async () => {
+  test('a Home D20 tap before lazy roller mount opens the dice picker exactly once', async () => {
+    // The wheel chunk isn't mounted yet. An ordinary browser event would be
+    // lost and Home's centre would appear broken on slow phones.
+    requestDiceOpen();
+    const view = render(<MemoryRouter initialEntries={['/home']}><FloatingDiceRoller /></MemoryRouter>);
+    await screen.findByTestId('mock-dye-picker-3d');
+    expect(screen.getAllByTestId('dice-wheel-overlay')).toHaveLength(1);
+    view.unmount();
+    // The request is consumed, not replayed after navigating back to Home.
+    render(<MemoryRouter initialEntries={['/home']}><FloatingDiceRoller /></MemoryRouter>);
+    expect(screen.queryByTestId('dice-wheel-overlay')).not.toBeInTheDocument();
+  });
+
+  test('does not start a second 3D renderer during material selection', async () => {
+    render(<MemoryRouter initialEntries={['/home']}><FloatingDiceRoller /></MemoryRouter>);
+    fireEvent(window, new Event('rq-dice-open'));
+    await screen.findByTestId('mock-dye-picker-3d');
+    expect(preloadDiceTray3D).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByTestId('dice-dye-confirm'));
+    expect(screen.getByTestId('global-dice-wheel')).toBeInTheDocument();
+    expect(preloadDiceTray3D).toHaveBeenCalledTimes(1);
+  });
+
+  test('the rail can prewarm on hover without also loading a second scene on opening', async () => {
     render(<MemoryRouter initialEntries={['/home']}><FloatingDiceRoller /></MemoryRouter>);
     const toggle = screen.getByTestId('dice-roller-toggle');
-
     fireEvent.pointerEnter(toggle);
     expect(preloadDiceTray3D).toHaveBeenCalledTimes(1);
-
     fireEvent.click(toggle);
     await screen.findByTestId('mock-dye-picker-3d');
+    expect(preloadDiceTray3D).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByTestId('dice-dye-confirm'));
     expect(preloadDiceTray3D).toHaveBeenCalledTimes(2);
   });
 });
