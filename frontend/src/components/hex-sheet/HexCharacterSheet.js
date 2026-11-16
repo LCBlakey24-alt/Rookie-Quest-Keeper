@@ -21,7 +21,6 @@ import { buildLongRestUpdates, buildShortRestUpdates, restBlockReason } from '@/
 import { rollD20 } from '@/components/clean-sheet/cleanSheetUtils';
 import { getConcentrationName, getConcentrationSaveDc, getConcentrationSaveModifier, needsConcentrationReplacement } from '@/data/characterConcentrationRules';
 
-import HexLoader from '@/components/guild-motif/HexLoader';
 import HexEquipment from './HexEquipment';
 import HexHpDial from './HexHpDial';
 import HexRecovery from './HexRecovery';
