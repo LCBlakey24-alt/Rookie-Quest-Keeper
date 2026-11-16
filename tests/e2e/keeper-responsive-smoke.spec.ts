@@ -1067,6 +1067,26 @@ for (const size of [
     await expect(chooser.getByRole('heading', { name: 'Preview campaign' })).toBeVisible();
     await expect(page.getByTestId('campaign-mode-creation')).toBeVisible();
     await expect(page.getByTestId('campaign-mode-live')).toBeVisible();
+    // The pilot must actually paint its opt-in scheme despite global CSS
+    // resets. Check real computed styles on all three device sizes.
+    for (const [id, topBorder] of [
+      ['campaign-mode-creation', 'rgb(242, 23, 81)'],
+      ['campaign-mode-live', 'rgb(140, 54, 221)'],
+    ] as const) {
+      const look = await page.getByTestId(id).evaluate(element => {
+        const style = getComputedStyle(element);
+        return {
+          background: style.backgroundColor,
+          topBorder: style.borderTopColor,
+          shadow: style.boxShadow,
+          readableLabel: style.color,
+        };
+      });
+      expect(look.background).toBe('rgb(20, 16, 39)');
+      expect(look.topBorder).toBe(topBorder);
+      expect(look.shadow).toContain('inset');
+      expect(look.readableLabel).toBe('rgb(247, 244, 255)');
+    }
     await assertFitsViewport(page, size.width);
 
     await page.getByTestId('campaign-mode-creation').click();
