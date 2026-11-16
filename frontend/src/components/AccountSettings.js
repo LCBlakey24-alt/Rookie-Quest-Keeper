@@ -10,7 +10,7 @@ import {
   User, Mail, Lock, ArrowLeft, Save, Trash2, Shield,
   AlertTriangle, CheckCircle, Eye, EyeOff, RefreshCw
 } from 'lucide-react';
-import HexLoader from '@/components/guild-motif/HexLoader';
+import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import PrivacyRightsPanel from '@/components/privacy/PrivacyRightsPanel';
 
 function AccountSettings({ username, onLogout, onUsernameChange }) {
@@ -291,15 +291,11 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
 
 function AccountSettingsLoading() {
   return (
-    <main className="loading-screen account-settings-loading" role="status" aria-live="polite" aria-busy="true">
-      <section className="loading-card" aria-label="Account settings are loading">
-        <div className="loading-brand-mark" aria-hidden="true">AC</div>
-        <HexLoader />
-        <p className="loading-kicker">Account settings</p>
-        <h1 className="loading-title">Opening your account vault…</h1>
-        <p className="loading-tip">Checking profile details, recovery email, and account safety controls.</p>
-      </section>
-    </main>
+    <RouteLoadingScreen
+      label="Account settings are loading"
+      status="Opening your account settings…"
+      description="Checking profile details, recovery email and account security controls."
+    />
   );
 }
 
