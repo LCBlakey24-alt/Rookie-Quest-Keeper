@@ -267,3 +267,66 @@
 /* The phone keeps one column: the drawer is fixed and the bar sits inline. */
 .rqk-live-grid--phone { grid-template-columns: minmax(0, 1fr); }
 .rqk-live-grid__phone-bar { display: flex; gap: 8px; align-items: center; }
+
+/* Landscape tablets have room for readable labels. An icon-only rail is
+ * difficult to operate at the table without hover tooltips, especially on
+ * touch devices. Keep the 68px icon rail in portrait, but show names and the
+ * tool search on 1024–1180px landscape tablets.
+ *
+ * Bound the rail to the viewport so expanded categories can scroll inside
+ * their own pane without pushing controls below the screen. */
+@media (min-width: 720px) and (max-width: 1180px) {
+  .rqk-tool-rail--tablet {
+    max-height: calc(100dvh - 24px);
+  }
+
+  .rqk-tool-rail--tablet .rqk-tool-rail__groups {
+    min-height: 0;
+  }
+}
+
+@media (min-width: 1000px) and (max-width: 1180px) and (orientation: landscape) {
+  .rqk-tool-rail--tablet {
+    width: 182px;
+  }
+
+  .rqk-tool-rail--tablet .rqk-tool-rail__item {
+    grid-template-columns: 20px minmax(0, 1fr);
+    justify-items: stretch;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .rqk-tool-rail--tablet .rqk-tool-rail__item--nested {
+    padding-left: 14px;
+  }
+
+  .rqk-tool-rail--tablet .rqk-tool-rail__item > span,
+  .rqk-tool-rail--tablet .rqk-tool-rail__group-button > span {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: hidden;
+    clip: auto;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rqk-tool-rail--tablet .rqk-tool-rail__group-button {
+    grid-template-columns: 16px minmax(0, 1fr) 14px;
+    justify-items: stretch;
+    gap: 7px;
+  }
+
+  .rqk-tool-rail--tablet .rqk-tool-rail__chevron {
+    position: static;
+    width: 14px;
+    height: 14px;
+    overflow: visible;
+    clip: auto;
+  }
+
+  .rqk-tool-rail--tablet .rqk-tool-rail__filter {
+    display: grid;
+  }
+}

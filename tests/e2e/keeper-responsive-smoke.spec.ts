@@ -977,3 +977,51 @@ for (const size of [
     }
   });
 }
+
+// Landscape tablet GMs need actual tool names, not icons requiring a mouse
+// hover. Verify the wider rail does not overlap the session workspace and
+// that controls remain hittable after the portrait/desktop CSS cascade.
+for (const width of [1024, 1180]) {
+  test(`Landscape tablet Live Play keeps its labelled rail clickable at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 768 });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/gm-screen/preview-campaign?demo=1');
+
+    const grid = page.getByTestId('live-session-grid');
+    await expect(grid).toHaveAttribute('data-rq-live-variant', 'tablet');
+    const rail = page.getByTestId('live-tool-rail');
+    const combat = rail.getByTestId('live-tool-combat');
+    const category = rail.getByTestId('live-category-npcs');
+    const main = grid.locator('.rqk-live-grid__main');
+
+    await expect(rail).toBeVisible();
+    await expect(combat).toBeVisible();
+    await expect(rail.getByTestId('live-tool-filter')).toBeVisible();
+    // Shared visual styles may position labels relatively for the underline;
+    // assert actual readable width rather than an unrelated CSS position value.
+    const labelWidth = await combat.locator('span').evaluate(el => el.getBoundingClientRect().width);
+    expect(labelWidth).toBeGreaterThan(55);
+
+    const railBox = await rail.boundingBox();
+    const mainBox = await main.boundingBox();
+    expect(railBox?.width).toBeGreaterThanOrEqual(170);
+    expect(railBox?.width).toBeLessThanOrEqual(200);
+    expect((railBox?.x || 0) + (railBox?.width || 0)).toBeLessThanOrEqual((mainBox?.x || 0) + 2);
+    expect(railBox?.height).toBeLessThanOrEqual(768 - 24 + 2);
+
+    // A click must land on the rail button, not on the adjoining workspace.
+    for (const button of [combat, category]) {
+      await button.scrollIntoViewIfNeeded();
+      const hit = await button.evaluate(el => {
+        const bounds = el.getBoundingClientRect();
+        const top = document.elementFromPoint(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
+        return el === top || el.contains(top);
+      });
+      expect(hit, 'The GM tool rail must remain above the adjacent panel').toBe(true);
+    }
+
+    await combat.click();
+    await expect(page.getByTestId('live-encounter-launcher')).toBeVisible();
+    await assertFitsViewport(page, width);
+  });
+}
