@@ -14,6 +14,28 @@
  * follows.
  */
 :root {
+  /* Midnight Magenta — 16 Nov 2026 owner-supplied colour reference.
+     Opt-in pilot for My Campaigns and the campaign mode chooser only:
+     keep existing global Neon Coast values, grid geometry and semantic
+     status palette unchanged until visual review. */
+  --rqk-midnight-bg: #090c20;
+  --rqk-midnight-panel: #141027;
+  --rqk-midnight-raised: #201332;
+  --rqk-midnight-hover: #2b1840;
+  --rqk-midnight-crimson: #f21751;
+  --rqk-midnight-magenta: #ff1976;
+  --rqk-midnight-magenta-rgb: 255, 25, 118;
+  --rqk-midnight-violet: #8c36dd;
+  --rqk-midnight-violet-rgb: 140, 54, 221;
+  --rqk-midnight-text: #f7f4ff;
+  --rqk-midnight-muted: #c9bfdc;
+  --rqk-midnight-border: rgba(255, 25, 118, 0.28);
+  --rqk-midnight-pill: rgba(140, 54, 221, 0.14);
+  /* Inset only: bright edges without overlaying table data or page layout. */
+  --rqk-midnight-inset: inset 0 0 12px rgba(255, 25, 118, 0.09);
+  --rqk-midnight-inset-selected: inset 0 0 17px rgba(255, 25, 118, 0.2),
+    inset 0 0 28px rgba(140, 54, 221, 0.1);
+
   --guild-bg: #0a2342;          /* page and shape fill: strong deep blue */
   --guild-bg-deep: #071a33;     /* wells and inputs */
   --guild-panel: #0e2d55;       /* raised panels */
