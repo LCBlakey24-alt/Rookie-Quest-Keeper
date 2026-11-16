@@ -248,6 +248,15 @@ export default function LandingPage() {
             <p>Plan. Organise. Play.</p>
           </div>
         </div>
+        <details className="landing-install-guide" data-testid="landing-install-guide">
+          <summary>Use Keeper like an app on any device</summary>
+          <div className="landing-install-guide__content">
+            <p><strong>Android phone or tablet:</strong> In Chrome, open the browser menu and choose Install app or Add to Home screen.</p>
+            <p><strong>iPhone or iPad:</strong> In Safari, use Share and choose Add to Home Screen.</p>
+            <p><strong>Desktop:</strong> In Chrome or Edge, use the install icon in the address bar or the browser app-install menu. You can also continue in your browser.</p>
+            <p>Keeper connects to your account online. Previously saved offline content may remain available without a connection.</p>
+          </div>
+        </details>
         <p className="landing-footer-note">
           © {new Date().getFullYear()} Rookie Quest Keeper. Independent tabletop campaign companion, not affiliated with Wizards of the Coast.
           {' '}<a href="/credits" onClick={(event) => { event.preventDefault(); navigate('/credits'); }} data-testid="landing-credits-link">Credits &amp; licences</a>
