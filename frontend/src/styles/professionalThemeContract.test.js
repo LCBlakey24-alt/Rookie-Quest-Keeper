@@ -49,14 +49,15 @@ describe('Keeper professional visual contract', () => {
     expect(loading).not.toMatch(/#FF2DAA|rgba\(255\s*,\s*45\s*,\s*170/i);
   });
 
-  test('auth uses the approved Guild Ledger identity and Keeper mark', () => {
+  test('auth uses the current Keeper identity and the approved brand mark', () => {
     const authCss = read('../components/AuthPage.css');
     const authPolish = read('authExperiencePolish.css');
     const authComponent = read('../components/AuthPage.js');
     const auth = authCss + '\n' + authPolish;
 
     expect(authComponent).toContain('BrandMiniLogo');
-    expect(authComponent).toContain('Guild Ledger');
+    expect(authComponent).toContain("eyebrow: 'Rookie Quest Keeper'");
+    expect(authComponent).not.toContain("eyebrow: 'Guild Ledger'");
     expect(authCss).toContain('Rookie Quest Keeper authentication — Guild Ledger authority');
     expect(auth).toContain('#0a2342');
     expect(auth).toContain('#f2892f');
