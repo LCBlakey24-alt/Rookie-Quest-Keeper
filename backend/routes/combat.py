@@ -46,7 +46,14 @@ async def get_combat_scenario(campaign_id: str, scenario_id: str, username: str 
 async def update_combat_scenario(campaign_id: str, scenario_id: str, scenario_data: CombatScenarioUpdate, username: str = Depends(get_current_user)):
     await verify_campaign_ownership(campaign_id, username)
     
-    update_dict = {k: v for k, v in scenario_data.model_dump().items() if v is not None}
+    # An omitted field must never reset a saved battlefield or combat roster.
+    # Explicit map_url=null is the one intentional clear operation (switching
+    # from an uploaded image to a generic textured map).
+    update_dict = {
+        key: value
+        for key, value in scenario_data.model_dump(exclude_unset=True).items()
+        if value is not None or key == "map_url"
+    }
     result = await db.combat_scenarios.update_one(
         {'id': scenario_id, 'campaign_id': campaign_id},
         {'$set': update_dict}
@@ -55,7 +62,7 @@ async def update_combat_scenario(campaign_id: str, scenario_id: str, scenario_da
     if result.matched_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scenario not found")
     
-    scenario = await db.combat_scenarios.find_one({'id': scenario_id}, {'_id': 0})
+    scenario = await db.combat_scenarios.find_one({'id': scenario_id, 'campaign_id': campaign_id}, {'_id': 0})
     return scenario
 
 @router.delete("/campaigns/{campaign_id}/combat-scenarios/{scenario_id}")

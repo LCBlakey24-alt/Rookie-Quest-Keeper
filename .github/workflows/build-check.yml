@@ -42,6 +42,7 @@ jobs:
             backend/tests/test_admin_assign_character.py \
             backend/tests/test_admin_user_directory.py \
             backend/tests/test_token_movement.py \
+            backend/tests/test_combat_scenario_battlefields.py \
             backend/tests/test_npc_roster_resilience.py \
             backend/tests/test_campaign_collections_resilience.py \
             backend/tests/test_child_account_access.py \
