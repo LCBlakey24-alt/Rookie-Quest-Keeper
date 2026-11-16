@@ -11,7 +11,7 @@ import './AuthPage.css';
 
 const AUTH_COPY = {
   login: {
-    eyebrow: 'Guild Ledger',
+    eyebrow: 'Rookie Quest Keeper',
     title: 'Welcome back',
     subtitle: 'Sign in to open your campaigns and characters.',
     notice: (
@@ -21,7 +21,7 @@ const AUTH_COPY = {
     ),
   },
   register: {
-    eyebrow: 'Begin the quest',
+    eyebrow: 'Join Keeper',
     title: 'Create your keeper account',
     subtitle: 'Save characters, prepare campaigns, and keep your table organised from the very first session.',
     notice: (
@@ -41,7 +41,7 @@ const AUTH_COPY = {
     ),
   },
   reset: {
-    eyebrow: 'Secure the vault',
+    eyebrow: 'Account security',
     title: 'Choose a new password',
     subtitle: 'Set a fresh password with at least 8 characters, then sign back in to continue your adventure.',
     notice: (
@@ -52,7 +52,7 @@ const AUTH_COPY = {
   },
 };
 
-const TRUST_BADGES = ['Secure session', 'Mobile friendly', 'Rookie-safe signup'];
+const TRUST_BADGES = ['One account across devices', 'Password recovery', 'Your own workspace'];
 const URL_MODES = new Set(['login', 'register', 'forgot']);
 
 const PAGE_TITLES = {
