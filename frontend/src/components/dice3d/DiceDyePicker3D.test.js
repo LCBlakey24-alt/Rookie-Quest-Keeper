@@ -146,7 +146,7 @@ describe('Home-style 3D dice material wheel', () => {
       time = 3;
       fireEvent.pointerUp(wedge, { pointerId: 1, clientX: 125, clientY: 25 });
       const ring = svg.querySelector('.guild-wheel__ring');
-      const match = ring.style.transform.match(/rotate\\((-?[\\d.]+)deg\\)/);
+      const match = ring.style.transform.match(/rotate\((-?[\d.]+)deg\)/);
       expect(match).toBeTruthy();
       expect(Math.abs(Number(match[1]))).toBeLessThanOrEqual(120);
     } finally {
