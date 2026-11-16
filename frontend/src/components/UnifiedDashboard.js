@@ -97,7 +97,7 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
     <RouteLoadingScreen
       label="Dashboard is loading"
       status="Opening dashboard…"
-      description={slowLoad ? 'The server may be waking up.' : 'Gathering your campaigns, characters and recent activity.'}
+      description={slowLoad ? 'The backend may be waking up.' : 'Gathering your campaigns, characters and recent activity.'}
     />
   );
 
