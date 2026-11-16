@@ -1053,7 +1053,7 @@ for (const size of [
     await expect(chooser).toBeVisible();
 
     await page.getByTestId('campaign-mode-live').click();
-    await expect(page).toHaveURL(/\\/gm-screen\\/preview-campaign/);
+    await expect(page).toHaveURL(new RegExp('/gm-screen/preview-campaign'));
     await expect(page.getByTestId('live-session-grid')).toBeVisible();
     await page.getByRole('button', { name: 'Modes', exact: true }).click();
     await expect(chooser).toBeVisible();
