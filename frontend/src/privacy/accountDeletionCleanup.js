@@ -1,7 +1,7 @@
 import apiClient from '@/lib/apiClient';
 import { clearCurrentOfflineAccountData } from '@/offline/offlineApiCache';
 import { clearOfflineMediaCache } from '@/offline/offlineMediaCache';
-import { revokeRookAiConsent } from '@/privacy/rookAiConsent';
+import { clearCachedRookAiConsent } from '@/privacy/rookAiConsent';
 import { setAnalyticsConsent } from '@/privacy/analyticsConsent';
 let installed = false;
 
@@ -19,7 +19,9 @@ export async function clearDeletedAccountDeviceData() {
     clearCurrentOfflineAccountData(),
     clearOfflineMediaCache(),
   ]);
-  revokeRookAiConsent();
+  // The account no longer exists, so a consent PUT would be both misleading
+  // and guaranteed to fail. Remove only this account's device cache.
+  clearCachedRookAiConsent();
   setAnalyticsConsent('');
 }
 

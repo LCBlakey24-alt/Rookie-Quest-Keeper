@@ -11,6 +11,11 @@ describe('UK privacy: external AI calls require informed permission', () => {
     '/ai/generate',
     '/ai/session-recap',
     '/character-import/extract',
+    '/homebrew/parse-docx',
+    '/homebrew/parse-text',
+    '/homebrew/complete-draft',
+    '/campaigns/campaign-42/npcs/generate',
+    '/campaigns/campaign-42/session-recaps',
   ])('requires consent before posting to %s', (url) => {
     expect(requiresExternalAiConsent({ method: 'post', url })).toBe(true);
   });

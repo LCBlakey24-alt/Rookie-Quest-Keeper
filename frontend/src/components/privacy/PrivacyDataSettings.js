@@ -4,6 +4,7 @@ import { BrainCircuit, CheckCircle2, ShieldCheck, SlidersHorizontal, XCircle } f
 import {
   getRookAiConsent,
   grantRookAiConsent,
+  refreshRookAiConsent,
   revokeRookAiConsent,
 } from '@/privacy/rookAiConsent';
 import { getAnalyticsConsent, setAnalyticsConsent } from '@/privacy/analyticsConsent';
@@ -12,6 +13,8 @@ import '@/styles/privacyDataSettings.css';
 export default function PrivacyDataSettings() {
   const [mountNode, setMountNode] = useState(null);
   const [rookAllowed, setRookAllowed] = useState(() => getRookAiConsent() === 'granted');
+  const [rookBusy, setRookBusy] = useState(false);
+  const [rookError, setRookError] = useState('');
   const [analyticsAllowed, setAnalyticsAllowed] = useState(() => getAnalyticsConsent() === 'granted');
 
   useEffect(() => {
@@ -34,15 +37,27 @@ export default function PrivacyDataSettings() {
   }, []);
 
   useEffect(() => {
-    const refresh = () => {
+    let cancelled = false;
+    const refresh = async () => {
       setRookAllowed(getRookAiConsent() === 'granted');
       setAnalyticsAllowed(getAnalyticsConsent() === 'granted');
+      try {
+        const status = await refreshRookAiConsent();
+        if (!cancelled) {
+          setRookAllowed(status.granted === true);
+          setRookError('');
+        }
+      } catch {
+        if (!cancelled) setRookError('Could not verify Rook AI permission. Try again.');
+      }
     };
+    refresh();
     window.addEventListener('rqk:rook-ai-consent-changed', refresh);
     window.addEventListener('rqk:analytics-consent-changed', refresh);
     window.addEventListener('rqk:auth-scope-changed', refresh);
     window.addEventListener('storage', refresh);
     return () => {
+      cancelled = true;
       window.removeEventListener('rqk:rook-ai-consent-changed', refresh);
       window.removeEventListener('rqk:analytics-consent-changed', refresh);
       window.removeEventListener('rqk:auth-scope-changed', refresh);
@@ -73,18 +88,26 @@ export default function PrivacyDataSettings() {
           <button
             type="button"
             className="rqk-privacy-settings__button"
-            onClick={() => {
-              if (rookAllowed) {
-                revokeRookAiConsent();
-                setRookAllowed(false);
-              } else {
-                grantRookAiConsent();
-                setRookAllowed(getRookAiConsent() === 'granted');
+            disabled={rookBusy}
+            aria-busy={rookBusy ? 'true' : 'false'}
+            onClick={async () => {
+              setRookBusy(true);
+              setRookError('');
+              try {
+                const status = rookAllowed
+                  ? await revokeRookAiConsent()
+                  : await grantRookAiConsent();
+                setRookAllowed(status.granted === true);
+              } catch {
+                setRookError('Rook AI permission was not changed. Try again.');
+              } finally {
+                setRookBusy(false);
               }
             }}
           >
-            {rookAllowed ? 'Revoke Rook AI consent' : 'Allow Rook AI'}
+            {rookBusy ? 'Saving…' : rookAllowed ? 'Revoke Rook AI consent' : 'Allow Rook AI'}
           </button>
+          {rookError && <small role="alert">{rookError}</small>}
         </article>
 
         <article>
@@ -117,7 +140,7 @@ export default function PrivacyDataSettings() {
       </div>
 
       <p className="rqk-privacy-settings__note">
-        These controls are stored on this device. Account deletion remains available below in the Danger Zone.
+        Rook AI permission is saved to your signed-in account. Analytics permission is stored on this device. Account deletion remains available below in the Danger Zone.
       </p>
     </section>,
     mountNode
