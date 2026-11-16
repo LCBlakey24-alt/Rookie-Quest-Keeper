@@ -1,6 +1,6 @@
 import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   AlertTriangle,
@@ -47,6 +47,8 @@ import { normaliseHomeData } from '@/components/gm/dashboard/campaignHomeData';
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import { summariseSessionNote } from '@/components/gm/dashboard/sessionNotePreview';
 import CampaignToolFinder from '@/components/gm/dashboard/CampaignToolFinder';
+import CampaignModeChooser from '@/components/gm/dashboard/CampaignModeChooser';
+import { campaignCreationRoute, campaignModeRoute, isCreationModeLocation } from '@/components/gm/dashboard/campaignModeNavigation';
 import './CampaignDashboard.css';
 import '@/styles/guildTokens.css';
 import '@/styles/campaignGuild.css';
@@ -68,6 +70,8 @@ function tabFromHash() {
 export default function CampaignDashboard() {
   const { campaignId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const choosingMode = !isCreationModeLocation(location.search, location.hash);
   const [initialTab] = useState(tabFromHash);
   const [campaign, setCampaign] = useState(null);
   const [homeBootstrap, setHomeBootstrap] = useState(null);
@@ -332,17 +336,28 @@ export default function CampaignDashboard() {
     );
   }
 
+  if (choosingMode) {
+    return (
+      <CampaignModeChooser
+        campaign={campaign}
+        onBack={() => navigate('/campaigns')}
+        onCreation={() => navigate(campaignCreationRoute(campaignId))}
+        onLive={handleOpenGMScreen}
+      />
+    );
+  }
+
   return (
     <div className="gm-dashboard-shell campaign-dashboard-simple guild-command-layout" data-active-tab={activeTab}>
       <header className="gm-dashboard-header campaign-dashboard-header">
         <div className="campaign-dashboard-title-row">
-          <button type="button" onClick={() => navigate('/campaigns')} className="campaign-icon-button" aria-label="Back to campaigns">
+          <button type="button" onClick={() => navigate(campaignModeRoute(campaignId))} className="campaign-icon-button" aria-label="Back to campaign modes" title="Choose campaign mode">
             <ArrowLeft size={18} aria-hidden="true" />
           </button>
 
           <div className="campaign-dashboard-title-copy">
             <h1 className="gm-campaign-title">{campaign.name}</h1>
-            <span>{activeTabMeta?.label || 'GM Home'}</span>
+            <span>Creation Mode · {activeTabMeta?.label || 'GM Home'}</span>
           </div>
 
           <div className="gm-header-actions campaign-dashboard-actions">
