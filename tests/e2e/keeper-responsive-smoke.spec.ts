@@ -964,12 +964,12 @@ for (const size of [
       expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(size.height + 2);
 
       await nav.getByRole('link', { name: 'Characters', exact: true }).click();
-      await expect(page).toHaveURL(/\\/characters$/);
+      await expect(page).toHaveURL(new RegExp('/characters$'));
       await expect(dock).toBeVisible();
       await assertFitsViewport(page, size.width);
 
       await nav.getByRole('link', { name: 'Campaigns', exact: true }).click();
-      await expect(page).toHaveURL(/\\/campaigns$/);
+      await expect(page).toHaveURL(new RegExp('/campaigns$'));
       await expect(dock).toBeVisible();
       await assertFitsViewport(page, size.width);
     } finally {
