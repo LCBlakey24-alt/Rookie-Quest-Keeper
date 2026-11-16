@@ -69,6 +69,7 @@ export default function GuildChoiceWheel({
   options, value, onChange, label, caption, onConfirm,
   disabledIds = [], centreText, centreNote, confirmLabel = 'CONFIRM', confirmAria, compact = false, tickOnTurn = false,
   innerOptions = [], innerValue, onInnerChange, confirmTestId = 'guild-choice-wheel-confirm',
+  maxFlickVelocity = null,
 }) {
   const count = options.length;
   const step = 360 / Math.max(1, count);
@@ -223,7 +224,15 @@ export default function GuildChoiceWheel({
       svgRef.current.releasePointerCapture?.(event.pointerId);
       setDragging(false);
       // Carry on with the flick's speed, then lock on the wedge it stops at.
-      const target = spinTarget(rotationRef.current, state.start, releaseVelocity(state.samples, clock()), step);
+      // Dice wheels have narrow wedges: a fast phone swipe used to coast
+      // several entire revolutions after release, making the selected die
+      // appear to jump backwards. Limit post-release inertia for callers that
+      // opt in; finger-tracked rotation remains unrestricted and continuous.
+      const rawVelocity = releaseVelocity(state.samples, clock());
+      const velocity = Number.isFinite(maxFlickVelocity) && maxFlickVelocity > 0
+        ? Math.max(-maxFlickVelocity, Math.min(maxFlickVelocity, rawVelocity))
+        : rawVelocity;
+      const target = spinTarget(rotationRef.current, state.start, velocity, step);
       setGlideMs(glideDuration(rotationRef.current, target));
       const targetIndex = optionAtTop(target, count);
       commit(targetIndex, target, tickOnTurn && targetIndex === state.lastIndex);
