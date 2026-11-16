@@ -897,7 +897,7 @@ for (const width of [320, 390]) {
       { name: 'Campaigns', target: '/campaigns' },
       { name: 'Home', target: '/home' },
     ]) {
-      await nav.getByRole('link', { name: section.name }).click();
+      await nav.getByRole('link', { name: section.name, exact: true }).click();
       await expect(page).toHaveURL(new RegExp(section.target + '$'));
       await expect(rail).toBeVisible();
       await expect(nav.getByRole('link')).toHaveCount(5);
