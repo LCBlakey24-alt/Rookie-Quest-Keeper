@@ -151,3 +151,62 @@ html body #root .keeper-product-site .landing-nav-brand::after { display: none !
 html body #root .keeper-product-site .landing-nav-brand img.landing-nav-badge {
   display: block !important; visibility: visible !important; width: 58px !important; height: 58px !important; max-height: none !important; object-fit: contain;
 }
+
+/* Small, optional install help keeps the public entry page free of app-store clutter. */
+html body #root .keeper-product-site .landing-install-guide {
+  width: 100%;
+  margin: 8px 0;
+  border: 1px solid var(--guild-line);
+  border-radius: 12px;
+  background: var(--guild-bg);
+  color: var(--guild-muted);
+  overflow: hidden;
+}
+html body #root .keeper-product-site .landing-install-guide summary {
+  min-height: 48px;
+  display: list-item;
+  padding: 13px 18px;
+  cursor: pointer;
+  color: var(--guild-text);
+  font-weight: 650;
+}
+html body #root .keeper-product-site .landing-install-guide summary:focus-visible {
+  outline: 3px solid var(--guild-focus-ring, #4fb3ff) !important;
+  outline-offset: -3px !important;
+}
+html body #root .keeper-product-site .landing-install-guide__content {
+  display: grid;
+  gap: 7px;
+  padding: 0 18px 16px;
+}
+html body #root .keeper-product-site .landing-install-guide__content p {
+  margin: 0;
+  font-size: .88rem;
+  line-height: 1.5;
+  color: var(--guild-muted) !important;
+}
+html body #root .keeper-product-site .landing-install-guide__content strong {
+  color: var(--guild-text);
+}
+@media (max-width: 600px) {
+  html body #root .keeper-product-site .landing-final-nav {
+    min-width: 0 !important;
+    padding: 7px 4px !important;
+  }
+  html body #root .keeper-product-site .landing-nav-actions {
+    gap: 5px !important;
+  }
+  html body #root .keeper-product-site .landing-nav-actions .landing-button {
+    min-height: 44px !important;
+    padding-inline: 10px !important;
+    font-size: .82rem !important;
+  }
+  html body #root .keeper-product-site .landing-explore__head {
+    flex-wrap: wrap;
+  }
+  html body #root .keeper-product-site .landing-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
