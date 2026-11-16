@@ -30,27 +30,8 @@
         <meta name="twitter:description" content="5e-style character sheets, campaign prep, GM tools and live table play in one connected workspace." />
         <meta name="twitter:image" content="/brand/keeper-primary-logo.png" />
         <title>Rookie Quest Keeper | Character Sheets & GM Tools</title>
-        <script>
-            // Session recording is a test-only aid. Keep the existing recorder
-            // available on localhost and Vercel previews, but never load it on
-            // the public production/native experience.
-            (function () {
-                var host = window.location.hostname || '';
-                var testingHost = host === 'localhost' || host === '127.0.0.1' || host.endsWith('.vercel.app');
-                if (!testingHost) return;
-
-                var rrweb = document.createElement('script');
-                rrweb.src = 'https://unpkg.com/rrweb@latest/dist/rrweb.min.js';
-                rrweb.async = true;
-                rrweb.onload = function () {
-                    var recorder = document.createElement('script');
-                    recorder.src = 'https://d2adkz2s9zrlge.cloudfront.net/rrweb-recorder-20250919-1.js';
-                    recorder.async = true;
-                    document.head.appendChild(recorder);
-                };
-                document.head.appendChild(rrweb);
-            })();
-        </script>
+        <!-- No session-recording scripts load by default on production or preview URLs.
+             Synthetic test capture belongs in controlled CI with dedicated test accounts. -->
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>

@@ -38,7 +38,7 @@ notices in Wizards of the Coast's requested wording, plus an
 unofficial-product and trademark notice. It is linked from the landing page
 footer and Account settings.
 
-## Outside the SRD: to move to homebrew packs
+## Remaining material requiring source verification and removal/replacement
 
 Each group below will be exported to a private homebrew pack in this folder
 (as was done for feats) and removed from the built-in catalogue, in its own
@@ -104,14 +104,15 @@ Background appear to be the app's own generic backgrounds
   species (`starterOrigins5e.js`). Keep them if their text is original; note
   *Fey Touched* is also a non-SRD feat name, so consider renaming.
 
-### Monsters — the 47 `legacy-reference` entries
+### Monsters — completed in main, public archive cleanup in this PR
 
-`monsterDatabase.js` holds 47 non-SRD fallback entries alongside the SRD
-bestiary. Several are among Wizards of the Coast's most protected creatures
-(Intellect Devourer, Spectator, Nothic, Death Knight, Demilich, the
-yugoloths). Remove all 47 from the built-in list. A few (Werewolf, Wererat,
-Wereboar, Weretiger, Werebear, Vampire) have SRD equivalents under SRD names;
-use those instead.
+The original 47 non-SRD `legacy-reference` fallback entries have **already
+been removed** from `frontend/src/data/monsterDatabase.js`. The shipped
+offline library now uses the SRD 5.1 dataset. This follow-up also deletes
+the legacy JSON pack previously kept in the public GitHub repository under
+`docs/licensing/`. Note that **earlier Git commits still contain that pack**;
+assess the historical repository exposure separately. Existing private
+account-created creature records are not affected.
 
 ### Magic items
 

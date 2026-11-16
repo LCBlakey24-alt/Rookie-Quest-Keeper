@@ -1,9 +1,8 @@
 import apiClient from '@/lib/apiClient';
 import { clearCurrentOfflineAccountData } from '@/offline/offlineApiCache';
 import { clearOfflineMediaCache } from '@/offline/offlineMediaCache';
-import { revokeRookAiConsent } from '@/privacy/rookAiConsent';
-
-const ANALYTICS_KEY = 'rqk.analyticsConsent';
+import { clearCachedRookAiConsent } from '@/privacy/rookAiConsent';
+import { setAnalyticsConsent } from '@/privacy/analyticsConsent';
 let installed = false;
 
 function isAccountDeleteResponse(response) {
@@ -20,9 +19,10 @@ export async function clearDeletedAccountDeviceData() {
     clearCurrentOfflineAccountData(),
     clearOfflineMediaCache(),
   ]);
-  revokeRookAiConsent();
-  try { localStorage.removeItem(ANALYTICS_KEY); } catch {}
-  try { window.dispatchEvent(new CustomEvent('rqk:analytics-consent-changed')); } catch {}
+  // The account no longer exists, so a consent PUT would be both misleading
+  // and guaranteed to fail. Remove only this account's device cache.
+  clearCachedRookAiConsent();
+  setAnalyticsConsent('');
 }
 
 export function installAccountDeletionLocalCleanup() {
