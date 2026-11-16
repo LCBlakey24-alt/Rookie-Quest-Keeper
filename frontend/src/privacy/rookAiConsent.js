@@ -16,17 +16,22 @@ export function revokeRookAiConsent() {
   try { window.dispatchEvent(new CustomEvent('rqk:rook-ai-consent-changed')); } catch {}
 }
 
-function requiresExternalAiConsent(config = {}) {
+export function requiresExternalAiConsent(config = {}) {
   const method = String(config.method || 'get').toLowerCase();
-  if (method === 'get') return false;
-  const url = String(config.url || '');
+  if (['get', 'head', 'options'].includes(method)) return false;
+  const pathname = String(config.url || '').split(/[?#]/, 1)[0];
 
-  if (url === '/rook/draft/save') return false;
-  return url === '/rook/draft'
-    || url.startsWith('/rook/generate')
-    || url.startsWith('/unseen-servant/generate')
-    || url.startsWith('/ai/')
-    || url.startsWith('/character-import/extract');
+  // Draft storage is local work, not a request to an external AI provider.
+  if (pathname === '/rook/draft/save') return false;
+  // All Rook generation/chat/form-fill paths must be included, not just
+  // /rook/generate; otherwise content can be sent without the user's choice.
+  return pathname.startsWith('/rook/')
+    || pathname.startsWith('/unseen-servant/generate')
+    || pathname.startsWith('/ai/')
+    || pathname.startsWith('/character-import/extract')
+    || ['/homebrew/parse-docx', '/homebrew/parse-text', '/homebrew/complete-draft'].includes(pathname)
+    || /^\/campaigns\/[^/]+\/npcs\/generate$/.test(pathname)
+    || /^\/campaigns\/[^/]+\/session-recaps$/.test(pathname);
 }
 
 export function ensureRookAiConsent() {
