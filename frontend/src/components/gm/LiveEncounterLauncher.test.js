@@ -160,5 +160,95 @@ test('impromptu battles can also have a chosen map without saving a new encounte
   expect(encounterBattleScenario(null, actors, 'forest-map', 7)).toEqual({
     id: 'impromptu-7', name: 'Impromptu Battle', temporary: true,
     combatants: actors, map_id: 'forest-map',
+    map_url: null, terrain_type: 'stone', battlefield_mode: 'saved',
   });
+});
+
+describe('Battlefield handoff preserves encounter templates and live roster', () => {
+  const combatants = [
+    { id: 'player-1', type: 'player', name: 'Aria', hp: 18, maxHp: 30, conditions: ['poisoned'] },
+    { id: 'monster-1', type: 'enemy', name: 'Ghoul', hp: 22, maxHp: 22, actions: [{ name: 'Claws' }] },
+  ];
+
+  test('a saved generic floor survives launch with its custom grid and live HP', () => {
+    const saved = {
+      id: 'prepared-1', name: 'Moor Ambush', combatants: [{ id: 'old-guard', hp: 1 }],
+      battlefield_mode: 'generic', terrain_type: 'grass',
+      grid_cols: 40, grid_rows: 25, feet_per_square: 10, show_grid: false,
+      tokens: [{ id: 'monster-1', x: 5, y: 7 }],
+    };
+    const before = JSON.stringify(saved);
+    const output = encounterBattleScenario(saved, combatants, '', 12345, 'grass', 'generic');
+    expect(output).toMatchObject({
+      id: 'prepared-1', battlefield_mode: 'generic', terrain_type: 'grass',
+      map_id: '', grid_cols: 40, grid_rows: 25, feet_per_square: 10,
+      show_grid: false, tokens: saved.tokens,
+      combatants,
+    });
+    expect(output.combatants[0].hp).toBe(18);
+    expect(JSON.stringify(saved)).toBe(before);
+  });
+
+  test('a Live Review override can switch an uploaded saved map to textured cobblestone', () => {
+    const saved = {
+      id: 'prepared-2', name: 'Cellars', map_id: 'old-map',
+      map_url: 'data:image/png;base64,abcd',
+      battlefield_mode: 'saved', terrain_type: 'stone', combatants: [{ id: 'old-guard' }],
+    };
+    const output = encounterBattleScenario(saved, combatants, '', 12345, 'cobblestone', 'generic');
+    expect(output).toMatchObject({ map_id: '', map_url: null, terrain_type: 'cobblestone', battlefield_mode: 'generic' });
+    expect(output.combatants).toEqual(combatants);
+    expect(saved.map_id).toBe('old-map');
+    expect(saved.map_url).toBe('data:image/png;base64,abcd');
+    expect(saved.combatants).toEqual([{ id: 'old-guard' }]);
+  });
+
+  test('no battlefield choice uses the safe stone fallback and clears old images only on live copy', () => {
+    const saved = { id: 'prepared-3', map_id: 'old-map', map_url: 'https://example.test/map.png',
+      battlefield_mode: 'saved', combatants };
+    const output = encounterBattleScenario(saved, combatants, '', 123, 'lava', 'none');
+    expect(output).toMatchObject({ battlefield_mode: 'none', terrain_type: 'stone', map_url: null, map_id: '' });
+    expect(saved.map_id).toBe('old-map');
+  });
+
+  test('legacy mapId and an uploaded-image-only encounter still launch as saved maps', () => {
+    const legacy = encounterBattleScenario({ id: 'legacy', mapId: 'map-old' }, combatants, 'map-old', 123);
+    expect(legacy).toMatchObject({ battlefield_mode: 'saved', map_id: 'map-old' });
+    const image = encounterBattleScenario({ id: 'image', map_url: 'https://example.test/old.png' }, combatants);
+    expect(image).toMatchObject({ battlefield_mode: 'saved', map_url: 'https://example.test/old.png', map_id: '' });
+  });
+
+  test('impromptu battles can choose lava with no prepared encounter', () => {
+    const output = encounterBattleScenario(null, combatants, '', 12345, 'lava', 'generic');
+    expect(output).toMatchObject({
+      id: 'impromptu-12345', temporary: true, map_id: '', map_url: null,
+      terrain_type: 'lava', battlefield_mode: 'generic', combatants,
+    });
+  });
+});
+
+test('a draft choosing a replacement saved map does not mutate a prepared generic encounter', () => {
+  const template = {
+    id: 'template-1', name: 'Ruined Chapel', battlefield_mode: 'generic',
+    terrain_type: 'snow', map_id: '', grid_cols: 25, grid_rows: 25,
+    combatants: [{ id: 'creature-a', hp: 5 }],
+  };
+  const currentParty = [{ id: 'player-a', hp: 17, conditions: ['blinded'] }];
+  const launched = encounterBattleScenario(template, currentParty, 'campaign-map-7', 55, 'snow', 'saved');
+  expect(launched).toMatchObject({
+    battlefield_mode: 'saved', map_id: 'campaign-map-7',
+    map_url: null, grid_cols: 25, grid_rows: 25, combatants: currentParty,
+  });
+  expect(template).toMatchObject({
+    battlefield_mode: 'generic', terrain_type: 'snow', map_id: '',
+    combatants: [{ id: 'creature-a', hp: 5 }],
+  });
+});
+
+test('explicit empty saved-map selection never resurrects a stale map ID', () => {
+  const template = { id: 'old', name: 'Old Encounter', map_id: 'obsolete-map', combatants: [] };
+  const launched = encounterBattleScenario(template, [], '', 123, 'stone', 'saved');
+  expect(launched.map_id).toBe('');
+  expect(launched.battlefield_mode).toBe('saved');
+  expect(template.map_id).toBe('obsolete-map');
 });
