@@ -47,6 +47,7 @@ export default function GlobalDiceSelectionWheel({
         confirmLabel=""
         confirmAria={`Roll d${selectedSides}${rollMode === 'normal' ? '' : ` with ${rollMode}`}`}
         confirmTestId={`roll-d${selectedSides}-btn`}
+        maxFlickVelocity={0.22}
       />
       <div className="rq-global-dice-wheel__access" aria-label="Dice wheel alternatives">
         <button type="button" aria-label="Previous die" onClick={() => step(-1)}>‹</button>
