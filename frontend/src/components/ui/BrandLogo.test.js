@@ -49,7 +49,7 @@ describe('Keeper installed-app asset references', () => {
     for (const { src, sizes, type } of manifest.icons) {
       // Android may retain a previous icon until the manifest URL changes.
       // Only the query string is cache-busted; the underlying PNG must exist.
-      expect(src).toMatch(/\\?v=20261116-1$/);
+      expect(src).toMatch(/\?v=20261116-1$/);
       expect(type).toBe('image/png');
       const filePath = path.join(publicDir, src.slice(1).split('?')[0]);
       expect(fs.existsSync(filePath)).toBe(true);
