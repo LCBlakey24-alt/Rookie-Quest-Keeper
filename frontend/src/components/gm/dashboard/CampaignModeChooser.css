@@ -203,3 +203,67 @@
   #root .rqk-campaign-mode-option { transition: none; }
   #root .rqk-campaign-mode-option:hover { transform: none; }
 }
+
+/* Midnight Magenta: scoped visual-only overrides for the app's important
+   control layer. No dimensions, grid columns, spacing or breakpoints change. */
+@layer rq-controls {
+  #root .rqk-campaign-mode-page {
+    background: radial-gradient(circle at 82% 2%,
+      rgba(var(--rqk-midnight-magenta-rgb), .12), transparent 48%),
+      var(--rqk-midnight-bg) !important;
+    color: var(--rqk-midnight-text) !important;
+  }
+  #root .rqk-campaign-mode-page .rqk-campaign-mode-header {
+    background: radial-gradient(circle at 85% 0%,
+      rgba(var(--rqk-midnight-magenta-rgb), .15), transparent 54%),
+      var(--rqk-midnight-panel) !important;
+    border-color: var(--rqk-midnight-border) !important;
+    box-shadow: var(--rqk-midnight-inset) !important;
+  }
+  #root .rqk-campaign-mode-page .rqk-campaign-mode-option {
+    background: var(--rqk-midnight-panel) !important;
+    border-color: var(--rqk-midnight-border) !important;
+    color: var(--rqk-midnight-text) !important;
+    box-shadow: var(--rqk-midnight-inset) !important;
+  }
+  #root .rqk-campaign-mode-page .rqk-campaign-mode-option--creation {
+    border-top-color: var(--rqk-midnight-crimson) !important;
+  }
+  #root .rqk-campaign-mode-page .rqk-campaign-mode-option--live {
+    border-top-color: var(--rqk-midnight-violet) !important;
+  }
+  #root .rqk-campaign-mode-page .rqk-campaign-mode-option:is(:hover, :focus-visible) {
+    background: var(--rqk-midnight-hover) !important;
+    border-color: var(--rqk-midnight-magenta) !important;
+    box-shadow: var(--rqk-midnight-inset-selected) !important;
+  }
+  #root .rqk-campaign-mode-page .rqk-campaign-mode-back {
+    background: var(--rqk-midnight-raised) !important;
+    border-color: var(--rqk-midnight-border) !important;
+    color: var(--rqk-midnight-text) !important;
+    box-shadow: var(--rqk-midnight-inset) !important;
+  }
+  #root .rqk-campaign-mode-page .rqk-campaign-mode-back:hover {
+    background: var(--rqk-midnight-hover) !important;
+    border-color: var(--rqk-midnight-magenta) !important;
+  }
+  #root .rqk-campaign-mode-page :is(.rqk-campaign-mode-option, .rqk-campaign-mode-back):focus-visible {
+    outline: 3px solid var(--rqk-midnight-magenta) !important;
+    outline-offset: 3px !important;
+  }
+  #root .rqk-campaign-mode-page :is(
+    .rqk-campaign-mode-heading h1, .rqk-campaign-mode-intro h2, .rqk-campaign-mode-option-title
+  ) {
+    color: var(--rqk-midnight-text) !important;
+  }
+  #root .rqk-campaign-mode-page .rqk-campaign-mode-eyebrow {
+    color: var(--rqk-midnight-magenta) !important;
+  }
+  #root .rqk-campaign-mode-page :is(
+    .rqk-campaign-mode-description, .rqk-campaign-mode-intro p,
+    .rqk-campaign-mode-footnote, .rqk-campaign-mode-option-description,
+    .rqk-campaign-mode-kicker
+  ) {
+    color: var(--rqk-midnight-muted) !important;
+  }
+}
