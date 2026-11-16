@@ -29,6 +29,36 @@ Anything under `90 - Superseded & Legacy` is historical reference only and must 
 If an agent cannot access Google Drive, it must use this document rather than inventing a replacement theme. Do not infer a new palette from old screenshots or existing legacy CSS.
 
 
+## New visual direction — Midnight Magenta (owner reference, 16 November 2026)
+
+The owner supplied a new dramatic dark-fantasy colour reference: **blackened navy /
+plum behind luminous crimson, hot pink/magenta and violet**, with soft inner
+glow. This newer explicit owner decision takes precedence over the earlier
+Neon Coast colour choices **for the routes included in the staged rollout**.
+It does not replace the existing Guild Command layouts, typography, RQK logo,
+semantic statuses, navigation, or accessibility requirements.
+
+**Phase 1 implementation (PR #934):** My Campaigns and the campaign-specific
+Creation Mode / Live Play Mode chooser only. The opt-in palette is stored as
+`--rqk-midnight-*` variables in `frontend/src/styles/guildTokens.css` and
+applied exclusively by the two route CSS files. All other screens retain
+Neon Coast until their own reviewable, tested rollout.
+
+- Background `#090C20`; panels `#141027`; raised controls `#201332`.
+- Crimson `#F21751`; magenta `#FF1976`; violet `#8C36DD`.
+- White-lilac primary copy `#F7F4FF`; muted copy `#C9BFDC`.
+- Thin accent edges and **inset** only glow: bright controls must not become
+  solid-pink blocks and must not hide text.
+- No altered grid definitions, spacing, breakpoint rules, positioning, input
+  behaviour, icon artwork, functional status colours, or campaign data.
+
+Use the user's supplied fantasy landscape **as colour and light inspiration
+only**; do not copy or incorporate third-party stage artwork. Follow issue
+#932 for later pages and visual acceptance. If the user rejects the visual
+pilot, revert its route-scoped styles without modifying shared app geometry.
+
+---
+
 ## 1. Product identity
 
 Rookie Quest Keeper is a premium TTRPG companion for players and GMs. It should feel like a focused fantasy command journal: dark, readable, practical, app-like and slightly dramatic without becoming theatrical.
