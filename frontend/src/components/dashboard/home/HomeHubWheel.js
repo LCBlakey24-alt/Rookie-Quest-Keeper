@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { requestDiceOpen } from '@/lib/diceOpenRequest';
 import HexWheel from '@/components/hex-sheet/HexWheel';
 import { SLOT } from '@/components/hex-sheet/hexGeometry';
 import '@/components/hex-sheet/hexSheet.css';
@@ -9,7 +10,7 @@ import '@/components/hex-sheet/hexSheet.css';
 const SLOT_ORDER = [SLOT.UPPER_LEFT, SLOT.UPPER_RIGHT, SLOT.RIGHT, SLOT.LOWER_RIGHT, SLOT.LOWER_LEFT, SLOT.LEFT];
 
 function openDice() {
-  window.dispatchEvent(new Event('rq-dice-open'));
+  requestDiceOpen();
 }
 
 /**
