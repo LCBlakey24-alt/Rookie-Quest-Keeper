@@ -36,6 +36,10 @@ async function mockIsolatedAccount(page: Page) {
     localStorage.setItem('dm_username', 'horizontal-audit-user');
   }, token);
 
+  // Playwright runs newer route handlers first: register the broad blocker
+  // before API stubs so test account requests get deterministic responses.
+  await page.route('**/*', route => route.request().url().startsWith('http://127.0.0.1:4173/')
+    ? route.continue() : route.abort());
   await page.route('**/api/**', route => {
     const path = new URL(route.request().url()).pathname;
     let data: unknown = {};
@@ -46,8 +50,6 @@ async function mockIsolatedAccount(page: Page) {
     else if (path === '/api/homebrew') data = { homebrew: {} };
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) });
   });
-  await page.route('**/*', route => route.request().url().startsWith('http://127.0.0.1:4173/')
-    ? route.continue() : route.abort());
 }
 
 async function assertNoPageOverflow(page: Page, width: number, description: string) {
