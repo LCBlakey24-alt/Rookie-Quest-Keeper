@@ -257,3 +257,42 @@ describe('encounter start snapshot for safe Reset', () => {
     expect(invalid.checkpoint.combatants[0].hp).toBe(22);
   });
 });
+
+describe('GM battlefield checkpoint recovery', () => {
+  test('a recovered battlefield keeps its texture, override and grid choice', () => {
+    const checkpoint = goodCheckpoint({
+      selectedMapId: '',
+      map_override_generic: true,
+      terrain_type: 'mud',
+      show_grid: false,
+      mapTokens: [{ id: 'c1', x: 9, y: 4 }],
+    });
+    const result = readForTest(CAMPAIGN, storageWith(checkpoint));
+    expect(result.status).toBe('ok');
+    expect(result.checkpoint).toMatchObject({
+      map_override_generic: true,
+      terrain_type: 'mud',
+      show_grid: false,
+      mapTokens: [{ id: 'c1', x: 9, y: 4 }],
+    });
+  });
+
+  test('legacy and malformed battlefield values use safe defaults', () => {
+    const legacy = readForTest(CAMPAIGN, storageWith(goodCheckpoint()));
+    expect(legacy.checkpoint).toMatchObject({
+      map_override_generic: false,
+      terrain_type: 'stone',
+      show_grid: true,
+    });
+    const invalid = readForTest(CAMPAIGN, storageWith(goodCheckpoint({
+      map_override_generic: 'yes',
+      terrain_type: 'nonexistent-terrain',
+      show_grid: 'no',
+    })));
+    expect(invalid.checkpoint).toMatchObject({
+      map_override_generic: false,
+      terrain_type: 'stone',
+      show_grid: true,
+    });
+  });
+});

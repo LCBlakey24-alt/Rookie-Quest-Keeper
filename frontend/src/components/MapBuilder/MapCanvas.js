@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { getGenericCombatTerrainImage, normaliseCombatTerrain } from '@/data/genericCombatTerrain';
 
 const GRID_SIZE = 40; // pixels per grid square
 const DEFAULT_MAP_WIDTH = 30; // grid squares
@@ -7,11 +8,13 @@ const DEFAULT_MAP_HEIGHT = 20; // grid squares
 const TERRAIN_TYPES = {
   empty: { color: '#1a1a2e', name: 'Empty' },
   stone: { color: '#4a4a5a', name: 'Stone Floor' },
+  cobblestone: { color: '#62656c', name: 'Cobblestones' },
   wood: { color: '#8B4513', name: 'Wood Floor' },
   grass: { color: '#228B22', name: 'Grass' },
   water: { color: '#1e90ff', name: 'Water' },
   sand: { color: '#f4a460', name: 'Sand' },
   dirt: { color: '#8B7355', name: 'Dirt' },
+  mud: { color: '#57483a', name: 'Mud' },
   snow: { color: '#e8e8e8', name: 'Snow' },
   lava: { color: '#ff4500', name: 'Lava' },
   void: { color: '#000000', name: 'Void/Pit' }
@@ -38,7 +41,8 @@ function MapCanvas({
   gridSize = GRID_SIZE,
   zoom: controlledZoom,
   onZoomChange,
-  isPlayerView = false
+  isPlayerView = false,
+  backgroundImageUrl = ''
 }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -53,6 +57,8 @@ function MapCanvas({
     ? Math.max(0.25, Math.min(3, Number(controlledZoom))) : localZoom;
   const [draggingToken, setDraggingToken] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
+  const [terrainArtwork, setTerrainArtwork] = useState(null);
+  const [backgroundArtwork, setBackgroundArtwork] = useState(null);
 
   // Initialize map data if not provided
   const map = mapData || {
@@ -65,6 +71,33 @@ function MapCanvas({
     doors: [], // [{x, y, orientation, isOpen}]
     objects: [] // [{x, y, type, name}]
   };
+
+  // Generated battle floors use the deterministic texture art shared with
+  // Encounter Review. Ordinary hand-painted map editing is unchanged.
+  const genericTerrain = map.generated ? normaliseCombatTerrain(map.terrain?.[0]?.[0]) : '';
+  useEffect(() => {
+    if (!genericTerrain) { setTerrainArtwork(null); return undefined; }
+    let cancelled = false;
+    const image = new window.Image();
+    image.onload = () => { if (!cancelled) setTerrainArtwork({ terrain: genericTerrain, image }); };
+    image.onerror = () => { if (!cancelled) setTerrainArtwork(null); };
+    image.src = getGenericCombatTerrainImage(genericTerrain);
+    return () => { cancelled = true; image.onload = null; image.onerror = null; };
+  }, [genericTerrain]);
+
+  // Existing uploaded maps and old image-backed encounters keep their
+  // underlying grid coordinates; draw the image on the SAME canvas as tokens.
+  const savedBackgroundUrl = backgroundImageUrl || map.map_url || map.background_url
+    || map.background_image || map.backgroundImage || map.image_url || map.image_data || '';
+  useEffect(() => {
+    if (!savedBackgroundUrl) { setBackgroundArtwork(null); return undefined; }
+    let cancelled = false;
+    const image = new window.Image();
+    image.onload = () => { if (!cancelled) setBackgroundArtwork({ url: savedBackgroundUrl, image }); };
+    image.onerror = () => { if (!cancelled) setBackgroundArtwork(null); };
+    image.src = savedBackgroundUrl;
+    return () => { cancelled = true; image.onload = null; image.onerror = null; };
+  }, [savedBackgroundUrl]);
 
   // Get canvas coordinates from mouse event
   const getCanvasCoords = useCallback((e) => {
@@ -100,25 +133,42 @@ function MapCanvas({
     ctx.translate(panOffset.x, panOffset.y);
     ctx.scale(zoom, zoom);
 
-    // Draw terrain
-    for (let y = 0; y < map.height; y++) {
-      for (let x = 0; x < map.width; x++) {
-        const terrainType = map.terrain[y]?.[x] || 'empty';
-        const terrain = TERRAIN_TYPES[terrainType] || TERRAIN_TYPES.empty;
-        
-        ctx.fillStyle = terrain.color;
-        ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
-
-        // Add subtle texture
-        if (terrainType !== 'empty') {
-          ctx.fillStyle = 'rgba(255,255,255,0.03)';
-          for (let i = 0; i < 3; i++) {
-            const tx = x * gridSize + Math.random() * gridSize;
-            const ty = y * gridSize + Math.random() * gridSize;
-            ctx.fillRect(tx, ty, 2, 2);
+    // A generated terrain is a repeated 4x4-square texture. Tile every
+    // canvas from the same source SVG; no redraw-time random noise.
+    const isGenerated = Boolean(map.generated);
+    const useArtwork = isGenerated && terrainArtwork?.terrain === genericTerrain
+      && typeof ctx.createPattern === 'function';
+    const pattern = useArtwork ? ctx.createPattern(terrainArtwork.image, 'repeat') : null;
+    if (pattern) {
+      if (typeof pattern.setTransform === 'function' && typeof DOMMatrix !== 'undefined') {
+        pattern.setTransform(new DOMMatrix().scale(gridSize / 40));
+      }
+      ctx.fillStyle = pattern;
+      ctx.fillRect(0, 0, map.width * gridSize, map.height * gridSize);
+    } else {
+      // Preserve hand-authored maps' existing tile renderer and painter.
+      for (let y = 0; y < map.height; y++) {
+        for (let x = 0; x < map.width; x++) {
+          const terrainType = map.terrain[y]?.[x] || 'empty';
+          const terrain = TERRAIN_TYPES[terrainType] || TERRAIN_TYPES.empty;
+          ctx.fillStyle = terrain.color;
+          ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+          if (terrainType !== 'empty') {
+            ctx.fillStyle = 'rgba(255,255,255,0.03)';
+            for (let i = 0; i < 3; i++) {
+              const tx = isGenerated ? x * gridSize + (x * 17 + y * 31 + i * 13) % gridSize
+                : x * gridSize + Math.random() * gridSize;
+              const ty = isGenerated ? y * gridSize + (x * 23 + y * 19 + i * 11) % gridSize
+                : y * gridSize + Math.random() * gridSize;
+              ctx.fillRect(tx, ty, 2, 2);
+            }
           }
         }
       }
+    }
+
+    if (backgroundArtwork?.url === savedBackgroundUrl) {
+      ctx.drawImage(backgroundArtwork.image, 0, 0, map.width * gridSize, map.height * gridSize);
     }
 
     // Draw grid
@@ -282,7 +332,7 @@ function MapCanvas({
     }
 
     ctx.restore();
-  }, [map, tokens, fogOfWar, showGrid, gridSize, panOffset, zoom, hoveredCell, tool, selectedTerrain, isPlayerView]);
+  }, [map, tokens, fogOfWar, showGrid, gridSize, panOffset, zoom, hoveredCell, tool, selectedTerrain, isPlayerView, genericTerrain, terrainArtwork, backgroundArtwork, savedBackgroundUrl]);
 
   // Redraw when dependencies change
   useEffect(() => {

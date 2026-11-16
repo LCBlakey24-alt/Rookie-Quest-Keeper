@@ -1,5 +1,6 @@
 import { getAuthToken } from '@/lib/auth';
 import { getOfflineIdentityFromToken } from '@/offline/offlineApiCache';
+import { normaliseCombatTerrain } from '@/data/genericCombatTerrain';
 
 /**
  * Reading back a fight that is already in progress.
@@ -147,6 +148,12 @@ export function readCombatCheckpoint(campaignId, storage, options = {}) {
       currentTurn,
       round,
       selectedMapId: String(parsed.selectedMapId || ''),
+      // The canvas options are part of the fight, not just its toolbar. A
+      // reload must not silently reset selected terrain or reveal a hidden
+      // grid. Older checkpoints safely default to stone and a visible grid.
+      map_override_generic: parsed.map_override_generic === true,
+      terrain_type: normaliseCombatTerrain(parsed.terrain_type),
+      show_grid: parsed.show_grid !== false,
       mapTokens: Array.isArray(parsed.mapTokens) ? parsed.mapTokens : [],
       collectedLoot: Array.isArray(parsed.collectedLoot) ? parsed.collectedLoot : [],
       initialPlayerStates: (parsed.initialPlayerStates && typeof parsed.initialPlayerStates === 'object')
