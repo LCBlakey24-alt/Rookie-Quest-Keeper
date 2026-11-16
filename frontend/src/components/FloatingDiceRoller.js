@@ -149,8 +149,11 @@ export default function FloatingDiceRoller() {
   }, []);
 
   useEffect(() => {
-    if (open) preloadDiceTray3D();
-  }, [open]);
+    // The material wheel is already preparing optional WebGL thumbnails.
+    // On Android a second simultaneous 3D scene can stall the first touch.
+    // Warm the physical tray after moving to die type, before Roll is pressed.
+    if (open && pickerStage === 'type') preloadDiceTray3D();
+  }, [open, pickerStage]);
 
   useEffect(() => {
     let cancelled = false;
