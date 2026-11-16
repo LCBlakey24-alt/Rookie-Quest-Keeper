@@ -12,7 +12,7 @@ import '@/styles/unifiedDashboardPolish.css';
 import '@/styles/homeDashboardV5.css';
 import '@/styles/guildTokens.css';
 import '@/styles/homeGuild.css';
-import HexLoader from '@/components/guild-motif/HexLoader';
+import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 
 const VIEW_KEY = 'rqk.home.hubView';
 
@@ -94,13 +94,11 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
   }, [recentCharacters, recentCampaigns, recentHomebrew]);
 
   if (loading) return (
-    <main className="unified-dashboard-page unified-dashboard-page--simple rqk-home-v5">
-      <section className="dashboard-loading" role="status" aria-live="polite">
-        <HexLoader />
-        <p className="loading-title">Opening dashboard…</p>
-        {slowLoad && <p className="loading-tip">The backend may be waking up.</p>}
-      </section>
-    </main>
+    <RouteLoadingScreen
+      label="Dashboard is loading"
+      status="Opening dashboard…"
+      description={slowLoad ? 'The server may be waking up.' : 'Gathering your campaigns, characters and recent activity.'}
+    />
   );
 
   return (
