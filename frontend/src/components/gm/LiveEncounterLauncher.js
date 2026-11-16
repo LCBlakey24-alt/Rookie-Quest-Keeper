@@ -22,6 +22,8 @@ import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import { loadEncounterReviewSections } from '@/data/livePlayLoaders';
 import LiveDataWarning from '@/components/gm/LiveDataWarning';
+import BattlefieldPicker, { battlefieldModeFor } from './BattlefieldPicker';
+import { normaliseCombatTerrain } from '@/data/genericCombatTerrain';
 
 const rq = {
   bg: 'var(--rq-bg-main)', panel: 'var(--rq-bg-panel)', card: 'var(--rq-card)',
@@ -64,12 +66,32 @@ export function createImpromptuEncounter(combatants, timestamp = Date.now()) {
   };
 }
 
-/** The exact reviewed roster AND chosen map form one immutable battle handoff. */
-export function encounterBattleScenario(selected, combatants, mapId = '', timestamp = Date.now()) {
+/**
+ * Launch a one-off copy of the reviewed roster and battlefield.
+ * The saved encounter remains a reusable template, never updated by launch.
+ * Omitted mode retains old callers' saved/legacy map selection.
+ */
+export function encounterBattleScenario(selected, combatants, mapId = '', timestamp = Date.now(), terrain = null, mode = '') {
   const base = selected
     ? { ...selected, name: selected.name || 'Live Encounter', combatants: safeArray(combatants) }
     : createImpromptuEncounter(combatants, timestamp);
-  return { ...base, map_id: String(mapId || '') };
+  const hasExplicitMode = ['saved', 'generic', 'none'].includes(mode);
+  const battlefieldMode = hasExplicitMode ? mode
+    : (mapId ? 'saved' : battlefieldModeFor(base));
+  // An explicit empty map selection must not resurrect a stale saved map ID.
+  // Only historical callers with no explicit mode inherit the old map.
+  const chosenMapId = hasExplicitMode ? String(mapId || '')
+    : String(mapId || base.map_id || base.mapId || '');
+  return {
+    ...base,
+    map_id: battlefieldMode === 'saved' ? chosenMapId : '',
+    // Clear an old uploaded image only on this live copy when switching to
+    // textured terrain. Saved legacy image maps remain playable.
+    map_url: battlefieldMode === 'saved' && !mapId ? (base.map_url || null) : null,
+    terrain_type: battlefieldMode === 'generic'
+      ? normaliseCombatTerrain(terrain ?? base.terrain_type) : 'stone',
+    battlefield_mode: battlefieldMode,
+  };
 }
 
 function numberOr(value, fallback) {
@@ -506,10 +528,12 @@ export default function LiveEncounterLauncher({
   const extraNpcIds = draft.extraNpcIds;
   const quickCombatants = draft.quickCombatants;
   const quickDraft = draft.quickDraft;
-  const battleMapId = String(draft.battleMapId === null || draft.battleMapId === undefined
-    ? (selected?.map_id || selected?.mapId || '')
-    : draft.battleMapId);
-  const battleMapMissing = Boolean(battleMapId && !battleMapsUnavailable
+  const battlefieldMode = draft.battlefieldMode ?? battlefieldModeFor(selected);
+  const terrainType = normaliseCombatTerrain(draft.terrainType ?? selected?.terrain_type);
+  const battleMapId = battlefieldMode === 'saved'
+    ? String(draft.battleMapId ?? selected?.map_id ?? selected?.mapId ?? '')
+    : '';
+  const battleMapMissing = Boolean(battlefieldMode === 'saved' && battleMapId && !battleMapsUnavailable
     && battleMaps.length > 0 && !battleMaps.some(map => String(map.id) === battleMapId));
 
   // Setters keeping the shape the rest of the component already uses, so the
@@ -535,7 +559,15 @@ export default function LiveEncounterLauncher({
     ...previous,
     quickDraft: typeof next === 'function' ? next(previous.quickDraft) : next,
   }));
-  const setBattleMapId = id => commitDraft(previous => ({ ...previous, battleMapId: String(id || '') }));
+  const setBattleMapId = id => commitDraft(previous => ({
+    ...previous, battlefieldMode: 'saved', battleMapId: String(id || ''),
+  }));
+  const setBattlefieldMode = mode => commitDraft(previous => ({
+    ...previous, battlefieldMode: ['saved', 'generic', 'none'].includes(mode) ? mode : 'none',
+  }));
+  const setTerrainType = terrain => commitDraft(previous => ({
+    ...previous, battlefieldMode: 'generic', terrainType: normaliseCombatTerrain(terrain),
+  }));
 
   const discardDraft = () => {
     clearDraft(campaignId, selectedId, { accountId });
@@ -697,7 +729,7 @@ export default function LiveEncounterLauncher({
     discardDraft();
     navigate(`/combat/${campaignId}`, {
       state: {
-        scenario: encounterBattleScenario(selected, combatants, battleMapId),
+        scenario: encounterBattleScenario(selected, combatants, battleMapId, Date.now(), terrainType, battlefieldMode),
         campaignId,
         campaignName,
         source: 'live-play',
@@ -722,26 +754,17 @@ export default function LiveEncounterLauncher({
         </select>
       </header>
 
-      <label style={{ ...sectionStyle, gap: 5, fontSize: 12 }}>
-        <strong>Battle map</strong>
-        <select
-          aria-label="Battle map for this encounter"
-          value={battleMapId}
-          onChange={event => setBattleMapId(event.target.value)}
-          style={selectStyle}
-        >
-          <option value="">No linked map — choose one during combat</option>
-          {battleMaps.map(map => (
-            <option key={String(map.id)} value={String(map.id)}>{map.name || 'Untitled map'}</option>
-          ))}
-          {battleMapId && !battleMaps.some(map => String(map.id) === battleMapId) && (
-            <option value={battleMapId}>Previously linked map ({battleMapId})</option>
-          )}
-        </select>
-        <span style={mutedStyle}>The selected map opens with the battle tracker when you start combat. Enemy details stay GM-only.</span>
-        {battleMapsUnavailable && <span role="status">Map list could not be refreshed; combat can still start and maps can be selected there.</span>}
-        {battleMapMissing && <span role="status">The linked map is not in the loaded map list. Choose another map before starting for automatic display.</span>}
-      </label>
+      <section style={{ ...sectionStyle, gap: 9 }}>
+        <strong>Battlefield for this encounter</strong>
+        <BattlefieldPicker
+          mode={battlefieldMode} terrainType={terrainType} mapId={battleMapId}
+          maps={battleMaps} compact onModeChange={setBattlefieldMode}
+          onTerrainChange={setTerrainType} onMapIdChange={setBattleMapId}
+        />
+        <span style={mutedStyle}>These choices affect this battle only. The saved encounter and its combatants stay unchanged.</span>
+        {battleMapsUnavailable && <span role="status">Map list could not be refreshed; generic terrain is still available.</span>}
+        {battleMapMissing && <span role="status">Linked map unavailable in the loaded map list. Select a generic terrain or another saved map to avoid a blank map.</span>}
+      </section>
 
       <LiveDataWarning errors={loadErrors} onRetry={retryLoad} compact />
       {partyStatus === 'failed' && (
