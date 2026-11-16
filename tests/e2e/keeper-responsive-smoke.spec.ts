@@ -893,12 +893,12 @@ for (const width of [320, 390]) {
     await expect(nav.getByRole('link')).toHaveCount(5);
 
     for (const section of [
-      { name: 'Characters', target: /\\/characters\\/?$/ },
-      { name: 'Campaigns', target: /\\/campaigns\\/?$/ },
-      { name: 'Home', target: /\\/home\\/?$/ },
+      { name: 'Characters', target: '/characters' },
+      { name: 'Campaigns', target: '/campaigns' },
+      { name: 'Home', target: '/home' },
     ]) {
       await nav.getByRole('link', { name: section.name }).click();
-      await expect(page).toHaveURL(section.target);
+      await expect(page).toHaveURL(new RegExp(section.target + '$'));
       await expect(rail).toBeVisible();
       await expect(nav.getByRole('link')).toHaveCount(5);
       const bounds = await rail.boundingBox();
