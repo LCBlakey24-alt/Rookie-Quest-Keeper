@@ -135,14 +135,6 @@ export function AppRoutes() {
   const handleAuthLogin = useCallback((token, nextUsername, nextIsAdmin) => {
     if (!preview) {
       setStoredAuthUsername(nextUsername || '');
-      if (typeof nextIsAdmin === 'boolean') {
-        try {
-          sessionStorage.setItem(
-            `rqk.admin-check:${nextUsername || 'unknown'}`,
-            JSON.stringify({ isAdmin: nextIsAdmin, checkedAt: Date.now() }),
-          );
-        } catch {}
-      }
     }
     skipNextAuthProbeRef.current = true;
     setAuthToken(token);
