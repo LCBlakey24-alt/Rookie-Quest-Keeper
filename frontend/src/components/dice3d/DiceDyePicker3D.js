@@ -84,6 +84,7 @@ export default function DiceDyePicker3D({ selectedId, onSelect, onConfirm }) {
         confirmLabel="CHOOSE"
         confirmAria="Choose dice style"
         confirmTestId="dice-dye-confirm"
+        maxFlickVelocity={0.22}
       />
     </div>
   );
