@@ -1004,7 +1004,7 @@ for (const width of [1024, 1180]) {
     expect(railBox?.width).toBeGreaterThanOrEqual(170);
     expect(railBox?.width).toBeLessThanOrEqual(200);
     expect((railBox?.x || 0) + (railBox?.width || 0)).toBeLessThanOrEqual((mainBox?.x || 0) + 2);
-    await expect(rail).toHaveCSS('max-height', /\\d/);
+    expect(railBox?.height).toBeLessThanOrEqual(768 - 24 + 2);
 
     // A click must land on the rail button, not on the adjoining workspace.
     for (const button of [combat, category]) {
