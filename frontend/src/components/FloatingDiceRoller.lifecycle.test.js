@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { DICE_DYES } from '@/components/dice3d/diceDyes';
 import { preloadDiceTray3D } from '@/components/dice3d/loadDiceTray3D';
 import FloatingDiceRoller from './FloatingDiceRoller';
+import { requestDiceOpen } from '@/lib/diceOpenRequest';
 
 let mockMountSerial = 0;
 
@@ -152,6 +153,19 @@ describe('fresh physical dice presentation', () => {
     expect(screen.getByTestId('roll-presentation')).toHaveAttribute('data-shape', 'hex');
     expect(screen.getByTestId('roll-presentation')).toHaveAttribute('data-anchor', '.rq-dice-wheel-overlay .guild-wheel__svg');
     fireEvent.click(screen.getByTestId('dice-roller-close'));
+    expect(screen.queryByTestId('dice-wheel-overlay')).not.toBeInTheDocument();
+  });
+
+  test('a Home D20 tap before lazy roller mount opens the dice picker exactly once', async () => {
+    // The wheel chunk isn't mounted yet. An ordinary browser event would be
+    // lost and Home's centre would appear broken on slow phones.
+    requestDiceOpen();
+    const view = render(<MemoryRouter initialEntries={['/home']}><FloatingDiceRoller /></MemoryRouter>);
+    await screen.findByTestId('mock-dye-picker-3d');
+    expect(screen.getAllByTestId('dice-wheel-overlay')).toHaveLength(1);
+    view.unmount();
+    // The request is consumed, not replayed after navigating back to Home.
+    render(<MemoryRouter initialEntries={['/home']}><FloatingDiceRoller /></MemoryRouter>);
     expect(screen.queryByTestId('dice-wheel-overlay')).not.toBeInTheDocument();
   });
 
