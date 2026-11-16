@@ -132,7 +132,7 @@ export function AppRoutes() {
   const skipNextAuthProbeRef = useRef(false);
   const isPublicBrandRoute = PUBLIC_BRAND_PATHS.has(location.pathname) || location.pathname.startsWith('/auth') || location.pathname === '/reset-password';
 
-  const handleAuthLogin = useCallback((token, nextUsername, nextIsAdmin) => {
+  const handleAuthLogin = useCallback((token, nextUsername) => {
     if (!preview) {
       setStoredAuthUsername(nextUsername || '');
     }
