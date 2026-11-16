@@ -997,7 +997,10 @@ for (const width of [1024, 1180]) {
     await expect(rail).toBeVisible();
     await expect(combat).toBeVisible();
     await expect(rail.getByTestId('live-tool-filter')).toBeVisible();
-    await expect(combat.locator('span')).toHaveCSS('position', 'static');
+    // Shared visual styles may position labels relatively for the underline;
+    // assert actual readable width rather than an unrelated CSS position value.
+    const labelWidth = await combat.locator('span').evaluate(el => el.getBoundingClientRect().width);
+    expect(labelWidth).toBeGreaterThan(55);
 
     const railBox = await rail.boundingBox();
     const mainBox = await main.boundingBox();
