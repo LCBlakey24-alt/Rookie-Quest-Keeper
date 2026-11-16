@@ -317,3 +317,69 @@
 #root .campaigns-library-page--simple .campaign-card-delete:is(:hover, :focus-visible) svg {
   color: var(--rq-danger, #b94a4f) !important;
 }
+
+/* Route-scoped colour authority within the app's existing important layer.
+   This is deliberately visual-only; the responsive geometry above is intact.
+   The generic important-layer reset would otherwise turn the cards/buttons
+   back to the retired blue/orange palette. */
+@layer rq-controls {
+  #root .campaigns-library-page--simple {
+    background: radial-gradient(circle at 85% 0%,
+      rgba(var(--rqk-midnight-magenta-rgb), 0.11), transparent 42%),
+      var(--rqk-midnight-bg) !important;
+  }
+  #root .campaigns-library-page--simple .campaigns-library-hero {
+    background: var(--rqk-midnight-panel) !important;
+    border-color: var(--rqk-midnight-border) !important;
+    box-shadow: var(--rqk-midnight-inset) !important;
+  }
+  #root .campaigns-library-page--simple .campaign-library-card--simple {
+    background: var(--rqk-midnight-raised) !important;
+    border-color: var(--rqk-midnight-border) !important;
+    box-shadow: var(--rqk-midnight-inset) !important;
+  }
+  #root .campaigns-library-page--simple .campaign-library-card--simple:is(:hover, :focus-within) {
+    background: var(--rqk-midnight-hover) !important;
+    border-color: var(--rqk-midnight-magenta) !important;
+    box-shadow: var(--rqk-midnight-inset-selected) !important;
+  }
+  #root .campaigns-library-page--simple :is(
+    .library-page-button, .library-page-button-secondary, .campaign-card-open, .campaign-card-delete
+  ) {
+    background: var(--rqk-midnight-raised) !important;
+    border-color: var(--rqk-midnight-border) !important;
+    color: var(--rqk-midnight-text) !important;
+    box-shadow: var(--rqk-midnight-inset) !important;
+  }
+  #root .campaigns-library-page--simple :is(.library-page-button-primary, .campaign-card-open) {
+    border-color: var(--rqk-midnight-magenta) !important;
+    box-shadow: var(--rqk-midnight-inset-selected) !important;
+  }
+  #root .campaigns-library-page--simple :is(
+    .library-page-button, .library-page-button-secondary, .campaign-card-open
+  ):is(:hover, :focus-visible) {
+    background: var(--rqk-midnight-hover) !important;
+    border-color: var(--rqk-midnight-magenta) !important;
+  }
+  #root .campaigns-library-page--simple :is(
+    .library-page-button, .library-page-button-secondary, .campaign-card-open, .campaign-card-delete
+  ):focus-visible {
+    outline: 3px solid var(--rqk-midnight-magenta) !important;
+    outline-offset: 2px !important;
+  }
+  #root .campaigns-library-page--simple .campaign-card-delete:is(:hover, :focus-visible) {
+    background: var(--rqk-midnight-hover) !important;
+    border-color: var(--rq-danger, #b94a4f) !important;
+  }
+  #root .campaigns-library-page--simple :is(.campaigns-library-hero h1, .campaign-card-title-row h2) {
+    color: var(--rqk-midnight-text) !important;
+  }
+  #root .campaigns-library-page--simple :is(
+    .campaign-card-primary-line, .campaign-card-description, .campaign-card-meta-line
+  ) {
+    color: var(--rqk-midnight-muted) !important;
+  }
+  #root .campaigns-library-page--simple :is(.library-page-eyebrow, .campaign-card-open svg) {
+    color: var(--rqk-midnight-magenta) !important;
+  }
+}
