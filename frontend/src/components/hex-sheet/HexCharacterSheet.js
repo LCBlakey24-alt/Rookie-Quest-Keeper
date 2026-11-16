@@ -657,7 +657,7 @@ export default function HexCharacterSheet() {
           </div>
         )}
         {current.view === 'dice' && (
-          <button type="button" className="hex-sheet__text-button" onClick={requestDiceOpen} data-testid="hex-more-dice">
+          <button type="button" className="hex-sheet__text-button" onClick={() => requestDiceOpen()} data-testid="hex-more-dice">
             <span className="hex-glass" aria-hidden="true" />
             Mixed dice and custom rolls
           </button>
