@@ -1,3 +1,4 @@
+import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import { passiveScore } from '@/data/skillModifiers';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -579,9 +580,11 @@ export default function CleanCharacterSheet() {
 
   if (loading) {
     return (
-      <div className="clean-sheet-page character-page-v2 clean-sheet-loading">
-        <HexLoader label="Opening character…" />
-      </div>
+      <RouteLoadingScreen
+        label="Character sheet is loading"
+        status="Opening character…"
+        description="Preparing your character sheet for play."
+      />
     );
   }
 
