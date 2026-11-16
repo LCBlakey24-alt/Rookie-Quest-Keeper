@@ -96,7 +96,7 @@ describe('Keeper simplified navigation', () => {
     await act(async () => { render(<AppShell><main>Section content</main></AppShell>); });
     const nav = screen.getByRole('navigation', { name: 'Main app sections' });
     expect(within(nav).getAllByRole('link')).toHaveLength(5);
-    expect(within(nav).getByRole('link', { name: active })).toHaveAttribute('aria-current', 'page');
+    expect(within(nav).getAllByRole('link').find(link => link.getAttribute('aria-current') === 'page')).toHaveTextContent(active);
     expect(nav.closest('.rqk-app-rail')).toBeInTheDocument();
   });
 
