@@ -863,3 +863,49 @@ for (const size of [
   });
 }
 
+
+
+/* The phone dock is persistent: visiting a primary section must not switch it
+ * off or cover the section's working content. Standalone immersive screens
+ * deliberately use their own controls and are not part of this shell check. */
+for (const width of [320, 390]) {
+  test(`five-tab phone dock remains visible across Home, Characters and Campaigns at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 780 });
+    await page.addInitScript(token => {
+      localStorage.setItem('dm_token', token);
+      localStorage.setItem('dm_username', 'responsive-display-user');
+    }, syntheticDisplayToken);
+    await avoidThirdPartyRequests(page);
+    await page.route('**/api/**', route => {
+      const url = new URL(route.request().url()).pathname;
+      let data: unknown = {};
+      if (url === '/api/auth/me') data = { username: 'responsive-display-user' };
+      else if (url === '/api/admin/check') data = { is_admin: false };
+      else if (url === '/api/dashboard/bootstrap') data = { characters: [], campaigns: [], homebrew_items: [], site_settings: {}, is_admin: false };
+      else if (url === '/api/characters' || url === '/api/campaigns') data = [];
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) });
+    });
+
+    await page.goto('/home');
+    const rail = page.getByRole('complementary', { name: 'App navigation' });
+    const nav = page.getByRole('navigation', { name: 'Main app sections' });
+    await expect(rail).toBeVisible();
+    await expect(nav.getByRole('link')).toHaveCount(5);
+
+    for (const section of [
+      { name: 'Characters', target: /\\/characters\\/?$/ },
+      { name: 'Campaigns', target: /\\/campaigns\\/?$/ },
+      { name: 'Home', target: /\\/home\\/?$/ },
+    ]) {
+      await nav.getByRole('link', { name: section.name }).click();
+      await expect(page).toHaveURL(section.target);
+      await expect(rail).toBeVisible();
+      await expect(nav.getByRole('link')).toHaveCount(5);
+      const bounds = await rail.boundingBox();
+      expect(bounds, 'The phone dock should occupy visible space').not.toBeNull();
+      expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(781);
+      expect(bounds!.height).toBeGreaterThanOrEqual(44);
+      await assertFitsViewport(page, width);
+    }
+  });
+}
