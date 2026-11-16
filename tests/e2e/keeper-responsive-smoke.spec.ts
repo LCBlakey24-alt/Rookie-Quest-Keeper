@@ -909,3 +909,71 @@ for (const width of [320, 390]) {
     }
   });
 }
+
+
+// Real landscape phones exceed the 719px portrait breakpoint but still use
+// the compact dock. Desktop browsers resized to the same width must keep their
+// ordinary tablet rail; these tests explicitly create a coarse touch context.
+for (const size of [
+  { label: 'compact landscape phone', width: 844, height: 390 },
+  { label: 'wide landscape phone', width: 932, height: 430 },
+]) {
+  test(`landscape touch phone keeps the bottom dock and accessible public entry at ${size.width}x${size.height}`, async ({ browser }) => {
+    const context = await browser.newContext({
+      viewport: { width: size.width, height: size.height },
+      hasTouch: true,
+      isMobile: true,
+      serviceWorkers: 'block',
+      baseURL: 'http://127.0.0.1:4173',
+    });
+    const page = await context.newPage();
+    try {
+      await avoidThirdPartyRequests(page);
+      await page.goto('/');
+      await expect(page.getByTestId('landing-page')).toBeVisible();
+      await expect(page.getByTestId('landing-signin-btn')).toBeVisible();
+      await assertFitsViewport(page, size.width);
+      await page.getByTestId('landing-signin-btn').click();
+      await expect(page.getByTestId('auth-page')).toBeVisible();
+      await expect(page.locator('#login-identifier')).toBeVisible();
+      await assertFitsViewport(page, size.width);
+
+      await page.addInitScript(token => {
+        localStorage.setItem('dm_token', token);
+        localStorage.setItem('dm_username', 'responsive-display-user');
+      }, syntheticDisplayToken);
+      await page.route('**/api/**', route => {
+        const path = new URL(route.request().url()).pathname;
+        let data: unknown = {};
+        if (path === '/api/auth/me') data = { username: 'responsive-display-user' };
+        else if (path === '/api/admin/check') data = { is_admin: false };
+        else if (path === '/api/dashboard/bootstrap') data = { characters: [], campaigns: [], homebrew_items: [], site_settings: {}, is_admin: false };
+        else if (path === '/api/characters' || path === '/api/campaigns') data = [];
+        return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) });
+      });
+      await page.goto('/home');
+      const shell = page.locator('.rqk-app-shell');
+      await expect(shell).toHaveAttribute('data-rq-device', 'mobile');
+      const dock = page.getByRole('complementary', { name: 'App navigation' });
+      await expect(dock).toBeVisible();
+      const nav = page.getByRole('navigation', { name: 'Main app sections' });
+      await expect(nav.getByRole('link')).toHaveCount(5);
+      const bounds = await dock.boundingBox();
+      expect(bounds).not.toBeNull();
+      expect(bounds!.height).toBeGreaterThanOrEqual(44);
+      expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(size.height + 2);
+
+      await nav.getByRole('link', { name: 'Characters', exact: true }).click();
+      await expect(page).toHaveURL(new RegExp('/characters$'));
+      await expect(dock).toBeVisible();
+      await assertFitsViewport(page, size.width);
+
+      await nav.getByRole('link', { name: 'Campaigns', exact: true }).click();
+      await expect(page).toHaveURL(new RegExp('/campaigns$'));
+      await expect(dock).toBeVisible();
+      await assertFitsViewport(page, size.width);
+    } finally {
+      await context.close();
+    }
+  });
+}
