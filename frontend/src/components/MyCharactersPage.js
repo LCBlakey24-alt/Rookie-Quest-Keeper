@@ -8,7 +8,7 @@ import '@/styles/libraryPages.css';
 import './MyCharactersPage.css';
 import '@/styles/guildTokens.css';
 import '@/styles/libraryGuild.css';
-import HexLoader from '@/components/guild-motif/HexLoader';
+import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 
 function recordId(record) {
   return record?.id || record?._id || record?.character_id || record?.characterId || '';
@@ -222,14 +222,11 @@ export default function MyCharactersPage() {
 
   if (loading) {
     return (
-      <main className="library-page library-page-loading">
-        <section className="loading-screen library-page-branded-loading" role="status" aria-live="polite" aria-busy="true">
-          <div className="loading-card">
-            <HexLoader />
-            <h1 className="loading-title">Opening characters…</h1>
-          </div>
-        </section>
-      </main>
+      <RouteLoadingScreen
+        label="Characters are loading"
+        status="Opening characters…"
+        description="Your character library will appear here."
+      />
     );
   }
 
