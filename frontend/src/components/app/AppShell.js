@@ -309,7 +309,7 @@ export default function AppShell({ children }) {
     openFeedback();
   };
 
-  // Anything but the home dashboard: on a phone, no tab bar and a hexagon back button.
+  // Inner sections retain a hexagon back button; the five-tab phone dock stays visible.
   const innerRoute = isInnerRoute(location.pathname);
 
   return (
@@ -376,7 +376,7 @@ export default function AppShell({ children }) {
         )}
       </aside>
 
-      {/* The tab bar is hidden on inner pages, so the More panel is rendered beside it. */}
+      {/* Inner-page More stays outside the rail for consistent overlay stacking. */}
       {isMobile && isMoreOpen && innerRoute && (
         <MobileMorePanel
           items={mobileMoreItems}
