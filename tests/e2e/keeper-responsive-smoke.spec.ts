@@ -1103,3 +1103,40 @@ for (const size of [
     await assertFitsViewport(page, size.width);
   });
 }
+
+
+// The campaign library uses the same opt-in palette, without changing the
+// existing three device-specific grid layouts or the primary click targets.
+for (const size of [
+  { label: 'phone', width: 390, height: 844 },
+  { label: 'landscape tablet', width: 1024, height: 768 },
+  { label: 'desktop', width: 1440, height: 900 },
+]) {
+  test(`My Campaigns Midnight Magenta pilot keeps cards readable on ${size.label}`, async ({ page }) => {
+    await page.setViewportSize({ width: size.width, height: size.height });
+    await avoidThirdPartyRequests(page);
+    await page.goto('/campaigns?demo=1');
+
+    await expect(page.getByRole('heading', { name: 'My Campaigns' })).toBeVisible();
+    const hero = page.locator('.campaigns-library-hero');
+    const card = page.locator('.campaign-library-card--simple').first();
+    await expect(hero).toBeVisible();
+    await expect(card).toBeVisible();
+
+    const look = await card.evaluate(element => {
+      const style = getComputedStyle(element);
+      return { background: style.backgroundColor, shadow: style.boxShadow };
+    });
+    const heroColour = await hero.evaluate(element => getComputedStyle(element).backgroundColor);
+    expect(heroColour).toBe('rgb(20, 16, 39)');
+    expect(look.background).toBe('rgb(32, 19, 50)');
+    expect(look.shadow).toContain('inset');
+
+    const open = card.getByRole('button', { name: /Open Campaign|Open Player Campaign/ });
+    await expect(open).toBeVisible();
+    await open.focus();
+    const focus = await open.evaluate(element => getComputedStyle(element).outlineStyle);
+    expect(focus).not.toBe('none');
+    await assertFitsViewport(page, size.width);
+  });
+}
