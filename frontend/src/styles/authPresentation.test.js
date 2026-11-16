@@ -34,6 +34,13 @@ describe('Guild Ledger authentication presentation', () => {
     expect(authSection).not.toMatch(/linear-gradient|radial-gradient|conic-gradient/i);
   });
 
+  test('the primary sign-in action is readable and headings use the current brand font', () => {
+    const auth = read('../components/AuthPage.css');
+    expect(auth).toContain('color: #ffffff !important;');
+    expect(auth).toContain("font-family: var(--guild-font-display, 'Cinzel', Georgia, serif) !important;");
+    expect(auth).toContain('var(--guild-box-glow-hot');
+  });
+
   test('the sign-in page carries the hexagon badge, which spells out the name', () => {
     const page = read('../components/AuthPage.js');
 
