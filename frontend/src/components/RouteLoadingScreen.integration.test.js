@@ -48,6 +48,7 @@ describe('one Keeper loading screen for full-page transitions', () => {
     'components/dashboard/player/PlayerDashboardLoading.js',
     'components/AccountSettings.js',
     'components/AdminPage.js',
+    'components/admin/VerifiedAdminRoute.js',
     'components/CleanCharacterSheet.js',
     'components/hex-sheet/HexCharacterSheet.js',
     'components/CharacterProfileEditor.js',
