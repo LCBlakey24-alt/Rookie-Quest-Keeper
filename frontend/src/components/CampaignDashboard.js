@@ -1,3 +1,4 @@
+import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -307,10 +308,11 @@ export default function CampaignDashboard() {
   // campaign header, join code or GM Home while the new route is loading.
   if (loading || (campaign && campaign.id !== campaignId)) {
     return (
-      <main className="campaign-dashboard-loading" role="status" aria-live="polite">
-        <HexLoader />
-        <span>Opening campaign…</span>
-      </main>
+      <RouteLoadingScreen
+        label="Campaign workspace is loading"
+        status="Opening campaign…"
+        description="Preparing your GM campaign workspace."
+      />
     );
   }
 
