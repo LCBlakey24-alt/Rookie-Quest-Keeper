@@ -62,5 +62,8 @@ describe('Keeper installed-app asset references', () => {
     }
     const html = fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8');
     expect(html).toContain('/site.webmanifest?v=20261116-1');
+    // Shortcuts that use the favicon rather than the PWA manifest must use
+    // the approved hexagon badge, not a stale legacy mark.
+    expect(html).toContain('/brand/rqk-hex-logo-360.png?v=20261116-1');
   });
 });
