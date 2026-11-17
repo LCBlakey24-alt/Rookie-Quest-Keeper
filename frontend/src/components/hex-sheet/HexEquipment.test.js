@@ -41,11 +41,16 @@ function renderEquipment(character = PALADIN) {
 
 beforeEach(() => jest.clearAllMocks());
 
-test('shows what is worn and held on the body, and empty slots as empty', () => {
+test('shows the five slots -- main hand, off hand, armour, boots, helmet -- and empty ones as empty', () => {
   renderEquipment();
+  const body = screen.getByRole('region', { name: 'Worn and held' });
+  expect(within(body).getAllByRole('button')).toHaveLength(5);
   expect(screen.getByTestId('hex-slot-mainHand')).toHaveAccessibleName('Main Hand: Longsword');
+  expect(screen.getByTestId('hex-slot-offHand')).toHaveAccessibleName('Off Hand: Shield');
   expect(screen.getByTestId('hex-slot-armor')).toHaveAccessibleName('Armour: Plate Armor');
-  expect(screen.getByTestId('hex-slot-ring1')).toHaveAccessibleName('Ring: empty');
+  expect(screen.getByTestId('hex-slot-boots')).toHaveAccessibleName('Boots: empty');
+  expect(screen.getByTestId('hex-slot-head')).toHaveAccessibleName('Helmet: empty');
+  expect(screen.queryByTestId('hex-slot-ring1')).toBeNull();
 });
 
 test('a held weapon can attack and roll damage from its slot', () => {
@@ -57,17 +62,23 @@ test('a held weapon can attack and roll damage from its slot', () => {
   expect(onPresent).toHaveBeenCalledWith(expect.objectContaining({ label: 'Longsword Damage', sides: 8 }));
 });
 
-test('equipping attuned protection items saves them in their slots and raises AC: 18 + 2 + 1 + 1 = 22', async () => {
+test('rings and cloaks stay in the equipment list and count while attuned: 18 + 2 + 1 + 1 = 22', async () => {
   const { onSave } = renderEquipment();
-  await act(async () => { fireEvent.click(screen.getByTestId('hex-pack-equip-Ring of Protection')); });
-  const [ringSave] = onSave.mock.calls[0];
-  expect(ringSave.equipped.ring1).toMatchObject({ name: 'Ring of Protection' });
-  expect(ringSave.armor_class).toBe(21);
-  const withRing = { ...PALADIN, equipped: ringSave.equipped, inventory: ringSave.inventory };
-  document.body.innerHTML = '';
-  const second = renderEquipment(withRing);
-  await act(async () => { fireEvent.click(screen.getByTestId('hex-pack-equip-Cloak of Protection')); });
-  expect(second.onSave.mock.calls[0][0].armor_class).toBe(22);
+  const list = screen.getByRole('region', { name: 'Equipment' });
+  const ringRow = within(list).getByText('Ring of Protection').closest('li');
+  // No slot to put it in: the ring is not offered an Equip button.
+  expect(within(ringRow).queryByRole('button', { name: /Equip/ })).toBeNull();
+  // Ending the cloak's attunement takes its +1 away: 22 -> 21.
+  const cloakRow = within(list).getByText('Cloak of Protection').closest('li');
+  await act(async () => { fireEvent.click(within(cloakRow).getByRole('button', { name: 'End' })); });
+  expect(onSave.mock.calls[0][0].armor_class).toBe(21);
+});
+
+test('an item an older save wears in a ring slot is listed as worn, not hidden', () => {
+  const older = { ...PALADIN, equipped: { ...PALADIN.equipped, ring1: { ...ring, equipped: true } }, inventory: PALADIN.inventory.map((item) => (item.id === 'ring' ? { ...item, equipped: true, equip_slot: 'ring1' } : item)) };
+  renderEquipment(older);
+  const list = screen.getByRole('region', { name: 'Equipment' });
+  expect(within(within(list).getByText('Ring of Protection').closest('li')).getByText(/Worn · Ring/)).toBeInTheDocument();
 });
 
 test('a two-handed weapon empties the off hand', async () => {
@@ -78,13 +89,13 @@ test('a two-handed weapon empties the off hand', async () => {
   const [saved] = onSave.mock.calls[0];
   expect(saved.equipped.mainHand).toMatchObject({ name: 'Greatsword' });
   expect(saved.equipped.offHand).toBeUndefined();
-  expect(saved.armor_class).toBe(18); // the shield came off
+  expect(saved.armor_class).toBe(20); // the shield came off: plate 18 + attuned ring and cloak
 });
 
 test('attunement stops at three items', () => {
   const full = { ...PALADIN, inventory: [...PALADIN.inventory.filter((item) => item.id !== 'amulet'), { ...amulet }, { id: 'boots', name: 'Boots of Elvenkind', requires_attunement: true, attuned: true }] };
   const { onSave } = renderEquipment(full);
-  const pack = screen.getByRole('region', { name: 'Backpack' });
+  const pack = screen.getByRole('region', { name: 'Equipment' });
   fireEvent.click(within(within(pack).getByText('Amulet of Health').closest('li')).getByRole('button', { name: 'Attune' }));
   expect(toast.error).toHaveBeenCalledWith(expect.stringContaining('Already attuned to 3'));
   expect(onSave).not.toHaveBeenCalled();

@@ -454,25 +454,18 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
   display: grid; justify-content: center; gap: 4px 14px;
   grid-template-columns: repeat(3, var(--hex-slot-w));
   grid-auto-rows: calc(var(--hex-slot-w) * 1.1547);
+  /* Five slots, laid out like a body: helmet, then hands either side of
+     the armour, then boots. Rings, cloaks and the rest are in the list. */
   grid-template-areas:
     ".         head    ."
-    "shoulders neck    wrists"
     "mainHand  armor   offHand"
-    "gauntlets waist   ring1"
-    ".         boots   ring2";
+    ".         boots   .";
 }
 .hex-equip__slot--head { grid-area: head; }
-.hex-equip__slot--neck { grid-area: neck; }
-.hex-equip__slot--shoulders { grid-area: shoulders; }
-.hex-equip__slot--wrists { grid-area: wrists; }
 .hex-equip__slot--mainHand { grid-area: mainHand; }
 .hex-equip__slot--armor { grid-area: armor; }
 .hex-equip__slot--offHand { grid-area: offHand; }
-.hex-equip__slot--gauntlets { grid-area: gauntlets; }
-.hex-equip__slot--waist { grid-area: waist; }
-.hex-equip__slot--ring1 { grid-area: ring1; }
 .hex-equip__slot--boots { grid-area: boots; }
-.hex-equip__slot--ring2 { grid-area: ring2; }
 
 /* Each slot's SVG clips its glow inside the actual hexagon, including the
    angled edges. The native button remains the interactive element. */

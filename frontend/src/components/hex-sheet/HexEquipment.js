@@ -23,6 +23,7 @@ import {
   isAttuned,
   isTwoHanded,
   itemQuantity,
+  LEGACY_WORN_SLOTS,
   itemWeight,
   offHandBlocked,
   requiresAttunement,
@@ -36,7 +37,8 @@ const COIN_NAMES = { pp: 'Platinum', gp: 'Gold', ep: 'Electrum', sp: 'Silver', c
 const mod = (score) => Math.floor((Number(score || 10) - 10) / 2);
 const nameOf = (item) => (typeof item === 'string' ? item : item?.name || 'Item');
 const signed = (value) => (value >= 0 ? `+${value}` : `${value}`);
-const slotLabel = (id) => BODY_SLOTS.find((slot) => slot.id === id)?.label || id;
+const LEGACY_LABELS = { neck: 'Neck', shoulders: 'Cloak', gauntlets: 'Hands', wrists: 'Bracers', waist: 'Belt', ring1: 'Ring', ring2: 'Ring' };
+const slotLabel = (id) => BODY_SLOTS.find((slot) => slot.id === id)?.label || LEGACY_LABELS[id] || id;
 
 function SlotGlow() {
   const filterId = useSvgId('hex-equipment-glow');
@@ -71,8 +73,13 @@ export default function HexEquipment({ character, proficiencyBonus, onRoll, onPr
     equipped,
   }), [inventory, character, equipped]);
   // The carried view marks each worn copy, so a spare same-named item (a
-  // second Dagger) stays in the backpack.
-  const backpack = carried.filter((item) => !(item && typeof item === 'object' && (item.equipped || item.is_equipped)));
+  // second Dagger) stays in the list. Only the five slots are shown as
+  // hexagons; anything an older save still has in a ring, cloak or other
+  // slot is listed with the gear (marked as worn) so it is never hidden.
+  const slotKeys = new Set(BODY_SLOTS.map((slot) => equipped[slot.id]).filter(Boolean).map(inventoryItemIdentity));
+  const isWornFlag = (item) => Boolean(item && typeof item === 'object' && (item.equipped || item.is_equipped));
+  const backpack = carried.filter((item) => !isWornFlag(item) || !slotKeys.has(inventoryItemIdentity(item)));
+  const legacySlotOf = (item) => LEGACY_WORN_SLOTS.find((slot) => equipped[slot] && inventoryItemIdentity(equipped[slot]) === inventoryItemIdentity(item));
   const attunedCount = carried.filter(isAttuned).length;
   const currency = normaliseCurrencyState(character || {});
   const weight = carriedWeight(carried, currency);
@@ -241,7 +248,7 @@ export default function HexEquipment({ character, proficiencyBonus, onRoll, onPr
                     {isTwoHanded(candidate) && <span>Two-handed: frees the off hand</span>}
                   </button>
                 </li>
-              )) : <li className="hex-equip__empty">Nothing in the backpack fits here.</li>}
+              )) : <li className="hex-equip__empty">Nothing in your equipment fits here.</li>}
             </ul>
           )}
         </section>
@@ -277,28 +284,29 @@ export default function HexEquipment({ character, proficiencyBonus, onRoll, onPr
         <p>{overCapacity ? 'Over your carrying capacity. Drop something or ask the GM how it slows you.' : `Capacity is Strength × 15. Coins count at 50 to the pound.`}</p>
       </section>
 
-      <section className="hex-equip__card" aria-label="Backpack">
+      <section className="hex-equip__card" aria-label="Equipment">
         <header>
-          <h3>Backpack</h3>
+          <h3>Equipment</h3>
           <span>{backpack.length} item{backpack.length === 1 ? '' : 's'} · attuned {attunedCount}/{ATTUNEMENT_LIMIT}</span>
         </header>
         <ul className="hex-equip__pack">
           {backpack.length ? backpack.map((packed, index) => {
             const slots = slotsForItem(packed);
             const free = slots.find((slot) => !equipped[slot]) || slots[0];
+            const oldSlot = isWornFlag(packed) ? legacySlotOf(packed) : null;
             return (
               <li key={`${inventoryItemIdentity(packed)}-${index}`} className={isAttuned(packed) ? 'is-attuned' : ''}>
                 <div>
                   <strong>{nameOf(packed)}{itemQuantity(packed) > 1 ? ` ×${itemQuantity(packed)}` : ''}</strong>
-                  <span>{[packed.type, itemWeight(packed) ? `${Math.round(itemWeight(packed) * itemQuantity(packed) * 10) / 10} lb` : null, requiresAttunement(packed) ? (isAttuned(packed) ? 'Attuned' : 'Attunement') : null].filter(Boolean).join(' · ')}</span>
+                  <span>{[packed.type, oldSlot ? `Worn · ${slotLabel(oldSlot)}` : null, itemWeight(packed) ? `${Math.round(itemWeight(packed) * itemQuantity(packed) * 10) / 10} lb` : null, requiresAttunement(packed) ? (isAttuned(packed) ? 'Attuned' : 'Attunement') : null].filter(Boolean).join(' · ')}</span>
                 </div>
                 <div className="hex-equip__pack-actions">
                   {requiresAttunement(packed) && <button type="button" onClick={() => toggleAttunement(packed)} disabled={busy}>{isAttuned(packed) ? 'End' : 'Attune'}</button>}
-                  {free && <button type="button" onClick={() => equip(packed, free)} disabled={busy} data-testid={`hex-pack-equip-${nameOf(packed)}`}>Equip · {slotLabel(free)}</button>}
+                  {free && !oldSlot && <button type="button" onClick={() => equip(packed, free)} disabled={busy} data-testid={`hex-pack-equip-${nameOf(packed)}`}>Equip · {slotLabel(free)}</button>}
                 </div>
               </li>
             );
-          }) : <li className="hex-equip__empty">Nothing in the backpack.</li>}
+          }) : <li className="hex-equip__empty">Nothing else carried.</li>}
         </ul>
       </section>
     </div>
