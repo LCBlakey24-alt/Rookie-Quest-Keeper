@@ -25,6 +25,7 @@ import resend
 from utils.ws_session import end_live_sessions
 from utils.campaign_cleanup_scope import (
     CAMPAIGN_SWEEP_EXCLUSIONS,
+    PERSONAL_CAMPAIGN_REFERENCES,
     USER_HOMEBREW_CAMPAIGN_REFERENCES,
     USER_PLAYTEST_CAMPAIGN_REFERENCES,
 )
@@ -83,6 +84,8 @@ async def update_rook_ai_consent(
 USER_OWNED_COLLECTIONS = [
     'player_characters',
     'player_journal',
+    # Character journals are written here (routes/characters.py), not to player_journal.
+    'journal_entries',
     'player_notes',
     'player_handouts',
     'session_recaps',
@@ -218,7 +221,7 @@ async def cleanup_user_account(username: str) -> dict:
         # Personal player notes and journals remain personal; only their live
         # campaign link is removed so they cannot point at a deleted campaign id.
         now = datetime.now(timezone.utc).isoformat()
-        for collection_name in ('player_notes', 'player_journal'):
+        for collection_name in PERSONAL_CAMPAIGN_REFERENCES:
             await db[collection_name].update_many(
                 {'campaign_id': {'$in': campaign_ids}},
                 {'$set': {'campaign_id': None, 'updated_at': now}}

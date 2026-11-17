@@ -18,6 +18,8 @@ CAMPAIGN_SWEEP_EXCLUSIONS = {
     'player_characters',
     'player_notes',
     'player_journal',
+    # Character journals (routes/characters.py) belong to their player.
+    'journal_entries',
     'custom_rulesets',
     'reviews',
     'improvement_feedback',
@@ -38,6 +40,10 @@ CAMPAIGN_SWEEP_EXCLUSIONS = {
     'homebrew_items',
     'character_templates',
 }
+
+# A player's own notes and journals may reference a campaign. Cleaning up the
+# campaign (or its GM's account) only removes that link; they stay the player's.
+PERSONAL_CAMPAIGN_REFERENCES = ('player_notes', 'player_journal', 'journal_entries')
 
 USER_HOMEBREW_CAMPAIGN_REFERENCES = (
     'user_rulesets',
