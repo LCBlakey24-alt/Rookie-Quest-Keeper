@@ -29,6 +29,57 @@ Anything under `90 - Superseded & Legacy` is historical reference only and must 
 If an agent cannot access Google Drive, it must use this document rather than inventing a replacement theme. Do not infer a new palette from old screenshots or existing legacy CSS.
 
 
+## New visual direction — Midnight Magenta (owner reference, 16 November 2026)
+
+The owner supplied a new dramatic dark-fantasy colour reference: **blackened navy /
+plum behind luminous crimson, hot pink/magenta and violet**, with soft inner
+glow. This newer explicit owner decision takes precedence over the earlier
+Neon Coast colour choices **for the routes included in the staged rollout**.
+It does not replace the existing Guild Command layouts, typography, RQK logo,
+semantic statuses, navigation, or accessibility requirements.
+
+**Phase 1 implementation (PR #934):** My Campaigns and the campaign-specific
+Creation Mode / Live Play Mode chooser only. The opt-in palette is stored as
+`--rqk-midnight-*` variables in `frontend/src/styles/guildTokens.css` and
+applied exclusively by the two route CSS files. All other screens retain
+Neon Coast until their own reviewable, tested rollout.
+
+- Background `#090C20`; panels `#141027`; raised controls `#201332`.
+- Crimson `#F21751`; magenta `#FF1976`; violet `#8C36DD`.
+- White-lilac primary copy `#F7F4FF`; muted copy `#C9BFDC`.
+- Thin accent edges and **inset** only glow: bright controls must not become
+  solid-pink blocks and must not hide text.
+- No altered grid definitions, spacing, breakpoint rules, positioning, input
+  behaviour, icon artwork, functional status colours, or campaign data.
+
+Use the user's supplied fantasy landscape **as colour and light inspiration
+only**; do not copy or incorporate third-party stage artwork. Follow issue
+#932 for later pages and visual acceptance. If the user rejects the visual
+pilot, revert its route-scoped styles without modifying shared app geometry.
+
+**Phase 2 — site-wide (owner request, 17 November 2026):** the owner asked
+for *everything* — the animated hexagon background, the sidebar and every
+inner-glow box — to use Midnight Magenta, together with a **new RQK logo**
+(hexagon mark, crimson → magenta → violet edge). This supersedes the Neon
+Coast colours everywhere; the layout, shape, typography and wheel rules of
+§3–§6a still apply unchanged. In practice:
+
+- The shared `--guild-*` tokens in `guildTokens.css` now hold the Midnight
+  Magenta values: page `#120D27` under the crimson-lit `--rqk-midnight-stage`
+  sky; ordinary glow magenta `#FF1976` → violet `#8C36DD` → indigo `#5A4BFF`;
+  chosen/primary glow crimson `#F21751` → magenta → blush `#FF8FBF`; accent
+  `#FF5C93`. Routes read the tokens, so no route keeps its own blue.
+- `public/rq-polish.css` loads before the bundle, so it repeats the literal
+  values rather than tokens.
+- Semantic statuses keep their own colours (info stays blue `#3C92E0`).
+- Logo files keep their names (`/brand/rqk-hex-logo*.{png,webp}`, the PWA
+  icons and `apple-touch-icon.png`); the icon cache-bust is `?v=20261117-1`.
+
+Where §3 or §4 below names a Neon Coast hex value, read the matching
+`--guild-*` token instead.
+
+---
+
 ## 1. Product identity
 
 Rookie Quest Keeper is a premium TTRPG companion for players and GMs. It should feel like a focused fantasy command journal: dark, readable, practical, app-like and slightly dramatic without becoming theatrical.

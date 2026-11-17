@@ -42,14 +42,14 @@ describe('Keeper installed-app asset references', () => {
     expect(svg).not.toMatch(/<image\b|data:image\/|<script\b/i);
     const manifest = JSON.parse(fs.readFileSync(path.join(publicDir, 'site.webmanifest'), 'utf8'));
     expect(manifest.icons).toEqual(expect.arrayContaining([
-      expect.objectContaining({ src: '/icons/keeper-192.png?v=20261116-1', sizes: '192x192', purpose: 'any' }),
-      expect.objectContaining({ src: '/icons/keeper-512.png?v=20261116-1', sizes: '512x512', purpose: 'any' }),
-      expect.objectContaining({ src: '/icons/keeper-maskable-512.png?v=20261116-1', sizes: '512x512', purpose: 'maskable' }),
+      expect.objectContaining({ src: '/icons/keeper-192.png?v=20261117-1', sizes: '192x192', purpose: 'any' }),
+      expect.objectContaining({ src: '/icons/keeper-512.png?v=20261117-1', sizes: '512x512', purpose: 'any' }),
+      expect.objectContaining({ src: '/icons/keeper-maskable-512.png?v=20261117-1', sizes: '512x512', purpose: 'maskable' }),
     ]));
     for (const { src, sizes, type } of manifest.icons) {
       // Android may retain a previous icon until the manifest URL changes.
       // Only the query string is cache-busted; the underlying PNG must exist.
-      expect(src).toMatch(/\?v=20261116-1$/);
+      expect(src).toMatch(/\?v=20261117-1$/);
       expect(type).toBe('image/png');
       const filePath = path.join(publicDir, src.slice(1).split('?')[0]);
       expect(fs.existsSync(filePath)).toBe(true);
@@ -61,9 +61,9 @@ describe('Keeper installed-app asset references', () => {
       expect(png.readUInt32BE(20)).toBe(height);
     }
     const html = fs.readFileSync(path.join(publicDir, 'index.html'), 'utf8');
-    expect(html).toContain('/site.webmanifest?v=20261116-1');
+    expect(html).toContain('/site.webmanifest?v=20261117-1');
     // Shortcuts that use the favicon rather than the PWA manifest must use
     // the approved hexagon badge, not a stale legacy mark.
-    expect(html).toContain('/brand/rqk-hex-logo-360.png?v=20261116-1');
+    expect(html).toContain('/brand/rqk-hex-logo-360.png?v=20261117-1');
   });
 });

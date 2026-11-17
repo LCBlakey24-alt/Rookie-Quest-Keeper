@@ -48,7 +48,7 @@
   align-items: center !important;
   gap: 14px !important;
   padding: clamp(13px, 2vw, 18px) !important;
-  background: #0C2234 !important;
+  background: var(--guild-bg) !important;
 }
 
 #root .uploads-dashboard-eyebrow,
@@ -155,7 +155,7 @@
   align-items: center !important;
   gap: 10px !important;
   padding: 12px !important;
-  background: #0C2234 !important;
+  background: var(--guild-bg) !important;
   border-style: dashed !important;
 }
 

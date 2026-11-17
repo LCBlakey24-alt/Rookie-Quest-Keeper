@@ -125,12 +125,12 @@
   inset: 0;
   z-index: 2800;
   pointer-events: none;
-  --dice-bg: #0a2342;
-  --dice-card: #0a2342;
+  --dice-bg: var(--guild-bg);
+  --dice-card: var(--guild-bg);
   --dice-text: #fff;
-  --dice-muted: #c9d2e6;
-  --dice-blue: #4fb3ff;
-  --dice-accent: #ffb066;
+  --dice-muted: var(--guild-muted);
+  --dice-blue: var(--guild-c3);
+  --dice-accent: var(--guild-hi);
   --dice-line: rgba(201,210,230,.25);
   --dice-line-strong: rgba(201,210,230,.35);
   color: var(--dice-text);

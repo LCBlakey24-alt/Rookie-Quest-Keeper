@@ -1,4 +1,11 @@
-/* Shared look for every restyled surface: "Neon Coast" glow on a "Dusk sky".
+/* Shared look for every surface: Midnight Magenta (owner direction,
+ * 17 Nov 2026, from the reference stage image): a near-black navy-plum page
+ * lit crimson from below with violet in between, dark shapes, and a thin
+ * edge with a soft inner glow -- magenta to violet on ordinary shapes,
+ * crimson to magenta to blush on chosen ones. Every surface reads these
+ * tokens; layout is untouched.
+ *
+ * Previously "Neon Coast" glow on a "Dusk sky".
  *
  * One place sets the palette for the character sheet, creator, level-up,
  * celebration, motif badge, back button, Home and the landing page
@@ -14,44 +21,77 @@
  * follows.
  */
 :root {
-  --guild-bg: #0a2342;          /* page and shape fill: strong deep blue */
-  --guild-bg-deep: #071a33;     /* wells and inputs */
-  --guild-panel: #0e2d55;       /* raised panels */
-  --guild-sky: linear-gradient(180deg, #0a2342 0%, #0d2147 45%, #2a1b4f 78%, #4a1f52 100%);
+  /* Midnight Magenta — 16 Nov 2026 owner-supplied colour reference.
+     Now the site-wide palette: the --guild-* tokens below point at these.
+     Semantic status colours (success, warning, danger) are unchanged. */
+  --rqk-midnight-bg: #090c20;
+  --rqk-midnight-panel: #141027;
+  --rqk-midnight-raised: #201332;
+  --rqk-midnight-hover: #2b1840;
+  --rqk-midnight-crimson: #f21751;
+  --rqk-midnight-magenta: #ff1976;
+  --rqk-midnight-magenta-rgb: 255, 25, 118;
+  --rqk-midnight-violet: #8c36dd;
+  --rqk-midnight-violet-rgb: 140, 54, 221;
+  --rqk-midnight-text: #f7f4ff;
+  --rqk-midnight-muted: #c9bfdc;
+  --rqk-midnight-border: rgba(255, 25, 118, 0.28);
+  /* The page backdrop, lit like the owner's reference stage: near-black at
+     the top, violet cloud in the middle, crimson glowing up from below.
+     Brightness lives here, behind the content; panels and cards stay dark
+     so text keeps its contrast. */
+  --rqk-midnight-stage:
+    radial-gradient(130% 75% at 50% 118%, rgba(242, 23, 81, 0.40), transparent 62%),
+    radial-gradient(85% 55% at 14% 78%, rgba(140, 54, 221, 0.22), transparent 70%),
+    radial-gradient(70% 48% at 88% 0%, rgba(255, 25, 118, 0.14), transparent 72%),
+    linear-gradient(180deg, #090c20 0%, #110b28 55%, #1c0a26 100%);
+  --rqk-midnight-pill: rgba(140, 54, 221, 0.14);
+  /* Inset only: bright edges without overlaying table data or page layout. */
+  --rqk-midnight-inset: inset 0 0 12px rgba(255, 25, 118, 0.09);
+  --rqk-midnight-inset-selected: inset 0 0 17px rgba(255, 25, 118, 0.2),
+    inset 0 0 28px rgba(140, 54, 221, 0.1);
 
-  /* Neon Coast: the glow on ordinary shapes, left to right. */
-  --guild-c1: #ff3d8b; --guild-c1-rgb: 255, 61, 139;   /* hot pink */
-  --guild-c2: #b04dff; --guild-c2-rgb: 176, 77, 255;   /* violet */
-  --guild-c3: #4fb3ff; --guild-c3-rgb: 79, 179, 255;   /* sky blue */
+  --guild-bg: #120d27;          /* page and shape fill: near-black navy-plum */
+  --guild-bg-rgb: 18, 13, 39;
+  --guild-bg-deep: #090c20;     /* wells and inputs */
+  --guild-panel: #201332;       /* raised panels */
+  /* The page backdrop, lit like the reference stage: near-black at the top,
+     violet cloud in the middle, crimson glowing up from below. */
+  --guild-sky: var(--rqk-midnight-stage);
+
+  /* The glow on ordinary shapes, left to right. */
+  --guild-c1: #ff1976; --guild-c1-rgb: 255, 25, 118;   /* hot magenta */
+  --guild-c2: #8c36dd; --guild-c2-rgb: 140, 54, 221;   /* violet */
+  --guild-c3: #5a4bff; --guild-c3-rgb: 90, 75, 255;    /* indigo cloud */
   /* The glow on chosen, primary and centre shapes. */
-  --guild-h1: #ffb066; --guild-h1-rgb: 255, 176, 102;  /* peach */
-  --guild-h2: #ff5fa0; --guild-h2-rgb: 255, 95, 160;   /* pink */
-  --guild-h3: #ffd27a; --guild-h3-rgb: 255, 210, 122;  /* gold */
+  --guild-h1: #f21751; --guild-h1-rgb: 242, 23, 81;    /* crimson */
+  --guild-h2: #ff1976; --guild-h2-rgb: 255, 25, 118;   /* magenta */
+  --guild-h3: #ff8fbf; --guild-h3-rgb: 255, 143, 191;  /* blush highlight */
 
   /* Single colours for places that take one: selected and primary. */
-  --guild-accent: #ff5fa0;
-  --guild-accent-rgb: 255, 95, 160;
-  --guild-hi: #ffb066;          /* brighter accent for edges, numerals and kickers */
-  --guild-hi-rgb: 255, 176, 102;
-  --guild-text: #ffffff;
-  --guild-muted: #c9d2e6;
+  --guild-accent: #ff1976;
+  --guild-accent-rgb: 255, 25, 118;
+  --guild-hi: #ff5c93;          /* brighter accent for edges, numerals and kickers */
+  --guild-hi-rgb: 255, 92, 147;
+  --guild-text: #f7f4ff;
+  --guild-muted: #c9bfdc;
   --guild-ink: #1a0f2e;         /* text on a solid accent button */
-  --guild-select: rgba(96, 156, 232, 0.2); /* fill of a selected card: a lighter blue; Neon Coast colours stay in the glow */
-  --guild-cool: #b04dff;        /* one-colour stand-in for the ordinary glow */
+  --guild-select: rgba(140, 54, 221, 0.22); /* fill of a selected card: violet; the bright colours stay in the glow */
+  --guild-cool: #8c36dd;        /* one-colour stand-in for the ordinary glow */
   /* Resting boxes use a restrained 1px edge so dark surfaces remain
      distinct. The edge supports the inset glow; it must never become the
      thick, dominant outline previously seen on large wheels. */
-  --guild-line: rgba(176, 77, 255, 0.45);
-  --guild-line-hot: rgba(255, 176, 102, 0.85);
-  --guild-field-line: rgba(201, 210, 230, 0.38);
-  --guild-field-line-focus: rgba(79, 179, 255, 0.9);
-  --guild-focus-ring: #4fb3ff;
+  --guild-line: rgba(140, 54, 221, 0.5);
+  --guild-line-hot: rgba(255, 25, 118, 0.85);
+  --guild-field-line: rgba(201, 191, 220, 0.38);
+  --guild-field-line-focus: rgba(255, 92, 147, 0.9);
+  --guild-focus-ring: #ff8fbf;
   --guild-glow: 0.5;
 
   /* SVG strokes: the gradients live once in the page (GuildGlowDefs); the
      colour after url() is the fallback where they are missing. */
-  --guild-stroke-cool: url(#rq-glow-cool) #b04dff;
-  --guild-stroke-hot: url(#rq-glow-hot) #ff5fa0;
+  --guild-stroke-cool: url(#rq-glow-cool) #8c36dd;
+  --guild-stroke-hot: url(#rq-glow-hot) #ff1976;
 
   /* Boxes: each wall glows inward in its own colour (left, top, right,
      bottom), softly, so the middle of the box stays the page's blue. */

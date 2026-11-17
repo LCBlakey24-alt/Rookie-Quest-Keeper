@@ -16,11 +16,11 @@
   --landing-gold-soft: var(--rq-primary-soft, rgba(242, 137, 47, 0.12));
   /* Compatibility aliases retained for the shared professional-theme contract. */
   --landing-red: #f2892f;
-  --landing-red-bright: #ffb066;
+  --landing-red-bright: var(--guild-hi);
   --landing-red-soft: rgba(242, 137, 47, 0.12);
   --landing-blue: var(--rq-secondary, #3C92E0);
-  --landing-secondary: #3C92E0;
-  --landing-blue-soft: var(--rq-secondary-soft, rgba(60, 146, 224, 0.10));
+  --landing-secondary: var(--guild-hi);
+  --landing-blue-soft: var(--rq-secondary-soft, rgba(var(--guild-c2-rgb), 0.10));
   --landing-text: #ffffff;
   --landing-muted: var(--rq-text-secondary, rgba(255, 255, 255, 0.78));
   --landing-faint: var(--rq-text-muted, rgba(255, 255, 255, 0.58));
@@ -866,7 +866,7 @@
   display: grid;
   place-items: center;
   background: #25384A;
-  color: #ffb066;
+  color: var(--guild-hi);
   border: 1px solid rgba(20, 32, 43, 0.42);
 }
 

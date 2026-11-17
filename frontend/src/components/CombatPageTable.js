@@ -1288,7 +1288,7 @@ const combatCss = `
   .combat-title-wrap { min-width: 0; display: grid; gap: 1px; }
   .combat-title-wrap strong { display: flex; align-items: center; gap: 6px; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .combat-title-wrap span { color: ${rq.muted}; font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .combat-round { min-width: 54px; height: 38px; border: 1px solid ${rq.red}; background: rgba(124,203,255,.10); display: grid; place-items: center; align-content: center; line-height: 1; }
+  .combat-round { min-width: 54px; height: 38px; border: 1px solid ${rq.red}; background: rgba(var(--guild-h3-rgb),.10); display: grid; place-items: center; align-content: center; line-height: 1; }
   .combat-round span { color: ${rq.muted}; text-transform: uppercase; font-size: 7px; letter-spacing: .08em; }
   .combat-round strong { font-size: 16px; }
   .combat-next-top { min-height: 38px; border: 1px solid ${rq.pink}; background: ${rq.card}; color: #fff; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: 950; cursor: pointer; }
@@ -1316,7 +1316,7 @@ const combatCss = `
   .combat-initiative-body, .combat-add-panel > div { padding: 7px; border-top: 1px solid ${rq.line}; display: grid; gap: 6px; }
   .combat-initiative-tools { display: flex; justify-content: space-between; align-items: center; gap: 7px; flex-wrap: wrap; }
   .combat-initiative-tools span { color: ${rq.muted}; font-size: 9px; }
-  .combat-initiative-tools button { min-height: 30px; border: 1px solid ${rq.red}; background: rgba(124,203,255,.10); color: ${rq.text}; padding: 0 8px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 9px; font-weight: 900; }
+  .combat-initiative-tools button { min-height: 30px; border: 1px solid ${rq.red}; background: rgba(var(--guild-h3-rgb),.10); color: ${rq.text}; padding: 0 8px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 9px; font-weight: 900; }
   .combat-initiative-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: 4px; }
   .combat-initiative-row { min-height: 38px; display: grid; grid-template-columns: minmax(0,1fr) 58px 32px; gap: 4px; align-items: center; background: ${rq.bg}; border: 1px solid ${rq.line}; padding: 4px; }
   .combat-initiative-row > span { min-width: 0; display: grid; gap: 1px; }
@@ -1356,8 +1356,8 @@ const combatCss = `
   .combat-death-saves strong { font-size: 10px; }
   .combat-death-saves .successes { color: ${rq.green}; } .combat-death-saves .failures { color: ${rq.danger}; }
   .combat-death-saves button, .combat-attack-button, .combat-collect-loot, .combat-loot-save { min-height: 40px; border: 1px solid ${rq.line}; background: ${rq.card}; color: ${rq.text}; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; font-size: 10px; font-weight: 900; }
-  .combat-attack-button { border-color: ${rq.red}; background: rgba(124,203,255,.10); }
-  .combat-collect-loot, .combat-loot-save { border-color: ${rq.pink}; background: rgba(124,203,255,.10); color: ${rq.text}; }
+  .combat-attack-button { border-color: ${rq.red}; background: rgba(var(--guild-h3-rgb),.10); }
+  .combat-collect-loot, .combat-loot-save { border-color: ${rq.pink}; background: rgba(var(--guild-h3-rgb),.10); color: ${rq.text}; }
   .combat-order-tools { display: grid; grid-template-columns: minmax(80px,1fr) auto auto auto; gap: 4px; align-items: end; }
   .combat-order-tools button { min-height: 34px; border: 1px solid ${rq.line}; background: ${rq.panel}; color: ${rq.soft}; padding: 0 7px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 9px; font-weight: 900; }
   .combat-order-tools .remove { color: #fca5a5; }

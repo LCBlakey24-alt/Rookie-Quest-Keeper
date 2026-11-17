@@ -38,15 +38,17 @@ describe('the dye set', () => {
     });
   });
 
-  test('defaults to the Neon Coast die: readable numerals, and a glow that stands out from the navy tray', () => {
+  test('defaults to the Midnight Magenta die: readable numerals, and a glow that stands out from the tray', () => {
     const fallback = getDye(DEFAULT_DYE_ID);
     expect(fallback.id).toBe('glow');
     expect(contrastRatio(fallback.ink, fallback.body)).toBeGreaterThanOrEqual(7);
-    // The body alone would sit close to the navy tray; the glow is what
-    // separates it, so it must contrast with the tray on its own.
+    // The body alone would sit close to the midnight tray; the glow is what
+    // separates it, so it must contrast with the tray on its own (the old
+    // navy tray too, for anyone still on a cached page).
+    expect(contrastRatio(fallback.glow, '#120d27')).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(fallback.glow, '#0a2342')).toBeGreaterThanOrEqual(4.5);
-    // The Neon Coast colours, pink -> violet -> blue.
-    expect(fallback.glowStops).toEqual(['#FF3D8B', '#B04DFF', '#4FB3FF']);
+    // The Midnight Magenta colours, magenta -> violet -> indigo.
+    expect(fallback.glowStops).toEqual(['#FF1976', '#8C36DD', '#5A4BFF']);
   });
 
   test('only dyes that declare a glow get one', () => {

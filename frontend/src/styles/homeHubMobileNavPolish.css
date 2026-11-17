@@ -7,7 +7,7 @@
 }
 
 #root .rqk-app-rail-rook {
-  border-color: rgba(60,146,224,.28) !important;
+  border-color: rgba(var(--guild-c2-rgb),.28) !important;
   background: var(--rq-citrus-control, #0a2342) !important;
   background-image: none !important;
   color: var(--rq-text-primary, #ffffff) !important;
@@ -52,7 +52,7 @@
     overflow: auto !important;
     overscroll-behavior: contain !important;
     padding: 12px !important;
-    border: 1px solid rgba(60,146,224,.32) !important;
+    border: 1px solid rgba(var(--guild-c2-rgb),.32) !important;
     border-radius: 9px !important;
     background: var(--rq-bg-panel, #0a2342) !important;
     background-image: none !important;
@@ -104,7 +104,7 @@
     display: grid !important;
     place-items: center !important;
     padding: 0 !important;
-    border: 1px solid rgba(60,146,224,.30) !important;
+    border: 1px solid rgba(var(--guild-c2-rgb),.30) !important;
     border-radius: 5px !important;
     background: var(--rq-citrus-control, #0a2342) !important;
     color: var(--rq-text-primary, #ffffff) !important;
@@ -132,7 +132,7 @@
     align-items: center !important;
     gap: 9px !important;
     padding: 9px 10px !important;
-    border: 1px solid rgba(60,146,224,.28) !important;
+    border: 1px solid rgba(var(--guild-c2-rgb),.28) !important;
     border-radius: 7px !important;
     background: var(--rq-citrus-control, #0a2342) !important;
     background-image: none !important;
@@ -170,7 +170,7 @@
   #root .rqk-app-mobile-more-item:hover,
   #root .rqk-app-mobile-more-item:focus-visible {
     background: var(--rq-card-hover, #0a2342) !important;
-    border-color: rgba(60,146,224,.45) !important;
+    border-color: rgba(var(--guild-c2-rgb),.45) !important;
     outline: none !important;
     transform: none !important;
   }
@@ -181,7 +181,7 @@
     background-repeat: no-repeat !important;
     background-position: left bottom !important;
     background-size: 100% 3px !important;
-    border-color: rgba(60,146,224,.32) !important;
+    border-color: rgba(var(--guild-c2-rgb),.32) !important;
   }
 
   /* Mobile menu focus must be visible independently of the hover underline. */

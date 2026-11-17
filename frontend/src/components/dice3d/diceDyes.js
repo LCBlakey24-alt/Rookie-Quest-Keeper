@@ -23,19 +23,19 @@ export const DICE_DYES = [
   // middle of the range fails both ways, which is how an earlier draft of
   // this palette ended up with eight combinations below AA.
   {
-    // The default, matching the Neon Coast look (DESIGN_SYSTEM §3): a deep
-    // blue body a step lighter than the page, white numerals, and a glow
-    // inside every face edge that runs pink -> violet -> blue. The id stays
-    // 'glow' so a player's saved choice keeps working.
+    // The default, matching the Midnight Magenta look (DESIGN_SYSTEM): a
+    // midnight-plum body a step lighter than the page, white numerals, and a
+    // glow inside every face edge that runs magenta -> violet -> indigo. The
+    // id stays 'glow' so a player's saved choice keeps working.
     id: 'glow',
-    name: 'Neon Coast',
-    body: '#14294F',
+    name: 'Midnight Magenta',
+    body: '#2A1640',
     ink: '#FFFFFF',
-    edge: '#FF5FA0',
+    edge: '#FF5C93',
     crit: '#FFD27A',
     fumble: '#FF9B7A',
-    glow: '#FF5FA0',
-    glowStops: ['#FF3D8B', '#B04DFF', '#4FB3FF'],
+    glow: '#FF5C93',
+    glowStops: ['#FF1976', '#8C36DD', '#5A4BFF'],
   },
   {
     id: 'amber',

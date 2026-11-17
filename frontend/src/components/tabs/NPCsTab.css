@@ -303,7 +303,7 @@
   border-radius: 6px;
 }
 #root .rqk-npc-onboarding__actions .btn-primary {
-  color: #0a2342;
+  color: var(--guild-bg);
   background: var(--rq-accent-primary, #f2892f);
   border: 1px solid var(--rq-accent-primary, #f2892f);
 }

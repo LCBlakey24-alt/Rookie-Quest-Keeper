@@ -17,7 +17,7 @@ html body #root .rqk-app-shell-content {
 
 html body #root .rqk-app-rail {
   background: #06111c !important;
-  border-color: rgba(124, 203, 255, 0.12) !important;
+  border-color: rgba(var(--guild-h3-rgb), 0.12) !important;
 }
 
 html body #root .rqk-app-rail-brand {
@@ -30,8 +30,8 @@ html body #root .rqk-app-rail-brand {
 
 html body #root .rqk-app-rail-brand:hover,
 html body #root .rqk-app-rail-brand:focus-visible {
-  background: #0c2234 !important;
-  border-color: rgba(124, 203, 255, 0.16) !important;
+  background: var(--guild-bg) !important;
+  border-color: rgba(var(--guild-h3-rgb), 0.16) !important;
   /* No `outline: none` here: this rule is shared with :focus-visible, so
    * suppressing the outline left keyboard focus identical to hover. The blue
    * focus ring in citrusCommand.css supplies the indicator. */
@@ -53,7 +53,7 @@ html body #root .rqk-app-rail-brand-copy strong {
 
 html body #root .rqk-app-rail-brand-copy small {
   margin-top: 3px !important;
-  color: #7ccbff !important;
+  color: var(--guild-h3) !important;
   font-size: 0.6rem !important;
   letter-spacing: 0.09em !important;
 }
@@ -79,12 +79,12 @@ html body #root .rqk-app-rail-link {
 html body #root .rqk-app-rail-link:hover,
 html body #root .rqk-app-rail-link:focus-visible {
   transform: none !important;
-  background: #0c2234 !important;
-  border-color: rgba(124, 203, 255, 0.13) !important;
+  background: var(--guild-bg) !important;
+  border-color: rgba(var(--guild-h3-rgb), 0.13) !important;
 }
 
 html body #root .rqk-app-rail-link.is-active {
-  background: rgba(124, 203, 255, 0.09) !important;
+  background: rgba(var(--guild-h3-rgb), 0.09) !important;
   border-color: rgba(255, 45, 170, 0.34) !important;
 }
 
@@ -98,7 +98,7 @@ html body #root .rqk-app-rail-link.is-active::before {
 
 html body #root .rqk-app-rail-link svg,
 html body #root .rqk-app-rail-rook svg {
-  color: #7ccbff !important;
+  color: var(--guild-h3) !important;
 }
 
 html body #root .rqk-app-rail-link.is-active svg {
@@ -117,7 +117,7 @@ html body #root .rqk-app-rail-link.is-active span::after {
 
 html body #root .rqk-app-rail-bottom {
   padding-top: 9px !important;
-  border-top: 1px solid rgba(124, 203, 255, 0.08) !important;
+  border-top: 1px solid rgba(var(--guild-h3-rgb), 0.08) !important;
 }
 
 html body #root .rqk-app-rail-rook,
@@ -130,8 +130,8 @@ html body #root .rqk-app-rail-rook:hover,
 html body #root .rqk-app-rail-rook:focus-visible,
 html body #root .rqk-app-rail-feedback:hover,
 html body #root .rqk-app-rail-feedback:focus-visible {
-  background: #0c2234 !important;
-  border-color: rgba(124, 203, 255, 0.13) !important;
+  background: var(--guild-bg) !important;
+  border-color: rgba(var(--guild-h3-rgb), 0.13) !important;
 }
 
 @media (min-width: 960px) {
@@ -187,7 +187,7 @@ html body #root .rqk-app-rail-feedback:focus-visible {
     align-items: center !important;
     padding: 7px 12px !important;
     background: rgba(7, 21, 34, 0.97) !important;
-    border-bottom: 1px solid rgba(124, 203, 255, 0.11) !important;
+    border-bottom: 1px solid rgba(var(--guild-h3-rgb), 0.11) !important;
     backdrop-filter: blur(12px) !important;
   }
 
@@ -223,7 +223,7 @@ html body #root .rqk-app-rail-feedback:focus-visible {
     padding: 5px 6px calc(5px + env(safe-area-inset-bottom, 0px)) !important;
     background: rgba(6, 17, 28, 0.98) !important;
     border: 0 !important;
-    border-top: 1px solid rgba(124, 203, 255, 0.14) !important;
+    border-top: 1px solid rgba(var(--guild-h3-rgb), 0.14) !important;
     box-shadow: none !important;
   }
 
@@ -278,14 +278,14 @@ html body #root .rqk-app-rail-feedback:focus-visible {
     width: 19px !important;
     height: 19px !important;
     padding: 0 !important;
-    color: #7ccbff !important;
+    color: var(--guild-h3) !important;
     background: transparent !important;
     box-sizing: border-box !important;
   }
 
   html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-rail-link.is-active,
   html body #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-trigger.is-active {
-    background: rgba(124, 203, 255, 0.09) !important;
+    background: rgba(var(--guild-h3-rgb), 0.09) !important;
     border-color: rgba(255, 45, 170, 0.34) !important;
   }
 
@@ -304,8 +304,8 @@ html body #root .rqk-app-rail-feedback:focus-visible {
     max-height: min(66dvh, 410px) !important;
     gap: 10px !important;
     padding: 12px !important;
-    background: #0c2234 !important;
-    border: 1px solid rgba(124, 203, 255, 0.18) !important;
+    background: var(--guild-bg) !important;
+    border: 1px solid rgba(var(--guild-h3-rgb), 0.18) !important;
     border-radius: 14px !important;
   }
 
@@ -317,7 +317,7 @@ html body #root .rqk-app-rail-feedback:focus-visible {
     min-height: 50px !important;
     border-radius: 10px !important;
     background: #102b40 !important;
-    border-color: rgba(124, 203, 255, 0.12) !important;
+    border-color: rgba(var(--guild-h3-rgb), 0.12) !important;
   }
 }
 
@@ -342,13 +342,13 @@ html body #root .rqk-app-shell .campaigns-library-page--simple .campaigns-librar
   padding: 4px 2px 18px !important;
   background: transparent !important;
   border: 0 !important;
-  border-bottom: 1px solid rgba(124, 203, 255, 0.13) !important;
+  border-bottom: 1px solid rgba(var(--guild-h3-rgb), 0.13) !important;
   border-radius: 0 !important;
 }
 
 html body #root .rqk-app-shell .characters-library-page--simple .library-page-eyebrow,
 html body #root .rqk-app-shell .campaigns-library-page--simple .library-page-eyebrow {
-  color: #7ccbff !important;
+  color: var(--guild-h3) !important;
   font-size: 9px !important;
 }
 
@@ -375,7 +375,7 @@ html body #root .rqk-app-shell .campaigns-library-actions > * {
   min-height: 40px !important;
   border-radius: 9px !important;
   background: transparent !important;
-  border-color: rgba(124, 203, 255, 0.14) !important;
+  border-color: rgba(var(--guild-h3-rgb), 0.14) !important;
 }
 
 html body #root .rqk-app-shell .characters-library-actions > :first-child,
@@ -400,8 +400,8 @@ html body #root .rqk-app-shell .characters-library-page--simple .character-libra
 html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-library-card--simple {
   gap: 14px !important;
   padding: 17px !important;
-  background: #0c2234 !important;
-  border: 1px solid rgba(124, 203, 255, 0.12) !important;
+  background: var(--guild-bg) !important;
+  border: 1px solid rgba(var(--guild-h3-rgb), 0.12) !important;
   border-radius: 13px !important;
 }
 
@@ -410,7 +410,7 @@ html body #root .rqk-app-shell .characters-library-page--simple .character-libra
 html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-library-card--simple:hover,
 html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-library-card--simple:focus-within {
   background: #102b40 !important;
-  border-color: rgba(124, 203, 255, 0.25) !important;
+  border-color: rgba(var(--guild-h3-rgb), 0.25) !important;
 }
 
 html body #root .rqk-app-shell .characters-library-page--simple .character-card-main,
@@ -427,8 +427,8 @@ html body #root .rqk-app-shell .characters-library-page--simple .character-card-
 html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-card-type {
   min-height: 25px !important;
   padding-inline: 8px !important;
-  background: rgba(124, 203, 255, 0.08) !important;
-  border-color: rgba(124, 203, 255, 0.18) !important;
+  background: rgba(var(--guild-h3-rgb), 0.08) !important;
+  border-color: rgba(var(--guild-h3-rgb), 0.18) !important;
   border-radius: 8px !important;
   color: #cfe9fb !important;
 }
@@ -467,7 +467,7 @@ html body #root .rqk-app-shell .characters-library-page--simple .character-card-
 html body #root .rqk-app-shell .characters-library-page--simple .character-card-icon-action,
 html body #root .rqk-app-shell .campaigns-library-page--simple .campaign-card-delete {
   background: transparent !important;
-  border-color: rgba(124, 203, 255, 0.14) !important;
+  border-color: rgba(var(--guild-h3-rgb), 0.14) !important;
   border-radius: 9px !important;
 }
 

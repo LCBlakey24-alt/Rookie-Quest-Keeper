@@ -41,21 +41,23 @@ const FRAUNCES = "'Fraunces', Georgia, serif";
 const MANROPE = "var(--rq-body-font, Manrope, Inter, system-ui, sans-serif)";
 
 export const HEX_THEMES = [
-  // The default, matching the rest of the app (styles/guildTokens.css): the
-  // Neon Coast glow on a dusk sky, Cinzel headings. Ordinary shapes glow
-  // pink -> violet -> blue; chosen ones peach -> pink -> gold.
+  // The default, matching the rest of the app (styles/guildTokens.css):
+  // Midnight Magenta, a near-black page lit crimson from below, Cinzel
+  // headings. Ordinary shapes glow magenta -> violet -> indigo; chosen ones
+  // crimson -> magenta -> blush. (The id stays 'keeper' so saved choices
+  // keep following the app's own theme.)
   theme({
-    id: 'keeper', name: 'Neon Coast', bg: '#0a2342', glow: '#ff5fa0', hi: '#ffb066', sub: '#ffb066', text: '#ffffff', muted: '#c9d2e6', titleFont: CINZEL,
+    id: 'keeper', name: 'Midnight Magenta', bg: '#120d27', glow: '#ff1976', hi: '#ff5c93', sub: '#ff8fbf', text: '#f7f4ff', muted: '#c9bfdc', titleFont: CINZEL,
     extra: {
       '--hex-page': 'var(--guild-sky)',
-      '--hex-cool': '#b04dff',
-      '--hex-cool-soft': 'rgba(176, 77, 255, 0.5)',
+      '--hex-cool': '#8c36dd',
+      '--hex-cool-soft': 'rgba(140, 54, 221, 0.5)',
       '--hex-stroke-cool': 'var(--guild-stroke-cool)',
       '--hex-stroke-hot': 'var(--guild-stroke-hot)',
       '--hex-glow': 'var(--guild-box-glow)',
       '--hex-glow-strong': 'var(--guild-box-glow-hot)',
-      '--hex-line': 'rgba(176, 77, 255, 0.3)',
-      '--hex-orange-soft': 'rgba(176, 77, 255, 0.55)',
+      '--hex-line': 'rgba(140, 54, 221, 0.3)',
+      '--hex-orange-soft': 'rgba(140, 54, 221, 0.55)',
     },
   }),
   theme({ id: 'ledger', name: 'Guild Ledger Brass', bg: '#0b1520', glow: '#c9a24a', hi: '#ecd08a', sub: '#d9b86a', text: '#f4ead2', muted: '#cdbf9e', titleFont: CINZEL }),

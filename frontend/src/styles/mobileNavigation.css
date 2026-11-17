@@ -14,7 +14,7 @@
  */
 
 html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='app'] {
-  --rqk-nav-bg: rgba(8, 29, 56, 0.97);
+  --rqk-nav-bg: rgba(var(--guild-bg-rgb), 0.97);
   --rqk-nav-line: rgba(255, 255, 255, 0.10);
   --rqk-nav-ink: rgba(255, 255, 255, 0.68);
   --rqk-nav-ink-strong: #f5f1e8;

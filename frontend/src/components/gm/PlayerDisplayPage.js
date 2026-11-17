@@ -773,13 +773,13 @@ if (typeof document !== 'undefined' && !document.getElementById('rqk-player-disp
     @keyframes rqkDisplayPulse { 0%, 100% { transform: translateY(0); box-shadow: 0 22px 80px rgba(208,0,0,0.2); } 50% { transform: translateY(-4px); box-shadow: 0 28px 100px rgba(208,0,0,0.38); } }
     @keyframes rqkBannerPop { from { opacity: 0; transform: translateY(28px) scale(0.98); filter: blur(7px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
     @keyframes rqkBattleBorder { 0%, 100% { box-shadow: inset 0 0 36px rgba(185,74,79,0.8), inset 0 0 90px rgba(185,74,79,0.25); } 50% { box-shadow: inset 0 0 70px rgba(185,74,79,1), inset 0 0 150px rgba(185,74,79,0.48); } }
-    .rqk-battle-start { width: 100%; height: 100%; min-height: 0; background: radial-gradient(ellipse at center, rgba(95,17,21,0.22), #0a2342 68%); color: #ffffff; display: grid; place-items: center; border: clamp(9px, 1.5vw, 22px) solid #b94a4f; box-sizing: border-box; animation: rqkBattleBorder 1.5s ease-in-out infinite; }
+    .rqk-battle-start { width: 100%; height: 100%; min-height: 0; background: radial-gradient(ellipse at center, rgba(95,17,21,0.22), var(--guild-bg) 68%); color: #ffffff; display: grid; place-items: center; border: clamp(9px, 1.5vw, 22px) solid #b94a4f; box-sizing: border-box; animation: rqkBattleBorder 1.5s ease-in-out infinite; }
     .rqk-battle-start__frame { text-align: center; display: grid; justify-items: center; align-content: center; gap: clamp(10px, 2vw, 25px); padding: 20px; }
     .rqk-battle-start__frame > svg { color: #f2892f; }
     .rqk-battle-start__frame p { margin: 0; font-size: clamp(13px, 2vw, 24px); letter-spacing: 0.22em; text-transform: uppercase; color: #d39a43; font-weight: 800; }
     .rqk-battle-start__frame h1 { margin: 0; font-size: clamp(42px, 8vw, 128px); font-family: var(--rq-font-display, Georgia, serif); line-height: 0.9; text-shadow: 0 10px 36px rgba(0,0,0,0.8); }
     .rqk-battle-start__frame strong { display: inline-flex; align-items: center; gap: 14px; font-size: clamp(17px, 2.4vw, 33px); letter-spacing: 0.1em; color: #f2892f; }
-    .rqk-battle-start__overlay { position: absolute; inset: 0; z-index: 11; background: #0a2342; }
+    .rqk-battle-start__overlay { position: absolute; inset: 0; z-index: 11; background: var(--guild-bg); }
     @media (prefers-reduced-motion: reduce) { .rqk-battle-start { animation: none; box-shadow: inset 0 0 70px rgba(185,74,79,0.55); } }
     @keyframes rqkPartyReveal { from { opacity: 0; transform: translateX(-20px); filter: blur(5px); } to { opacity: 1; transform: translateX(0); filter: blur(0); } }
     [data-testid="player-display-page"]::before { content: ''; position: fixed; inset: 0; pointer-events: none; background: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 100% 4px; mix-blend-mode: screen; opacity: 0.28; z-index: 2; }

@@ -17,6 +17,25 @@ Core user goals:
 - The app should feel polished, compact, clear, and beginner-friendly.
 - The visual direction is **Neon Coast on a Dusk sky** (owner-approved 12 November 2026 and production-reviewed 15 November 2026; see `docs/DESIGN_SYSTEM.md` §3): a deep blue page fading to dusk purple, shapes told apart by a restrained 1px edge (sub-pixel on SVG wheels) and subtle inner glow (pink → violet → blue for ordinary shapes, peach → pink → gold for chosen and primary ones), white text, Cinzel headings and Inter text. The signature control is the wheel (§6a).
 
+### Newer colour pilot — 16 November 2026
+
+The owner has now selected a **Midnight Magenta** direction (#932):
+blackened navy/plum, crimson/magenta, violet and subtle **inset** glows.
+PR #934 implements it on **My Campaigns** and the per-campaign
+**Creation/Live Play mode chooser only**. This is a newer explicit colour
+decision than Neon Coast for those routes, **not** authority to recolour all
+pages or to change the Guild Command layout. See the newest heading in
+`docs/DESIGN_SYSTEM.md` and the opt-in `--rqk-midnight-*` tokens.
+Keep phone/tablet/desktop grids, 44px controls, focus, reduced motion,
+semantic statuses, data access and live play states untouched.
+
+**17 November 2026 — site-wide.** The owner then asked for the whole app
+(animated background, sidebar, every inner-glow box) and a new RQK logo to
+use Midnight Magenta. The shared `--guild-*` tokens now carry those colours,
+so "Neon Coast" colour wording below means the current `--guild-*` tokens.
+Layout, shape, typography and wheel rules are unchanged. See "Phase 2" in
+`docs/DESIGN_SYSTEM.md`.
+
 ## Product principles
 
 - **Prep = build the campaign library. Live Play = use and update it.**

@@ -141,7 +141,7 @@
 }
 
 .rook-assistant-playbook li::before {
-  background: #7CCBFF !important;
+  background: var(--guild-h3) !important;
   background-image: none !important;
   box-shadow: none !important;
 }

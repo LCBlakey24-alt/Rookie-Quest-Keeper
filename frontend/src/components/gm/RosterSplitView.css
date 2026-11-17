@@ -249,7 +249,7 @@
    Important rules in rq-controls outrank older global button styling. */
 @layer rq-controls {
   #root .rqk-reference-browser .rqk-reference-browser__list {
-    scrollbar-color: #61758A #0a2342;
+    scrollbar-color: #61758A var(--guild-bg);
   }
   #root .rqk-reference-browser .rqk-reference-browser__item {
     box-sizing: border-box !important;
@@ -265,7 +265,7 @@
     overflow: visible !important;
     white-space: normal !important;
     line-height: 1.4 !important;
-    background-color: #0a2342 !important;
+    background-color: var(--guild-bg) !important;
     background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F, #F4551F, #E03A2F)) !important;
     background-position: left center !important;
     background-size: 0% 3px !important;
@@ -306,7 +306,7 @@
     border-bottom-color: #E03A2F !important;
   }
   #root .rqk-reference-browser .rqk-reference-browser__item:focus-visible {
-    outline: 3px solid #3C92E0 !important;
+    outline: 3px solid var(--guild-hi) !important;
     outline-offset: -3px !important;
   }
   @media (hover: hover) and (pointer: fine) {

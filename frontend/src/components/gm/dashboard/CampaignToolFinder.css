@@ -93,7 +93,7 @@
   place-items: center;
   border: 1px solid rgba(242, 137, 47,.25);
   border-radius: 7px;
-  background: #0a2342;
+  background: var(--guild-bg);
   color: #ffffff;
   cursor: pointer;
 }
@@ -106,7 +106,7 @@
   padding: 0 14px;
   border: 1px solid #987e51;
   border-radius: 8px;
-  background: #0a2342;
+  background: var(--guild-bg);
   color: #f2892f;
 }
 .rqk-tool-finder-search input {
@@ -161,7 +161,7 @@
 .rqk-tool-finder-result.is-highlighted,
 .rqk-tool-finder-result:focus-visible {
   border-color: rgba(242, 137, 47,.48);
-  background: #0a2342;
+  background: var(--guild-bg);
 }
 .rqk-tool-finder-result:focus-visible,
 .rqk-tool-finder-close:focus-visible {
@@ -175,7 +175,7 @@
   place-items: center;
   border-radius: 8px;
   border: 1px solid rgba(242, 137, 47,.26);
-  background: #0a2342;
+  background: var(--guild-bg);
   color: #e1c188;
 }
 .rqk-tool-finder-result-copy { min-width: 0; display: grid; gap: 3px; }
@@ -211,7 +211,7 @@
   border-radius: 4px;
   font-family: inherit;
   color: #ddc99e;
-  background: #0a2342;
+  background: var(--guild-bg);
 }
 @media (max-width: 760px) {
   #root .campaign-dashboard-actions .rqk-tool-finder-trigger {

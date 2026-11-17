@@ -261,11 +261,11 @@ describe('Clean Character Sheet presentation ownership', () => {
     const compactStatus = read('../components/clean-sheet/CleanSheetCompactStatus.js');
     const sheet = read('../components/CleanCharacterSheet.js');
 
-    expect(finalAuthority).toContain('--cs-bg: #0a2342');
-    expect(finalAuthority).toContain('--cs-panel: #0a2342');
-    expect(finalAuthority).toContain('--cs-card: #0a2342');
+    expect(finalAuthority).toContain('--cs-bg: var(--guild-bg)');
+    expect(finalAuthority).toContain('--cs-panel: var(--guild-bg)');
+    expect(finalAuthority).toContain('--cs-card: var(--guild-bg)');
     expect(finalAuthority).toContain('--cs-accent: #f2892f');
-    expect(finalAuthority).toContain('--cs-blue: #3C92E0');
+    expect(finalAuthority).toContain('--cs-blue: var(--guild-hi)');
     expect(finalAuthority).toContain('flex-direction: row !important;');
     expect(finalAuthority).toContain('overflow-x: auto !important;');
     expect(finalAuthority).toContain('inset: 50px auto auto !important;');

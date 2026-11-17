@@ -15,8 +15,8 @@ describe('Guild Command citrus site-wide design contract', () => {
 
   test('flat navy backgrounds without noisy wallpaper', () => {
     const css = read('./citrusCommand.css');
-    expect(css).toContain('--rq-citrus-navy: #0a2342;');
-    expect(css).toContain('--rq-citrus-panel: #0a2342;');
+    expect(css).toContain('--rq-citrus-navy: var(--guild-bg);');
+    expect(css).toContain('--rq-citrus-panel: var(--guild-bg);');
     expect(css).toContain('background-image: none !important;');
     expect(css).toContain('.rqk-player-display__frame');
     expect(css).toContain('.keeper-product-site');
@@ -52,7 +52,7 @@ describe('Guild Command citrus site-wide design contract', () => {
     expect(css).toContain('.rq-fill-clicked');
     expect(css).toContain('@media (hover: hover) and (pointer: fine)');
     expect(css).toContain(':focus-visible');
-    expect(css).toContain('outline: 3px solid #3C92E0 !important;');
+    expect(css).toContain('outline: 3px solid var(--guild-hi) !important;');
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
     expect(css).toContain('#root .landing-page-final.keeper-product-site button.landing-button,');
     expect(css).toContain('transition: none !important;');

@@ -64,7 +64,7 @@
 
 /* Selected keeps the rule permanently; the body stays navy, never filled. */
 .rqk-tool-rail__item.is-active {
-  background-color: var(--rq-secondary-soft, rgba(60, 146, 224, 0.10));
+  background-color: var(--rq-secondary-soft, rgba(var(--guild-c2-rgb), 0.10));
   background-size: 100% 3px;
   border-color: var(--rq-border-default, rgba(137, 157, 176, 0.22));
   color: var(--rq-text-primary, #F5F1E8);
@@ -82,7 +82,7 @@
 .rqk-tool-rail__item--nested { padding-left: 18px; }
 
 .rqk-tool-rail__item--resume {
-  border-color: rgba(60, 146, 224, 0.38);
+  border-color: rgba(var(--guild-c2-rgb), 0.38);
   color: var(--rq-text-primary, #F5F1E8);
 }
 
