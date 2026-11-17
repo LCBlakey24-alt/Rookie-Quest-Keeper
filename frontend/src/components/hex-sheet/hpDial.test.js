@@ -109,3 +109,23 @@ describe('flicking', () => {
     expect(settledRotation(-100)).toBe(-72);
   });
 });
+
+describe('damage at and to 0 HP (review finding 12)', () => {
+  test('damage at 0 HP is a failed death save, not ignored (reproduction A)', () => {
+    const change = hpAdjustment({ current_hit_points: 0, max_hit_points: 20, death_saves_failures: 0 }, 'hp', -5);
+    expect(change).not.toBeNull();
+    expect(change.updates).toMatchObject({ current_hit_points: 0, death_saves_failures: 1 });
+    expect(change.damage).toBe(0);
+  });
+
+  test('dropping to 0 while concentrating ends concentration (reproduction B)', () => {
+    const change = hpAdjustment({ current_hit_points: 5, max_hit_points: 20, concentrating_on: 'Bless' }, 'hp', -5);
+    expect(change.updates).toMatchObject({ current_hit_points: 0, concentrating_on: null, concentration: null });
+    expect(change.damage).toBe(0); // no save to make: the spell has already ended
+  });
+
+  test('a stable character hit at 0 HP is dying again', () => {
+    const change = hpAdjustment({ current_hit_points: 0, max_hit_points: 20, death_saves_successes: 3 }, 'hp', -2);
+    expect(change.updates).toMatchObject({ death_saves_successes: 0, death_saves_failures: 1 });
+  });
+});

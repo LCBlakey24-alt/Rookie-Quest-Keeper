@@ -10,7 +10,8 @@
  * found far too twitchy at the table; 36 (ten HP per full turn) is the
  * current preference and the one place to tune it.
  */
-import { calculateHpDamage, calculateHpHealing, clampDeathCount, getCurrentHp, getMaxHp, getTempHp } from '@/components/clean-sheet/cleanSheetUtils';
+import { calculateHpHealing, clampDeathCount, getCurrentHp, getMaxHp, getTempHp } from '@/components/clean-sheet/cleanSheetUtils';
+import { applyDamage, damageUpdatesForCharacter } from '@/data/damageTransitions';
 
 export const DEGREES_PER_HP = 36;
 export const DRAG_THRESHOLD_DEGREES = 6;
@@ -55,8 +56,12 @@ export function rotationForDelta(delta, degreesPerHp = DEGREES_PER_HP) {
  *   - healing above 0 clears death saves;
  *   - temporary HP is its own pool: adjusting it never touches hit points.
  *
- * Returns the PATCH to send, the values it leads to, and the damage taken
- * (for the concentration check), or null when nothing would change.
+ *   - damage that drops a character to 0 ends concentration; damage taken
+ *     while at 0 is a failed death save (data/damageTransitions.js);
+ *
+ * Returns the PATCH to send, the values it leads to, the damage taken while
+ * still conscious (for the concentration check; 0 once at 0 HP), and the
+ * full damage outcome, or null when nothing would change.
  */
 export function hpAdjustment(character, target, delta) {
   const amount = Math.abs(Number(delta) || 0);
@@ -76,16 +81,24 @@ export function hpAdjustment(character, target, delta) {
   }
 
   if (delta < 0) {
-    const outcome = calculateHpDamage({ currentHp, tempHp, maxHp, amount });
-    if (!outcome.totalApplied && outcome.current_hit_points === currentHp) return null;
+    const outcome = applyDamage({
+      currentHp,
+      tempHp,
+      maxHp,
+      amount,
+      successes: character.death_saves_successes,
+      failures: character.death_saves_failures,
+      concentrating: Boolean(character.concentrating_on || character.concentration),
+    });
+    const changed = outcome.tempAbsorbed || outcome.hpDamage || outcome.failuresAdded || outcome.instantDeath;
+    if (!changed) return null;
     return {
-      updates: {
-        current_hit_points: outcome.current_hit_points,
-        temporary_hit_points: outcome.temporary_hit_points,
-        temp_hp: outcome.temp_hp,
-      },
-      result: { currentHp: outcome.current_hit_points, maxHp, tempHp: outcome.temporary_hit_points },
-      damage: amount,
+      updates: damageUpdatesForCharacter(character, outcome),
+      result: { currentHp: outcome.currentHp, maxHp, tempHp: outcome.tempHp },
+      // Damage that leaves the character conscious can break concentration;
+      // falling unconscious ends it outright (outcome.endsConcentration).
+      damage: outcome.currentHp > 0 ? amount : 0,
+      outcome,
     };
   }
 
