@@ -90,7 +90,7 @@ class FastLoginTests(unittest.TestCase):
 
         with patch.object(login_routes, 'db', SimpleNamespace(users=users)), \
              patch.object(login_routes, 'run_in_threadpool', threaded), \
-             patch.object(login_routes, 'create_token', return_value='token-1'), \
+             patch.object(login_routes, 'create_user_token', return_value='token-1'), \
              patch.object(login_routes, 'is_admin_username', AsyncMock(return_value=True)):
             result = run(login_routes.login_fast(SimpleNamespace(
                 username='Rook', email=None, password='secret'
@@ -123,6 +123,26 @@ class FastLoginTests(unittest.TestCase):
                     username='Rook', email=None, password='wrong'
                 )))
         self.assertEqual(rejected.exception.status_code, 401)
+
+    def test_a_child_account_signs_in_with_the_child_claim(self):
+        """Minting from the bare username used to drop the claim, so the
+        deny-by-default gate would have treated a child as an adult."""
+        from utils.child_access import CHILD_ACCOUNT_TYPE, account_type_from_token
+        users = FakeUsers({'username': 'kid', 'password_hash': 'hash', 'account_type': 'child', 'token_version': 2})
+        with patch.object(login_routes, 'db', SimpleNamespace(users=users)), \
+             patch.object(login_routes, 'run_in_threadpool', AsyncMock(return_value=True)), \
+             patch.object(login_routes, 'is_admin_username', AsyncMock(return_value=False)):
+            result = run(login_routes.login_fast(SimpleNamespace(username='kid', email=None, password='secret')))
+        self.assertEqual(account_type_from_token(result.token), CHILD_ACCOUNT_TYPE)
+
+    def test_an_adult_sign_in_has_no_claim(self):
+        from utils.child_access import account_type_from_token
+        users = FakeUsers({'username': 'Rook', 'password_hash': 'hash'})
+        with patch.object(login_routes, 'db', SimpleNamespace(users=users)), \
+             patch.object(login_routes, 'run_in_threadpool', AsyncMock(return_value=True)), \
+             patch.object(login_routes, 'is_admin_username', AsyncMock(return_value=False)):
+            result = run(login_routes.login_fast(SimpleNamespace(username='Rook', email=None, password='secret')))
+        self.assertEqual(account_type_from_token(result.token), 'adult')
 
     def test_google_only_account_does_not_crash_password_login(self):
         users = FakeUsers({'username': 'Rook', 'google_sub': 'google-1'})
@@ -160,7 +180,7 @@ class GoogleLoginTests(unittest.TestCase):
 
         with patch.object(login_routes, 'db', SimpleNamespace(users=users)), \
              patch.object(login_routes, 'run_in_threadpool', threaded), \
-             patch.object(login_routes, 'create_token', return_value='token-google'), \
+             patch.object(login_routes, 'create_user_token', return_value='token-google'), \
              patch.object(login_routes, 'GOOGLE_CLIENT_ID', 'test-client.apps.googleusercontent.com'):
             result = run(login_routes.login_google(
                 login_routes.GoogleLoginRequest(credential='credential-1')
@@ -199,7 +219,7 @@ class GoogleLoginTests(unittest.TestCase):
              patch.object(login_routes, 'username_is_available', available), \
              patch.object(login_routes, 'require_signups_enabled', AsyncMock()), \
              patch.object(login_routes, 'run_in_threadpool', threaded), \
-             patch.object(login_routes, 'create_token', return_value='token-new'), \
+             patch.object(login_routes, 'create_user_token', return_value='token-new'), \
              patch.object(login_routes, 'GOOGLE_CLIENT_ID', 'test-client.apps.googleusercontent.com'):
             result = run(login_routes.login_google(
                 login_routes.GoogleLoginRequest(
