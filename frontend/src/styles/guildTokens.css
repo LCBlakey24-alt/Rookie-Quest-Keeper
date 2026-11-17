@@ -30,6 +30,15 @@
   --rqk-midnight-text: #f7f4ff;
   --rqk-midnight-muted: #c9bfdc;
   --rqk-midnight-border: rgba(255, 25, 118, 0.28);
+  /* The page backdrop, lit like the owner's reference stage: near-black at
+     the top, violet cloud in the middle, crimson glowing up from below.
+     Brightness lives here, behind the content; panels and cards stay dark
+     so text keeps its contrast. */
+  --rqk-midnight-stage:
+    radial-gradient(130% 75% at 50% 118%, rgba(242, 23, 81, 0.40), transparent 62%),
+    radial-gradient(85% 55% at 14% 78%, rgba(140, 54, 221, 0.22), transparent 70%),
+    radial-gradient(70% 48% at 88% 0%, rgba(255, 25, 118, 0.14), transparent 72%),
+    linear-gradient(180deg, #090c20 0%, #110b28 55%, #1c0a26 100%);
   --rqk-midnight-pill: rgba(140, 54, 221, 0.14);
   /* Inset only: bright edges without overlaying table data or page layout. */
   --rqk-midnight-inset: inset 0 0 12px rgba(255, 25, 118, 0.09);

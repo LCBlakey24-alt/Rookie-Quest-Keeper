@@ -208,10 +208,13 @@
    control layer. No dimensions, grid columns, spacing or breakpoints change. */
 @layer rq-controls {
   #root .rqk-campaign-mode-page {
-    background: radial-gradient(circle at 82% 2%,
-      rgba(var(--rqk-midnight-magenta-rgb), .12), transparent 48%),
-      var(--rqk-midnight-bg) !important;
+    background: var(--rqk-midnight-stage) !important;
     color: var(--rqk-midnight-text) !important;
+    /* Until the app shell itself is themed, the dark page is a framed stage
+       panel on the existing sky, not an unframed slab: rounded corners and a
+       thin edge drawn as an inset shadow, so no size changes. */
+    border-radius: 18px !important;
+    box-shadow: inset 0 0 0 1px var(--rqk-midnight-border), var(--rqk-midnight-inset) !important;
   }
   #root .rqk-campaign-mode-page .rqk-campaign-mode-header {
     background: radial-gradient(circle at 85% 0%,
