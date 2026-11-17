@@ -35,6 +35,15 @@ const asAccount = (scope, options = {}) => ({ ...options, rqkExpectedAuthScope: 
 /** True when replay must stop: the signed-in account is no longer `scope`. */
 const accountChanged = (scope, error = null) => Boolean(error?.rqkAuthScopeChanged) || getOfflineCacheScope() !== scope;
 
+/**
+ * Refresh the cached copy of a character after its combat change synced, so
+ * reopening it offline later shows the new state, not the pre-combat one.
+ * Owner-only on the server: a GM's refresh is refused, which is fine.
+ */
+const refreshCachedCharacter = (record, scope) => apiClient
+  .get(`/characters/${encodeURIComponent(record.characterId)}`, asAccount(scope, { timeout: 15000 }))
+  .catch(() => null);
+
 /** The cloud combat state a 409 from the apply endpoint carries, if any. */
 const conflictState = (error) => error?.response?.data?.detail?.state || null;
 
@@ -112,6 +121,8 @@ export default function OfflineSyncManager() {
             );
             continue;
           }
+          await refreshCachedCharacter(record, scope);
+          if (accountChanged(scope)) { stopped = true; break; }
           await removeOfflineCombatSync(record.key, record);
         } catch (error) {
           if (accountChanged(scope, error)) { stopped = true; break; }
@@ -283,6 +294,8 @@ export default function OfflineSyncManager() {
         toast.error(`${record.characterName}: the cloud changed again. Check it and choose again.`);
         return;
       }
+      await refreshCachedCharacter(record, scope);
+      if (accountChanged(scope)) { await load(); return; }
       await removeOfflineCombatSync(record.key, record);
       await load();
       toast.success(`${record.characterName}: offline combat state applied`);

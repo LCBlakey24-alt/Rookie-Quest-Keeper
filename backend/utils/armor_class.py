@@ -157,7 +157,11 @@ def armor_class_from_equipment(character: Dict[str, Any], equipped: Dict[str, An
         ac = armor_rule['base'] + min(2, dex)
     elif category == 'heavy':
         ac = armor_rule['base']
+    ac += _extra_bonus(armor, armor_rule)
     if shield_rule and shield_rule.get('category') == 'shield':
-        ac += shield_rule.get('bonus', 2)
-    ac += _extra_bonus(armor, armor_rule) + _extra_bonus(shield, shield_rule)
+        ac += shield_rule.get('bonus', 2) + _extra_bonus(shield, shield_rule)
+    elif shield:
+        # A shield known by its slot or type but not by name ("Aegis"): its
+        # inherent +2, or its own stored total if higher -- as with no armour.
+        ac += max(_int(shield.get('ac_bonus', 0), 0) if isinstance(shield, dict) else 0, 2)
     return ac + defense + worn_magic_ac_bonus(equipped)
