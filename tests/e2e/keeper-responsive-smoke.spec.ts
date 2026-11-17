@@ -628,7 +628,7 @@ test('desktop blue control reveals only the citrus gradient underline on hover',
     };
   });
   const resting = await readStyle();
-  expect(resting.backgroundColor).toBe('rgb(10, 35, 66)');
+  expect(resting.backgroundColor).toBe('rgb(18, 13, 39)');
   expect(resting.backgroundImage).toContain('255, 138, 31');
   expect(resting.backgroundSize).toMatch(/^0(?:px|%) 3px$/);
   expect(resting.transitionDuration).toContain('0.34s');
@@ -669,11 +669,11 @@ test('reduced-motion preference keeps instant citrus underline without animation
   await expect(button).toHaveCSS('background-size', '100% 3px');
 });
 
-// The approved Dusk sky (DESIGN_SYSTEM §3, 12 November 2026) is a plain
-// colour gradient painted once on <html>; page surfaces above it are
+// The page sky (now the Midnight Magenta stage, DESIGN_SYSTEM "Phase 2") is
+// a plain colour gradient painted once on <html>; page surfaces above it are
 // see-through so the turning backdrop hexagons show between panels. No
 // image texture is allowed anywhere.
-test('page surfaces are navy or the dusk sky, never the retired craft-paper texture', async ({ page }) => {
+test('page surfaces are midnight or the stage sky, never the retired craft-paper texture', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await avoidThirdPartyRequests(page);
   await page.goto('/');
@@ -686,17 +686,18 @@ test('page surfaces are navy or the dusk sky, never the retired craft-paper text
     const style = getComputedStyle(document.documentElement);
     return { color: style.backgroundColor, image: style.backgroundImage };
   });
-  expect(sky.color).toBe('rgb(10, 35, 66)');
-  expect(sky.image.startsWith('linear-gradient(')).toBe(true);
+  expect(sky.color).toBe('rgb(18, 13, 39)');
+  // The Midnight Magenta stage: crimson light from below over a gradient.
+  expect(/^(?:linear|radial)-gradient\(/.test(sky.image)).toBe(true);
   expect(sky.image).not.toContain('url(');
   await page.getByTestId('landing-signin-btn').click();
   const login = page.getByTestId('auth-page');
   await expect(login).toBeVisible();
   await expect(login).toHaveCSS('background-image', 'none');
-  await expect(login).toHaveCSS('background-color', 'rgb(10, 35, 66)');
+  await expect(login).toHaveCSS('background-color', 'rgb(18, 13, 39)');
 });
 
-test('1080p player display keeps a flat dark-navy frame without wallpaper', async ({ page }) => {
+test('1080p player display keeps a flat midnight frame without wallpaper', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await avoidThirdPartyRequests(page);
   await page.addInitScript(() => {
@@ -709,7 +710,7 @@ test('1080p player display keeps a flat dark-navy frame without wallpaper', asyn
   const frame = page.locator('.rqk-player-display__frame');
   await expect(frame).toBeVisible();
   await expect(frame).toHaveCSS('background-image', 'none');
-  await expect(frame).toHaveCSS('background-color', 'rgb(10, 35, 66)');
+  await expect(frame).toHaveCSS('background-color', 'rgb(18, 13, 39)');
 });
 
 
