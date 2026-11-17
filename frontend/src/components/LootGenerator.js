@@ -389,7 +389,7 @@ function LootGenerator({ partyLevel = 5, enemiesDefeated = [] }) {
           // design system rules out glow-heavy chrome.
           background: 'var(--rq-citrus-control, #0a2342)',
           color: 'var(--rq-citrus-cream, #F5F1E8)',
-          border: '1px solid rgba(60, 146, 224, 0.32)'
+          border: '1px solid rgba(var(--guild-c2-rgb), 0.32)'
         }}
       >
         <Sparkles size={18} className={isGenerating ? 'animate-spin' : ''} />
@@ -535,7 +535,7 @@ function LootGenerator({ partyLevel = 5, enemiesDefeated = [] }) {
             backgroundSize: '100% 3px',
             borderRadius: '10px',
             padding: '14px',
-            border: '1px solid rgba(60, 146, 224, 0.32)',
+            border: '1px solid rgba(var(--guild-c2-rgb), 0.32)',
             textAlign: 'center'
           }}>
             <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Total Value</div>

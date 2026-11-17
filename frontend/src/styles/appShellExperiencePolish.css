@@ -98,7 +98,7 @@
 }
 
 #root .rqk-app-rail-link.is-active {
-  background: var(--rq-secondary-soft, rgba(60, 146, 224, 0.10)) !important;
+  background: var(--rq-secondary-soft, rgba(var(--guild-c2-rgb), 0.10)) !important;
   border-color: var(--rq-line-strong, rgba(242, 137, 47, 0.30)) !important;
   color: var(--rq-text-primary, #ffffff) !important;
 }
@@ -271,7 +271,7 @@
 
 #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-trigger.is-open,
 #root .rqk-app-shell[data-rq-device='mobile'] .rqk-app-mobile-more-trigger.has-current-section {
-  background: var(--rq-secondary-soft, rgba(60, 146, 224, 0.10)) !important;
+  background: var(--rq-secondary-soft, rgba(var(--guild-c2-rgb), 0.10)) !important;
   border-color: var(--rq-line-strong, rgba(242, 137, 47, 0.30)) !important;
 }
 

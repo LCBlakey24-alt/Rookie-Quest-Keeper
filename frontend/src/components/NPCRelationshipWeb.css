@@ -9,7 +9,7 @@
 .rqk-rel-panel h3 { display: flex; align-items: center; gap: 7px; margin: 0; color: #e4c68d; font-size: 17px; }
 .rqk-rel-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; }
 .rqk-rel-form label { display: grid; gap: 6px; font-size: 12px; color: #e0d5c6; font-weight: 750; min-width: 0; }
-.rqk-rel-form select, .rqk-rel-form input, .rqk-rel-list-heading input, .rqk-rel-list-heading select, .rqk-rel-graph-controls select { width: 100%; min-width: 0; min-height: 42px; padding: 9px 11px; border: 1px solid #667481; border-radius: 5px; background: #0a2342; color: #f4e9d7; font: inherit; font-size: 14px; }
+.rqk-rel-form select, .rqk-rel-form input, .rqk-rel-list-heading input, .rqk-rel-list-heading select, .rqk-rel-graph-controls select { width: 100%; min-width: 0; min-height: 42px; padding: 9px 11px; border: 1px solid #667481; border-radius: 5px; background: var(--guild-bg); color: #f4e9d7; font: inherit; font-size: 14px; }
 .rqk-rel-form-notes { grid-column: 1 / -1; }
 .rqk-rel-form .rqk-rel-submit { justify-self: start; }
 .rqk-rel-submit { display: inline-flex; align-items: center; gap: 7px; min-height: 43px; padding: 9px 15px; border: 1px solid #f2892f; border-radius: 5px; background: #f2892f; color: #161c26; font: inherit; font-weight: 850; cursor: pointer; }
@@ -30,7 +30,7 @@
 .rqk-rel-edit { color: #e5d3a7; border-color: #8d7956; }
 .rqk-rel-entry-actions { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
 .rqk-rel-form-actions { grid-column: 1 / -1; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-.rqk-rel-cancel { display: inline-flex; align-items: center; gap: 6px; min-height: 43px; padding: 9px 13px; border: 1px solid #667481; border-radius: 5px; background: #0a2342; color: #ffffff; cursor: pointer; font: inherit; }
+.rqk-rel-cancel { display: inline-flex; align-items: center; gap: 6px; min-height: 43px; padding: 9px 13px; border: 1px solid #667481; border-radius: 5px; background: var(--guild-bg); color: #ffffff; cursor: pointer; font: inherit; }
 .rqk-rel-help { color: #bfccd6; margin: 0; font-size: 12px; }
 .rqk-rel-graph-controls { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 12px; }
 .rqk-rel-graph-controls label { display: grid; gap: 5px; flex: 1 1 185px; color: #e0d5c6; font-weight: 750; font-size: 12px; }
@@ -54,10 +54,10 @@
 .rqk-rel-graph-scroller { max-width: 100%; max-height: 610px; overflow: auto; border: 1px solid #415465; background: #091b2a; border-radius: 6px; }
 .rqk-rel-graph-scroller svg { display: block; width: 100%; height: auto; }
 .rqk-rel-graph-scroller svg g:focus-visible { outline: 3px solid #e5c891; outline-offset: 3px; }
-.rqk-rel-selected { display: grid; gap: 6px; padding: 12px; border-left: 3px solid #f2892f; background: #0c2234; font-size: 13px; }
+.rqk-rel-selected { display: grid; gap: 6px; padding: 12px; border-left: 3px solid #f2892f; background: var(--guild-bg); font-size: 13px; }
 .rqk-rel-selected p { margin: 0; line-height: 1.5; color: #c5d0d9; }
 .rqk-rel-selected button, .rqk-rel-status button { justify-self: start; padding: 8px 12px; color: #e4c68d; background: #10293a; border: 1px solid #f2892f; border-radius: 6px; cursor: pointer; }
-.rqk-rel-status { display: grid; justify-items: start; gap: 8px; padding: 18px; border: 1px solid #8a7070; border-radius: 7px; background: #0a2342; color: #ffffff; }
+.rqk-rel-status { display: grid; justify-items: start; gap: 8px; padding: 18px; border: 1px solid #8a7070; border-radius: 7px; background: var(--guild-bg); color: #ffffff; }
 .rqk-rel-status p { margin: 0; }
 .rqk-rel-workspace :is(button, select, input):focus-visible, .rqk-rel-status button:focus-visible { outline: 2px solid #e2bc80; outline-offset: 3px; }
 @media (max-width: 780px) {
@@ -103,7 +103,7 @@
   background: var(--rq-primary, #f2892f);
   border: 1px solid var(--rq-primary, #f2892f);
   border-radius: 6px;
-  color: #0a2342;
+  color: var(--guild-bg);
   font: inherit;
   font-size: 13px;
   font-weight: 850;
@@ -111,14 +111,14 @@
 }
 #root .rqk-rel-add-link:is(:hover,:focus-visible) {
   background: var(--rq-primary-hover, #ffb066);
-  color: #0a2342;
+  color: var(--guild-bg);
 }
 #root .rqk-rel-create-panel {
   scroll-margin-top: 20px;
 }
 #root .rqk-rel-arrow-swatch {
   display: inline-block;
-  color: #ffb066;
+  color: var(--guild-hi);
   font-size: 18px;
   font-weight: 900;
   font-style: normal;

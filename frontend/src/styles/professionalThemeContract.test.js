@@ -10,7 +10,7 @@ describe('Keeper professional visual contract', () => {
     const css = read('threeModeMinimalist.css');
 
     expect(css).toContain('--rq-primary: #f2892f');
-    expect(css).toContain('--rq-secondary: #3C92E0');
+    expect(css).toContain('--rq-secondary: var(--guild-hi)');
     expect(css).toContain('--rq-text-primary: #ffffff');
     expect(css).toContain('--rq-text-secondary: rgba(255, 255, 255, 0.78)');
     expect(css).toContain('--rq-text-muted: rgba(255, 255, 255, 0.60)');
@@ -22,7 +22,7 @@ describe('Keeper professional visual contract', () => {
     const creator = read('../components/FullCharacterCreatorV2.css');
 
     expect(landing).toContain('--landing-red: #f2892f');
-    expect(landing).toContain('--landing-secondary: #3C92E0');
+    expect(landing).toContain('--landing-secondary: var(--guild-hi)');
     expect(landing).toContain('--landing-text: #ffffff');
     expect(creator).toContain('--rqk-creator-accent: var(--rq-primary, #f2892f)');
     expect(creator).toContain('--rqk-creator-blue: var(--rq-secondary, #3C92E0)');
@@ -43,7 +43,7 @@ describe('Keeper professional visual contract', () => {
     expect(shell).toContain('#f2892f');
     expect(shell).toContain('#ffffff');
     expect(loading).toContain('Guild Ledger loading authority');
-    expect(loading).toContain('#0a2342');
+    expect(loading).toContain('var(--guild-bg)');
     expect(loading).toContain('#f2892f');
     expect(shell).not.toMatch(/#FF2DAA|rgba\(255\s*,\s*45\s*,\s*170/i);
     expect(loading).not.toMatch(/#FF2DAA|rgba\(255\s*,\s*45\s*,\s*170/i);
@@ -59,7 +59,7 @@ describe('Keeper professional visual contract', () => {
     expect(authComponent).toContain("eyebrow: 'Rookie Quest Keeper'");
     expect(authComponent).not.toContain("eyebrow: 'Guild Ledger'");
     expect(authCss).toContain('Rookie Quest Keeper authentication — Guild Ledger authority');
-    expect(auth).toContain('#0a2342');
+    expect(auth).toContain('var(--guild-bg)');
     expect(auth).toContain('#f2892f');
     expect(auth).toContain('#ffffff');
     expect(auth).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542/i);

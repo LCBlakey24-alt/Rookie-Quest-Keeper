@@ -17,7 +17,7 @@
   padding: 7px 9px;
   border: 1px solid rgba(255,45,170,.18);
   border-radius: 5px;
-  background: #0C2234;
+  background: var(--guild-bg);
 }
 
 .player-dashboard-character-tools > span {
@@ -75,7 +75,7 @@
 
 .player-dashboard-vital svg,
 .player-dashboard-character-tools svg {
-  color: #7CCBFF;
+  color: var(--guild-h3);
   flex: 0 0 auto;
 }
 

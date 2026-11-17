@@ -13,7 +13,7 @@ const rq = {
   borderDefault: 'rgba(255,45,170,0.18)',
   accent: '#FF2DAA',
   accentHover: '#FF2DAA',
-  accentSoft: 'rgba(124,203,255,0.10)',
+  accentSoft: 'rgba(var(--guild-h3-rgb),0.10)',
   text: '#FFFFFF',
   textSecondary: '#FFFFFF',
   muted: '#FFFFFF',
@@ -198,7 +198,7 @@ const modalHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap
 const eyebrowStyle = { color: rq.text, fontSize: 10, fontWeight: 900, letterSpacing: '.1em', textTransform: 'uppercase', margin: '0 0 3px' };
 const titleStyle = { color: rq.text, fontSize: 20, fontWeight: 900, margin: '0 0 5px', lineHeight: 1.08, fontFamily: 'inherit' };
 const subtitleStyle = { color: rq.textSecondary, fontSize: 12, lineHeight: 1.4, margin: 0 };
-const closeButtonStyle = { width: 36, height: 36, display: 'grid', placeItems: 'center', background: '#102B40', border: `1px solid ${rq.borderDefault}`, color: '#7CCBFF', borderRadius: 5, padding: 0, cursor: 'pointer' };
+const closeButtonStyle = { width: 36, height: 36, display: 'grid', placeItems: 'center', background: '#102B40', border: `1px solid ${rq.borderDefault}`, color: 'var(--guild-h3)', borderRadius: 5, padding: 0, cursor: 'pointer' };
 const pagePathStyle = { color: rq.text, fontSize: 11, padding: '7px 8px', background: '#102B40', border: `1px solid ${rq.borderDefault}`, borderRadius: 5, margin: '10px 0' };
 const feedbackGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8, marginTop: 10 };
 const fieldLabelStyle = { display: 'flex', flexDirection: 'column', gap: 4, color: rq.text, fontSize: 11, fontWeight: 850, marginTop: 8 };

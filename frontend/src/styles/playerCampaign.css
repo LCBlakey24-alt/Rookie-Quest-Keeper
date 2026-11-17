@@ -14,7 +14,7 @@
   gap: 12px;
   margin-bottom: 12px;
   padding: 14px;
-  background: #0C2234;
+  background: var(--guild-bg);
   border: 1px solid rgba(242, 137, 47,.18);
   border-radius: 7px;
 }
@@ -86,7 +86,7 @@
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0;
-  background: #0C2234;
+  background: var(--guild-bg);
   padding: 0;
   margin-bottom: 10px;
   border: 1px solid rgba(242, 137, 47,.18);
@@ -145,7 +145,7 @@
 
 .player-campaign-card {
   min-width: 0;
-  background: #0C2234;
+  background: var(--guild-bg);
   background-image: none;
   border: 1px solid rgba(242, 137, 47,.18);
   border-radius: 7px;
@@ -334,7 +334,7 @@
 
 .player-now-playing {
   margin-bottom: 10px;
-  background: #0C2234;
+  background: var(--guild-bg);
   border: 1px solid rgba(242, 137, 47,.18);
   border-left: 3px solid #79BCE8;
   border-radius: 7px;

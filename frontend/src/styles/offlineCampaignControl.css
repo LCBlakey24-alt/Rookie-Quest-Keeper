@@ -332,7 +332,7 @@
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-card__header {
   min-height: 44px;
-  background: #0C2234;
+  background: var(--guild-bg);
   border-bottom: 1px solid rgba(242, 137, 47,.18);
 }
 

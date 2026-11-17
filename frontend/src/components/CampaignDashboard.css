@@ -475,12 +475,12 @@
    campaigns. No old neon/pink override layer below this point.
    ========================================================================= */
 #root .campaign-dashboard-simple {
-  --rqk-campaign-ink: #0a2342;
-  --rqk-campaign-navy: #0a2342;
-  --rqk-campaign-surface: #0a2342;
-  --rqk-campaign-elevated: #0a2342;
+  --rqk-campaign-ink: var(--guild-bg);
+  --rqk-campaign-navy: var(--guild-bg);
+  --rqk-campaign-surface: var(--guild-bg);
+  --rqk-campaign-elevated: var(--guild-bg);
   --rqk-campaign-brass: #f2892f;
-  --rqk-campaign-brass-light: #ffb066;
+  --rqk-campaign-brass-light: var(--guild-hi);
   --rqk-campaign-wax: var(--rq-guild-wine, #7E2D2D);
   --rqk-campaign-wax-text: #F8F0E5;
   --rqk-campaign-cream: #ffffff;
@@ -562,7 +562,7 @@
 #root .campaign-button:is(:hover,:focus-visible),
 #root .campaign-icon-button:is(:hover,:focus-visible),
 #root .campaign-home-quick-card:is(:hover,:focus-visible) {
-  background: #0a2342 !important;
+  background: var(--guild-bg) !important;
   border-color: var(--rqk-campaign-brass) !important;
 }
 #root .campaign-button-primary:is(:hover,:focus-visible) {
@@ -1372,12 +1372,12 @@
 }
 #root .campaign-dashboard-simple .campaign-button-primary:hover,
 #root .campaign-dashboard-simple .campaign-button-primary:focus-visible {
-  background: #ffb066 !important;
-  border-color: #ffb066 !important;
-  color: #0a2342 !important;
+  background: var(--guild-hi) !important;
+  border-color: var(--guild-hi) !important;
+  color: var(--guild-bg) !important;
 }
 #root .campaign-dashboard-simple :is(button, a, input, select, textarea):focus-visible {
-  outline: 3px solid #ffb066 !important;
+  outline: 3px solid var(--guild-hi) !important;
   outline-offset: 3px !important;
 }
 #root .campaign-dashboard-simple .campaign-dashboard-group-row,
@@ -1460,7 +1460,7 @@
 /* Guild Ledger UI polish: readable gold actions, clear keyboard focus and
    deliberate desktop/mobile density. No data or navigation changes. */
 #root .campaign-dashboard-simple .campaign-button-primary {
-  color: #0a2342 !important;
+  color: var(--guild-bg) !important;
   font-weight: 850 !important;
 }
 /* Selected navigation is wax-seal red; primary action buttons remain brass. */
@@ -1472,7 +1472,7 @@
   font-weight: 850 !important;
 }
 #root .campaign-dashboard-simple .campaign-button-primary:is(:hover,:focus-visible) {
-  color: #0a2342 !important;
+  color: var(--guild-bg) !important;
 }
 #root .campaign-dashboard-simple :is(
   .campaign-icon-button, .campaign-button, .campaign-dashboard-group,

@@ -188,7 +188,7 @@
 #root .loading-screen::before,
 #root .clean-sheet-loading::before,
 #root .full-creator-loading {
-  background: #0C2234 !important;
+  background: var(--guild-bg) !important;
   border: 1px solid rgba(255,45,170,.22) !important;
   border-radius: 7px !important;
 }
@@ -210,7 +210,7 @@
 #root .loading-screen .loading-spinner::before,
 #root .clean-sheet-loading::after,
 #root .full-creator-loading::before {
-  background: #7CCBFF !important;
+  background: var(--guild-h3) !important;
   background-image: none !important;
 }
 

@@ -403,13 +403,13 @@
 
 .loading-screen,
 .clean-sheet-loading {
-  background: #0a2342 !important;
+  background: var(--guild-bg) !important;
   color: #ffffff !important;
 }
 
 .loading-screen::before,
 .clean-sheet-loading::before {
-  background: #0a2342 !important;
+  background: var(--guild-bg) !important;
   border: 1px solid rgba(242, 137, 47, 0.24) !important;
   border-left: 4px solid #f2892f !important;
   border-radius: 7px !important;
@@ -417,7 +417,7 @@
 
 .loading-brand-mark,
 .loading-screen .loading-spinner {
-  background: #0a2342 !important;
+  background: var(--guild-bg) !important;
   border: 1px solid rgba(242, 137, 47, 0.30) !important;
   color: #ffffff !important;
   border-radius: 5px !important;

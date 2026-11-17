@@ -616,7 +616,7 @@ function PlayersTab({ campaignId }) {
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'left bottom',
                     backgroundSize: '100% 3px',
-                    border: '1px solid rgba(60, 146, 224, 0.32)',
+                    border: '1px solid rgba(var(--guild-c2-rgb), 0.32)',
                     borderRadius: '10px',
                     opacity: idx + 1 > wizardStep ? 0.5 : 1,
                     transition: 'all 0.3s'

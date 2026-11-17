@@ -57,6 +57,27 @@ only**; do not copy or incorporate third-party stage artwork. Follow issue
 #932 for later pages and visual acceptance. If the user rejects the visual
 pilot, revert its route-scoped styles without modifying shared app geometry.
 
+**Phase 2 — site-wide (owner request, 17 November 2026):** the owner asked
+for *everything* — the animated hexagon background, the sidebar and every
+inner-glow box — to use Midnight Magenta, together with a **new RQK logo**
+(hexagon mark, crimson → magenta → violet edge). This supersedes the Neon
+Coast colours everywhere; the layout, shape, typography and wheel rules of
+§3–§6a still apply unchanged. In practice:
+
+- The shared `--guild-*` tokens in `guildTokens.css` now hold the Midnight
+  Magenta values: page `#120D27` under the crimson-lit `--rqk-midnight-stage`
+  sky; ordinary glow magenta `#FF1976` → violet `#8C36DD` → indigo `#5A4BFF`;
+  chosen/primary glow crimson `#F21751` → magenta → blush `#FF8FBF`; accent
+  `#FF5C93`. Routes read the tokens, so no route keeps its own blue.
+- `public/rq-polish.css` loads before the bundle, so it repeats the literal
+  values rather than tokens.
+- Semantic statuses keep their own colours (info stays blue `#3C92E0`).
+- Logo files keep their names (`/brand/rqk-hex-logo*.{png,webp}`, the PWA
+  icons and `apple-touch-icon.png`); the icon cache-bust is `?v=20261117-1`.
+
+Where §3 or §4 below names a Neon Coast hex value, read the matching
+`--guild-*` token instead.
+
 ---
 
 ## 1. Product identity

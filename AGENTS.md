@@ -29,6 +29,13 @@ pages or to change the Guild Command layout. See the newest heading in
 Keep phone/tablet/desktop grids, 44px controls, focus, reduced motion,
 semantic statuses, data access and live play states untouched.
 
+**17 November 2026 — site-wide.** The owner then asked for the whole app
+(animated background, sidebar, every inner-glow box) and a new RQK logo to
+use Midnight Magenta. The shared `--guild-*` tokens now carry those colours,
+so "Neon Coast" colour wording below means the current `--guild-*` tokens.
+Layout, shape, typography and wheel rules are unchanged. See "Phase 2" in
+`docs/DESIGN_SYSTEM.md`.
+
 ## Product principles
 
 - **Prep = build the campaign library. Live Play = use and update it.**

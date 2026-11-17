@@ -9,7 +9,7 @@ const IDLE_POLL_MS = 15000;
 
 const theme = {
   bg: '#071522',
-  panel: '#0C2234',
+  panel: 'var(--guild-bg)',
   card: '#112A40',
   cardHover: '#17364F',
   input: '#071A29',

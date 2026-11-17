@@ -23,9 +23,9 @@
     var(--rq-citrus-orange) 50%,
     var(--rq-citrus-blood) 72%,
     var(--rq-citrus-blood) 100%);
-  --rq-citrus-navy: #0a2342;
-  --rq-citrus-panel: #0a2342;
-  --rq-citrus-control: #0a2342;
+  --rq-citrus-navy: var(--guild-bg);
+  --rq-citrus-panel: var(--guild-bg);
+  --rq-citrus-control: var(--guild-bg);
   --rq-citrus-cream: #F5F1E8;
   --rq-citrus-sweep: 340ms cubic-bezier(.22,.78,.18,1);
 }
@@ -70,7 +70,7 @@
     background-size: 0% 3px !important;
     background-position: left bottom !important;
     background-repeat: no-repeat !important;
-    border-color: rgba(60,146,224,.32) !important;
+    border-color: rgba(var(--guild-c2-rgb),.32) !important;
     color: var(--rq-citrus-cream) !important;
     -webkit-text-fill-color: currentColor !important;
     transition: background-size var(--rq-citrus-sweep), border-color 180ms ease !important;
@@ -216,7 +216,7 @@
   /* Focus keeps its independent blue outline; dangerous, disabled and
    * actual loading controls remain visibly distinct from navigation. */
   #root :is(button, [role='button'], [role='tab'], a):focus-visible {
-    outline: 3px solid #3C92E0 !important;
+    outline: 3px solid var(--guild-hi) !important;
     outline-offset: 2px !important;
   }
   #root :is(button,[role='button'],[role='tab']):is(:disabled,[aria-disabled='true']) {
@@ -297,10 +297,10 @@
   #root .rqk-player-display :is(.rqk-player-display__npc-card,
                                 .rqk-player-display__combat,
                                 .rqk-player-display__npc-shell) {
-    border-color: rgba(60,146,224,.26) !important;
+    border-color: rgba(var(--guild-c2-rgb),.26) !important;
   }
   #root .rqk-player-display .rqk-player-display__status {
-    border-left-color: #3C92E0 !important;
+    border-left-color: var(--guild-hi) !important;
   }
 
 
@@ -324,6 +324,6 @@ html body #root :is(
   button, [role='button'], [role='tab'], [role='link'], a, select, summary,
   input, textarea, [tabindex]:not([tabindex='-1'])
 ):focus-visible {
-  outline: 3px solid #3C92E0 !important;
+  outline: 3px solid var(--guild-hi) !important;
   outline-offset: 2px !important;
 }

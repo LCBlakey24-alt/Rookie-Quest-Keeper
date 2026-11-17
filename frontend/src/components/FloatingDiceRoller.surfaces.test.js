@@ -6,7 +6,7 @@ import path from 'path';
 const CSS = fs.readFileSync(path.join(__dirname, 'FloatingDiceRoller.css'), 'utf8');
 const DECLARATIONS = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
 
-const FLAT_SURFACE = '#0A2342';
+const FLAT_SURFACE = 'VAR(--GUILD-BG)';
 
 // The stacked surfaces and antique-gold accents this panel used before the
 // flat pass. Any of them reappearing is the box-in-a-different-blue look the
@@ -49,7 +49,7 @@ describe('the floating dice roller sits on the flat surface', () => {
   });
 
   test('the support blue is the approved value, not the faded one', () => {
-    expect(DECLARATIONS).toMatch(/--dice-blue:\s*#3C92E0/i);
+    expect(DECLARATIONS).toMatch(/--dice-blue:\s*var\(--guild-hi\)/i);
   });
 
   test('the misleading pink token name is gone', () => {

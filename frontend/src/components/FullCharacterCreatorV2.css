@@ -410,7 +410,7 @@
 .full-creator-equipment-modes button.active,
 .full-creator-spell-chip.active,
 .full-creator-footer button:last-child {
-  background: rgba(124,203,255,.10);
+  background: rgba(var(--guild-h3-rgb),.10);
   border-color: var(--rqk-creator-accent);
   color: var(--rqk-creator-text);
 }
@@ -516,7 +516,7 @@
   width: fit-content;
   padding: 3px 6px;
   border-radius: 4px;
-  background: rgba(124,203,255,.10);
+  background: rgba(var(--guild-h3-rgb),.10);
   border: 1px solid var(--rqk-creator-line);
   color: var(--rqk-creator-text);
   font-size: .68rem;

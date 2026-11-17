@@ -77,7 +77,7 @@
     min-height: 46px;
     padding: 6px 8px;
     background: var(--rq-control-blue, #0a2342) !important;
-    border: 1px solid rgba(60,146,224,.3) !important;
+    border: 1px solid rgba(var(--guild-c2-rgb),.3) !important;
     border-radius: 5px;
     color: var(--rq-text-primary, #ffffff) !important;
     font-size: .78rem;
@@ -182,23 +182,23 @@
   /* The existing live HP card is the Core Stats panel; no duplicate state. */
   #root .character-page-v2 .clean-sheet-header.clean-sheet-header--simple {
     margin-bottom: 8px !important;
-    border: 1px solid rgba(60,146,224,.28) !important;
+    border: 1px solid rgba(var(--guild-c2-rgb),.28) !important;
     border-radius: 7px !important;
   }
   #root .character-page-v2 .clean-sheet-compact-status--battle-bar {
     margin-top: 0 !important;
-    border: 1px solid rgba(60,146,224,.28) !important;
+    border: 1px solid rgba(var(--guild-c2-rgb),.28) !important;
     border-radius: 7px !important;
   }
   #root .character-page-v2 .clean-sheet-header .clean-sheet-hero-level-badge {
-    border-color: rgba(60,146,224,.3) !important;
+    border-color: rgba(var(--guild-c2-rgb),.3) !important;
   }
   #root .character-page-v2 .clean-sheet-header .clean-sheet-hero-options-toggle {
     display: grid !important;
     place-items: center !important;
     min-width: 46px !important;
     min-height: 46px !important;
-    border: 1px solid rgba(60,146,224,.35) !important;
+    border: 1px solid rgba(var(--guild-c2-rgb),.35) !important;
     background: var(--rq-control-blue, #0a2342) !important;
     color: var(--rq-text-primary, #ffffff) !important;
     cursor: pointer;
@@ -232,7 +232,7 @@
     gap: 3px;
     min-height: 78px !important;
     padding: 9px 4px !important;
-    border: 1px solid rgba(60,146,224,.30) !important;
+    border: 1px solid rgba(var(--guild-c2-rgb),.30) !important;
     border-radius: 5px;
     background: var(--rq-control-blue, #0a2342) !important;
     color: var(--rq-text-primary, #ffffff) !important;
@@ -333,7 +333,7 @@
       calc(7px + env(safe-area-inset-bottom, 0px))
       max(7px, env(safe-area-inset-left, 0px));
     background: var(--rq-bg-deep, #0a2342);
-    border-top: 1px solid rgba(60,146,224,.3);
+    border-top: 1px solid rgba(var(--guild-c2-rgb),.3);
   }
   #root .character-page-v2 .rqk-cc-dock > button {
     display: grid;
@@ -382,7 +382,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 7px;
     background: var(--rq-bg-panel, #0a2342) !important;
-    border: 1px solid rgba(60,146,224,.40);
+    border: 1px solid rgba(var(--guild-c2-rgb),.40);
     border-radius: 7px;
   }
   #root .character-page-v2 .rqk-cc-more-heading {
@@ -405,7 +405,7 @@
     min-height: 48px !important;
     min-width: 0;
     padding: 8px;
-    border: 1px solid rgba(60,146,224,.3) !important;
+    border: 1px solid rgba(var(--guild-c2-rgb),.3) !important;
     border-radius: 5px;
     background-color: var(--rq-control-blue, #0a2342) !important;
     background-image: var(--rq-citrus-gradient) !important;
@@ -497,7 +497,7 @@
   gap: 2px !important;
   align-content: start !important;
   padding: 8px 10px !important;
-  border: 1px solid var(--cs-border, rgba(60,146,224,.28)) !important;
+  border: 1px solid var(--cs-border, rgba(var(--guild-c2-rgb),.28)) !important;
   border-radius: 6px !important;
 }
 #root .character-page-v2 .clean-sheet-readiness-grid span {

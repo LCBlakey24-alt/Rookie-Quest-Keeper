@@ -575,7 +575,7 @@ const eyebrowStyle = { margin: '0 0 4px', color: rq.text, fontSize: 11, fontWeig
 const titleStyle = { margin: 0, color: rq.text, fontFamily: titleFont, fontSize: 'clamp(36px, 5vw, 64px)', lineHeight: 0.92, display: 'flex', alignItems: 'center', gap: 10 };
 const subtitleStyle = { margin: '8px 0 0', color: rq.soft, lineHeight: 1.45, maxWidth: 900 };
 const typeGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8 };
-const typeCardStyle = (active) => ({ display: 'grid', gap: 6, minHeight: 104, textAlign: 'left', background: active ? 'rgba(124,203,255,0.10)' : rq.card, color: rq.text, border: `1px solid ${active ? rq.pink : rq.line}`, padding: 12, cursor: 'pointer', fontFamily: fontStack });
+const typeCardStyle = (active) => ({ display: 'grid', gap: 6, minHeight: 104, textAlign: 'left', background: active ? 'rgba(var(--guild-h3-rgb),0.10)' : rq.card, color: rq.text, border: `1px solid ${active ? rq.pink : rq.line}`, padding: 12, cursor: 'pointer', fontFamily: fontStack });
 const builderGridStyle = { display: 'grid', gridTemplateColumns: 'minmax(min(360px, 100%), 0.82fr) minmax(min(420px, 100%), 1.18fr)', gap: 12 };
 const panelStyle = { background: rq.panel, border: `1px solid ${rq.line}`, padding: 14, minWidth: 0 };
 const sectionTitleStyle = { margin: 0, color: rq.text, fontSize: 16, fontWeight: 950, display: 'flex', gap: 8, alignItems: 'center' };

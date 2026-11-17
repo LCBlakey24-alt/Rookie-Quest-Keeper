@@ -13,7 +13,7 @@ describe('Midnight Magenta campaign pilot is colour-only and route-scoped', () =
     expect(tokens).toContain('--rqk-midnight-crimson: #f21751');
     expect(tokens).toContain('--rqk-midnight-violet: #8c36dd');
     expect(tokens).toContain('--rqk-midnight-inset: inset ');
-    expect(tokens).toContain('--guild-bg: #0a2342');
+    expect(tokens).toContain('--guild-bg: #120d27');
     for (const [key, value] of [
       ['success', '#5FA67A'], ['warning', '#D39A43'], ['danger', '#B94A4F'],
     ]) expect(base).toContain(`--rq-${key}: ${value}`);

@@ -18,7 +18,7 @@
 
 .rq-brand-nav-signin:hover,
 .rq-brand-nav-signin:focus-visible {
-  background: rgba(124, 203, 255, 0.08);
+  background: rgba(var(--guild-h3-rgb), 0.08);
   color: #fff;
   outline: none;
 }

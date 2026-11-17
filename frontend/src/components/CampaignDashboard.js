@@ -55,8 +55,8 @@ import '@/styles/campaignGuild.css';
 import HexLoader from '@/components/guild-motif/HexLoader';
 
 const uploadTheme = {
-  bg: { black: '#0a2342', panel: '#0a2342', card: '#0a2342', hover: '#0a2342' },
-  accent: { primary: '#f2892f', secondary: '#3C92E0', subtle: 'rgba(242, 137, 47,0.12)' },
+  bg: { black: 'var(--guild-bg)', panel: 'var(--guild-bg)', card: 'var(--guild-bg)', hover: 'var(--guild-bg)' },
+  accent: { primary: '#f2892f', secondary: 'var(--guild-hi)', subtle: 'rgba(242, 137, 47,0.12)' },
   text: { white: '#ffffff', primary: '#ffffff', secondary: '#D5C9B6', muted: '#AEAB9F' },
   border: 'rgba(242, 137, 47,0.26)',
 };

@@ -20,7 +20,7 @@ describe('Homebrew presentation ownership', () => {
     expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542/i);
     expect(css).not.toMatch(/background:\s*(?:var\([^;]*#d00000[^;]*\)|#d00000)\s*!important/i);
     expect(css).toContain('#071522');
-    expect(css).toContain('#0C2234');
+    expect(css).toContain('var(--guild-bg)');
     expect(css).toContain('#112A40');
     expect(css).toContain('#79BCE8');
     expect(css).toContain('#f2892f');

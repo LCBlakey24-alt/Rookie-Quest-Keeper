@@ -224,7 +224,7 @@ const cardTopStyle = { display: 'flex', alignItems: 'center', gap: 7, minWidth: 
 const avatarStyle = { width: 30, height: 30, display: 'grid', placeItems: 'center', background: rq.bg, flex: '0 0 30px' };
 const nameStyle = { display: 'block', fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
 const metaStyle = { display: 'block', color: rq.muted, fontSize: 9, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
-const statusPillStyle = pending => ({ padding: '3px 5px', background: pending ? 'rgba(124,203,255,0.10)' : rq.bg, color: '#FFFFFF', border: pending ? `1px solid ${rq.pink}` : `1px solid ${rq.line}`, fontSize: 8, fontWeight: 950, textTransform: 'uppercase', whiteSpace: 'nowrap' });
+const statusPillStyle = pending => ({ padding: '3px 5px', background: pending ? 'rgba(var(--guild-h3-rgb),0.10)' : rq.bg, color: '#FFFFFF', border: pending ? `1px solid ${rq.pink}` : `1px solid ${rq.line}`, fontSize: 8, fontWeight: 950, textTransform: 'uppercase', whiteSpace: 'nowrap' });
 const statsStyle = { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 };
 const statStyle = { minHeight: 38, background: rq.bg, border: `1px solid ${rq.line}`, display: 'grid', placeItems: 'center', alignContent: 'center', gap: 1, fontSize: 11 };
 const actionsStyle = { display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap' };

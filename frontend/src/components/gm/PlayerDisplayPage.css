@@ -2,16 +2,16 @@
    Scope strictly to the separate presentation route; GM-only data and controls
    do not belong on this screen. Supports short 720p / 768p TV viewports. */
 .rqk-player-display {
-  --rqk-tv-ink: #0a2342;
-  --rqk-tv-navy: #0a2342;
-  --rqk-tv-panel: #0a2342;
+  --rqk-tv-ink: var(--guild-bg);
+  --rqk-tv-navy: var(--guild-bg);
+  --rqk-tv-panel: var(--guild-bg);
   --rqk-tv-gold: #f2892f;
   --rqk-tv-cream: #ffffff;
   /* Approved yellow-to-red accent. Used only as thin rules: title underlines
      and section markers — never as a panel or card fill. */
   --rqk-tv-citrus: var(--rq-citrus-gradient, linear-gradient(90deg,
     #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%));
-  --rqk-tv-line: rgba(60, 146, 224, 0.28);
+  --rqk-tv-line: rgba(var(--guild-c2-rgb), 0.28);
   color: var(--rqk-tv-cream);
   isolation: isolate;
 }
@@ -27,7 +27,7 @@
   box-sizing: border-box;
 }
 .rqk-player-display__frame {
-  background: linear-gradient(145deg, #0a2342 0%, #0a2342 52%, #0a2342 100%) !important;
+  background: linear-gradient(145deg, var(--guild-bg) 0%, var(--guild-bg) 52%, var(--guild-bg) 100%) !important;
   box-shadow: none !important;
 }
 .rqk-player-display__status {
@@ -297,7 +297,7 @@
    and the glow inside, white Cinzel headings, and the warm peach accent in
    place of the old orange. Status colours (HP, danger) stay semantic. */
 .rqk-player-display {
-  --guild-bg-rgb: 10, 35, 66; /* #0a2342, for translucent panels */
+  /* --guild-bg-rgb comes from the shared tokens. */
   --rq-bg-main: transparent;
   --rq-bg-deep: transparent;
   --rq-bg-panel: var(--guild-bg, #0a2342);

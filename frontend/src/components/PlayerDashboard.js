@@ -322,7 +322,7 @@ const loadWarningStyle = {
 const handoutWarningStyle = {
   ...loadWarningStyle,
   marginTop: 8,
-  border: '1px solid rgba(60, 146, 224, 0.32)',
+  border: '1px solid rgba(var(--guild-c2-rgb), 0.32)',
   borderLeft: '3px solid var(--rq-info, #3C92E0)',
 };
 

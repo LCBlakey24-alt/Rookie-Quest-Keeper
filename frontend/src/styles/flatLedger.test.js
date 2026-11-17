@@ -22,7 +22,8 @@ const CSS = read('flatLedger.css');
 const DECLARATIONS = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
 const DESIGN = read('designSystem.css');
 
-const INK = '#0A2342';
+// The single page ink, now set once in guildTokens.css (Midnight Magenta).
+const INK = 'VAR(--GUILD-BG)';
 
 describe('there is only one surface colour', () => {
   test.each([

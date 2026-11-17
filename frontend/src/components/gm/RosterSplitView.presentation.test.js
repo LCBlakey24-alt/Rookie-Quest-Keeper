@@ -6,12 +6,12 @@ const component = fs.readFileSync(path.join(__dirname, 'RosterSplitView.js'), 'u
 
 describe('Guild Command reference roster presentation', () => {
   test('selected NPC or beast uses a citrus underline, not a gold or red filled card', () => {
-    expect(css).toContain('background-color: #0a2342 !important;');
+    expect(css).toContain('background-color: var(--guild-bg) !important;');
     expect(css).toContain('background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F, #F4551F, #E03A2F))');
     expect(css).toContain('background-size: 0% 3px !important;');
     expect(css).toContain('background-size: 100% 3px !important;');
     expect(css).toContain('border-bottom-color: #E03A2F !important;');
-    expect(css).toContain('scrollbar-color: #61758A #0a2342;');
+    expect(css).toContain('scrollbar-color: #61758A var(--guild-bg);');
     expect(component).toContain("aria-current={chosen ? 'true' : undefined}");
   });
 
@@ -25,7 +25,7 @@ describe('Guild Command reference roster presentation', () => {
   });
 
   test('keyboard focus stays visible and reduced-motion users get instant selection', () => {
-    expect(css).toContain('outline: 3px solid #3C92E0 !important;');
+    expect(css).toContain('outline: 3px solid var(--guild-hi) !important;');
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
     expect(css).toContain('transition: none !important;');
     expect(component).toContain('onKeyDown={event => navigateList(event, index)}');
