@@ -238,12 +238,16 @@ export function buildConsumableUseUpdate(character = {}, item, healingTotal = 0)
     ? maxHp
     : Math.max(0, Math.min(maxHp, Number(rawCurrent) || 0));
   const healing = Math.max(0, Number(healingTotal) || 0);
+  const nextHp = Math.min(maxHp, currentHp + healing);
+  // Any healing brings a dying character back: their death saves clear.
+  const revived = currentHp <= 0 && nextHp > 0;
 
   return {
-    current_hit_points: Math.min(maxHp, currentHp + healing),
+    current_hit_points: nextHp,
     inventory: consumed.inventory,
     equipment: consumed.equipment,
     consumed: consumed.consumed,
+    ...(revived ? { death_saves_successes: 0, death_saves_failures: 0 } : {}),
   };
 }
 
@@ -265,11 +269,32 @@ function isConsumableLike(item) {
   return type.includes('consumable') || type.includes('potion') || name.includes('potion') || name.includes('healing');
 }
 
+/** "2d4+2" style healing dice, or null. */
+function parseHealingDice(value) {
+  const match = String(value || '').replace(/\s+/g, '').match(/^(\d+)d(\d+)([+-]\d+)?$/i);
+  if (!match) return null;
+  return { count: Number(match[1]), sides: Number(match[2]), modifier: Number(match[3] || 0) };
+}
+
+/**
+ * The healing a consumable gives, or null when it is not a healing item.
+ *
+ * Only an item that is plainly a healing potion (Potion of Healing and its
+ * Greater, Superior and Supreme tiers) or one that carries its own healing
+ * dice heals. Every other consumable -- a Potion of Invisibility, an
+ * antitoxin, a custom item -- returns null, so using it never quietly adds
+ * hit points (review finding 14).
+ */
 export function getPotionHealing(item) {
-  const text = `${getItemName(item)} ${item?.description || ''} ${item?.effect || ''}`.toLowerCase();
-  if (text.includes('supreme')) return { count: 10, sides: 4, modifier: 20 };
-  if (text.includes('superior')) return { count: 8, sides: 4, modifier: 8 };
-  if (text.includes('greater')) return { count: 4, sides: 4, modifier: 4 };
+  const own = typeof item === 'object' && item
+    ? parseHealingDice(item.healing_dice || item.heal_dice || item.healing || (item.effect_type === 'healing' ? item.dice : ''))
+    : null;
+  if (own) return own;
+  const name = String(getItemName(item) || '').toLowerCase();
+  if (!/potion of (?:(?:greater|superior|supreme) )?healing\b/.test(name)) return null;
+  if (name.includes('supreme')) return { count: 10, sides: 4, modifier: 20 };
+  if (name.includes('superior')) return { count: 8, sides: 4, modifier: 8 };
+  if (name.includes('greater')) return { count: 4, sides: 4, modifier: 4 };
   return { count: 2, sides: 4, modifier: 2 };
 }
 
