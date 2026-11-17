@@ -59,9 +59,9 @@ const TRAY_HALF = 3.5;
  * framing, so it always sits in the middle of the view.
  */
 export const FLOOR_LOGO_URL = '/brand/rqk-hex-logo.png';
-export const FLOOR_LOGO_OPACITY = 0.16;
+export const FLOOR_LOGO_OPACITY = 0.2;
 const FLOOR_LOGO_HEIGHT = 4.4;
-const FLOOR_LOGO_ASPECT = 613 / 720; // width / height of rqk-hex-logo.png
+const FLOOR_LOGO_ASPECT = 598 / 720; // width / height of rqk-hex-logo.png
 
 /** Where the floor logo goes for a throw's framing: centred under the view. */
 export function floorLogoPlacement(framing) {
@@ -445,7 +445,7 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
   camera.position.set(0, 9.2, 2.9);
   camera.lookAt(0, 0, 0);
 
-  // Three-point lighting. The key models the facets, the ledger-blue fill
+  // Three-point lighting. The key models the facets, the violet fill
   // keeps the shadowed sides from going black, and the rim picks out the
   // silhouette so a navy die still reads against a navy tray.
   // The environment now does most of the filling, so the ambient is low:
@@ -468,7 +468,7 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
   fill.position.set(-5.5, 4, -3.5);
   scene.add(fill);
 
-  const rim = new DirectionalLight(0xEADFC8, 1.1);
+  const rim = new DirectionalLight(0xFFD6E8, 1.1);
   rim.position.set(-2.5, 3.5, -6.5);
   scene.add(rim);
 
@@ -609,7 +609,7 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
         const accent = settledAccentFor(entry.spec, palette);
         if (!accent) return;
         entry.mesh.material.emissive.set(accent);
-        entry.mesh.material.emissiveIntensity = entry.spec.accent === 'crit' ? 0.48 : 0.34;
+        entry.mesh.material.emissiveIntensity = entry.spec.accent === 'crit' ? 0.26 : 0.22;
         entry.mesh.material.needsUpdate = true;
 
         // A small real scene light makes the landed die cast its result

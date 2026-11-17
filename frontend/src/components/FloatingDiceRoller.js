@@ -209,12 +209,19 @@ export default function FloatingDiceRoller() {
       // spot. Elsewhere, they appear as a hexagonal wheel centred on screen.
       const anchor = document.querySelector('.rqk-home-hub .hex-wheel') ||
         document.querySelector('.hex-sheet__wheel-anchor .hex-wheel');
-      const bounds = anchor?.getBoundingClientRect();
+      const anchorBounds = anchor?.getBoundingClientRect();
+      // Only follow the hexagon while it is (mostly) on screen. On a phone
+      // the Home hexagon is often below the fold, and anchoring to it pinned
+      // the wheel to the bottom edge with an empty screen above it.
+      const anchorVisible = Boolean(anchorBounds) && anchorBounds.width > 0 &&
+        anchorBounds.top >= -anchorBounds.height * 0.15 &&
+        anchorBounds.bottom <= window.innerHeight + anchorBounds.height * 0.15;
+      const bounds = anchorVisible ? anchorBounds : null;
       // Landscape phones have little height. Scale the wheel *as a whole*
       // instead of cropping it or breaking its geometry into a modal.
       const availableWidth = Math.max(180, window.innerWidth - 24);
       const availableHeightWidth = Math.max(180, (window.innerHeight - 100) * (182 / 208));
-      const width = Math.min(420, availableWidth, availableHeightWidth, bounds?.width || 390);
+      const width = Math.min(420, availableWidth, availableHeightWidth, anchorBounds?.width || 390);
       const height = width * (208 / 182);
       const x = bounds ? bounds.left + bounds.width / 2 : window.innerWidth / 2;
       const y = bounds ? bounds.top + bounds.height / 2 : window.innerHeight / 2;
@@ -271,7 +278,8 @@ export default function FloatingDiceRoller() {
       record: rollRecord,
       rollId: rollRecord.id,
       dyeId: loadDiceDyeId(),
-      label: `${label}: ${formula}`,
+      // "1d20" rolled from the wheel is labelled once, not "1D20: 1D20".
+      label: label && label !== formula ? `${label} · ${formula}` : formula,
       animationValue: getAnimationTarget(result),
     });
 
@@ -311,7 +319,7 @@ export default function FloatingDiceRoller() {
   return (
     <div className={`rq-floating-dice ${isCharacterSheet ? 'is-character-sheet' : 'is-app-shell'} ${requestedCheck ? 'has-group-check-request' : ''}`} aria-label="Floating dice roller">
       {open && createPortal(
-        <div className="rq-dice-wheel-overlay" data-testid="dice-wheel-overlay">
+        <div className={`rq-dice-wheel-overlay${rollFlicker ? ' has-roll' : ''}`} data-testid="dice-wheel-overlay">
           <button
             type="button"
             className="rq-dice-wheel-overlay__dismiss"
