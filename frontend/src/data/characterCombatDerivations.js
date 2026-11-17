@@ -225,10 +225,10 @@ export function deriveArmorClass(character, options = {}) {
     // No named armour rule, but equipped items may still carry ac_bonus.
     const armorBonus = typeof armor === 'object' && armor ? Number(armor.ac_bonus || 0) : 0;
     const shieldBonus = typeof shield === 'object' && shield ? Math.max(Number(shield.ac_bonus || 0), 2) : 0;
-    return unarmoredAc + armorBonus + shieldBonus + defenseStyleBonus + wornMagicAcBonus(equipped);
+    return unarmoredAc + armorBonus + shieldBonus + defenseStyleBonus + wornMagicAcBonus(equipped, character?.inventory);
   }
 
   // Worn magic accessories (Ring or Cloak of Protection, ...) add on top of
   // armour and shield; they count only while attuned when they need it.
-  return calculateArmorAc({ armor, shield, dexMod, unarmoredAc }) + defenseStyleBonus + wornMagicAcBonus(equipped);
+  return calculateArmorAc({ armor, shield, dexMod, unarmoredAc }) + defenseStyleBonus + wornMagicAcBonus(equipped, character?.inventory);
 }
