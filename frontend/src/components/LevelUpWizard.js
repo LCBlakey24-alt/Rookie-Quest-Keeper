@@ -884,7 +884,23 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
               {choiceType === 'feat' && (
                 <div style={styles.list}>
                   {featOptions.map((feat) => (
-                    <button key={feat.name} type="button" onClick={() => setSelectedFeat(feat)} style={styles.wideChoice(selectedFeat?.name === feat.name)} aria-pressed={selectedFeat?.name === feat.name}>
+                    <button
+                      key={feat.name}
+                      type="button"
+                      onClick={() => {
+                        // The "Ability Score Improvement" feat is the ASI itself: send the
+                        // player to the ASI picker so the scores really change.
+                        if (/^ability score improvement$/i.test(String(feat.name || '').trim())) {
+                          setSelectedFeat(null);
+                          setChoiceType('asi');
+                          toast.info('Ability Score Improvement: pick your two increases.');
+                          return;
+                        }
+                        setSelectedFeat(feat);
+                      }}
+                      style={styles.wideChoice(selectedFeat?.name === feat.name)}
+                      aria-pressed={selectedFeat?.name === feat.name}
+                    >
                       <strong>{feat.name}</strong><span>{feat.description || feat.prereq || 'Available feat.'}</span>
                     </button>
                   ))}
