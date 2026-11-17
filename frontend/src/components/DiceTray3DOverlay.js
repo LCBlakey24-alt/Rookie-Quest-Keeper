@@ -35,7 +35,7 @@ function withAlpha(hex, alpha) {
 /**
  * The scene's palette, built from the dye the player chose.
  *
- * Only `support` and `bodyMuted` are fixed: the first is the ledger blue
+ * Only `support` and `bodyMuted` are fixed: the first is the violet
  * fill light, which tints shadowed faces rather than painting them, and
  * the second is the multiplier that dims a dropped die regardless of its
  * colour.
@@ -51,7 +51,7 @@ function paletteFor(dye) {
     glow: dye.glow || null,
     glowStops: dye.glowStops || null,
     edge: hexToInt(dye.edge),
-    support: 0x3c92e0,
+    support: 0x8c36dd,
   };
 }
 
@@ -262,8 +262,11 @@ export default function DiceTray3DOverlay(props) {
             <polygon className="rq-dice-hex__glow" points="0,-100 86.6,-50 86.6,50 0,100 -86.6,50 -86.6,-50" clipPath="url(#rq-dice-hex-clip)" />
             <polygon className="rq-dice-hex__edge" points="0,-100 86.6,-50 86.6,50 0,100 -86.6,50 -86.6,-50" />
           </svg>
+          {/* A natural 20 earns a flare -- but only once the die has landed,
+              so the result is never given away mid-throw. */}
+          {isRevealed && isCrit && <span className="rq-dice-hex__flare" aria-hidden="true" data-testid="dice-tray-crit-flare" />}
           <span className="rq-dice-hex__label">{label || 'Roll'}</span>
-          <div className="rq-dice-hex__result" aria-live="polite">
+          <div className={`rq-dice-hex__result${isRevealed ? ' is-shown' : ''}`} aria-live="polite">
             {isRevealed ? (
               <>
                 <strong data-testid="dice-tray-total">{total}</strong>
@@ -271,7 +274,7 @@ export default function DiceTray3DOverlay(props) {
               </>
             ) : (
               <>
-                <span className="rq-dice-tray__rolling">Rolling…</span>
+                <span className="rq-dice-tray__rolling rq-visually-hidden">Rolling…</span>
                 <button type="button" className="rq-dice-hex__skip" onClick={onRevealNow}>Skip</button>
               </>
             )}

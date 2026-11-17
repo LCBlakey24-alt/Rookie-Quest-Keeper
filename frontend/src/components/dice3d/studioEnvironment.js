@@ -19,10 +19,10 @@ export function createStudioScene() {
   const disposables = [];
   const track = (thing) => { disposables.push(thing); return thing; };
 
-  // The room: a dark, slightly warm box seen from inside.
+  // The room: a dark plum box seen from inside (Midnight Magenta).
   const room = new Mesh(
     track(new BoxGeometry(10, 8, 10)),
-    track(new MeshBasicMaterial({ color: new Color(0x1a1f27), side: BackSide })),
+    track(new MeshBasicMaterial({ color: new Color(0x1c1426), side: BackSide })),
   );
   room.position.y = 2;
   scene.add(room);
@@ -40,8 +40,8 @@ export function createStudioScene() {
   };
 
   panel(5, 5, 0xfff3df, 5.5, [0, 5.9, 0.5], [0, 0, 0]);       // key, overhead and warm
-  panel(2.2, 4.5, 0x8fc2ee, 2.2, [-4.9, 2.2, 0], [0, 1, 0]);  // ledger-blue side fill
-  panel(4, 1.2, 0xeadfc8, 1.8, [0, 2.5, -4.9], [0, 1, 0]);    // faint parchment rim
+  panel(2.2, 4.5, 0xb88cff, 2.2, [-4.9, 2.2, 0], [0, 1, 0]);  // violet side fill
+  panel(4, 1.2, 0xffc4dc, 1.8, [0, 2.5, -4.9], [0, 1, 0]);    // faint blush rim
 
   return {
     scene,

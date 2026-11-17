@@ -22,7 +22,7 @@ export default function DiceDyePicker3D({ selectedId, onSelect, onConfirm }) {
   const options = useMemo(() => DICE_DYES.map((dye) => ({
     id: dye.id,
     label: dye.name,
-    short: dye.name === 'Neon Coast' ? 'Neon' : dye.name.split(' ')[0],
+    short: dye.name.split(' ')[0],
     testId: `dice-dye-${dye.id}`,
     image: previews[dye.id],
   })), [previews]);
