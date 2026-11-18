@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -12,11 +13,11 @@ import {
 
 
 // Create empty map
-function createEmptyMap(width = DEFAULT_MAP_WIDTH, height = DEFAULT_MAP_HEIGHT) {
+export function createEmptyMap(width = DEFAULT_MAP_WIDTH, height = DEFAULT_MAP_HEIGHT, ground = 'empty') {
   return {
     width,
     height,
-    terrain: Array(height).fill(null).map(() => Array(width).fill('empty')),
+    terrain: Array(height).fill(null).map(() => Array(width).fill(ground)),
     walls: [],
     doors: [],
     objects: []
@@ -28,11 +29,24 @@ function createEmptyFog(width, height, hidden = true) {
   return Array(height).fill(null).map(() => Array(width).fill(hidden));
 }
 
-function MapBuilder({ campaignId, onClose, initialMap, onMapSaved }) {
+/**
+ * A saved map as the builder edits it. A saved map loads in full; a new one
+ * starts at the chosen size, filled with the chosen ground.
+ */
+export function startingMap(saved, fresh = {}) {
+  if (saved && Array.isArray(saved.terrain) && saved.terrain.length) return saved;
+  const width = Number(fresh.width || saved?.width) || DEFAULT_MAP_WIDTH;
+  const height = Number(fresh.height || saved?.height) || DEFAULT_MAP_HEIGHT;
+  return { ...(saved || {}), ...createEmptyMap(width, height, fresh.ground || 'empty'), name: fresh.name || saved?.name };
+}
+
+function MapBuilder({ campaignId, onClose, initialMap, existingMap, newMap, onMapSaved }) {
+  // `existingMap` is what the Battle Maps list passes when editing.
+  const savedMap = initialMap || existingMap || null;
   // Map state
-  const [mapData, setMapData] = useState(initialMap || createEmptyMap());
-  const [mapName, setMapName] = useState(initialMap?.name || 'Untitled Map');
-  const [mapId, setMapId] = useState(initialMap?.id || null);
+  const [mapData, setMapData] = useState(() => startingMap(savedMap, newMap));
+  const [mapName, setMapName] = useState(savedMap?.name || newMap?.name || 'Untitled Map');
+  const [mapId, setMapId] = useState(savedMap?.id || null);
 
   // Tool state
   const [tool, setTool] = useState('terrain');
@@ -50,7 +64,7 @@ function MapBuilder({ campaignId, onClose, initialMap, onMapSaved }) {
   );
   
   // Tokens for preview
-  const [tokens, setTokens] = useState(initialMap?.tokens || []);
+  const [tokens, setTokens] = useState(savedMap?.tokens || []);
   
   // History for undo/redo
   const [history, setHistory] = useState([]);
@@ -262,15 +276,17 @@ function MapBuilder({ campaignId, onClose, initialMap, onMapSaved }) {
     toast.success(`Filled with ${TERRAIN_TYPES[terrainType]?.name || terrainType}`);
   };
 
-  return (
-    <div style={{
+  // Rendered on the page body, above the app's own header and side rail:
+  // inside the campaign page the header covered the builder's toolbar.
+  return createPortal((
+    <div data-testid="map-builder" role="dialog" aria-modal="true" aria-label="Battle map builder" style={{
       position: 'fixed',
       top: 0,
       left: 0,
       right: 0,
       bottom: 0,
-      background: '#0a0a1a',
-      zIndex: 1000,
+      background: 'var(--guild-bg-deep, #0a0a1a)',
+      zIndex: 2400,
       display: 'flex',
       flexDirection: 'column'
     }}>
@@ -667,7 +683,7 @@ function MapBuilder({ campaignId, onClose, initialMap, onMapSaved }) {
         onChange={handleImageUpload}
       />
     </div>
-  );
+  ), document.body);
 }
 
 export default MapBuilder;
