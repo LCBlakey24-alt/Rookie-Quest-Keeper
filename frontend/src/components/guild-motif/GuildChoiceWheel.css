@@ -118,6 +118,11 @@ html body #root .guild-wheel__svg:focus-visible { outline: none !important; box-
   font: 800 5.5px/1 var(--rq-font-sans, Inter, sans-serif);
   pointer-events: none;
 }
+/* Full words on the inner ring: a touch smaller and spaced, following the arc. */
+.guild-wheel__inner-mode .guild-wheel__inner-word {
+  font-size: 5.6px;
+  letter-spacing: 0.2px;
+}
 .guild-wheel__inner-mode.is-selected path {
   fill: rgba(var(--_accent-rgb), 0.17);
   stroke: var(--guild-stroke-hot, var(--_hi));

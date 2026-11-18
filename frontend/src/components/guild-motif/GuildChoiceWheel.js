@@ -9,6 +9,8 @@ import './GuildChoiceWheel.css';
 const R = 100;
 const RING_OUTER = 84; // inside the hexagon's flat sides (86.6)
 const RING_INNER = 56;
+// Where the inner roll-mode words sit, mid-way across the inner ring (25-47).
+const INNER_LABEL_RADIUS = 36;
 const LABEL_RADIUS = 70;
 const DRAG_THRESHOLD = 6;
 const clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
@@ -389,7 +391,6 @@ export default function GuildChoiceWheel({
         {hasInnerRing && (
           <g className="guild-wheel__inner-modes" aria-label="Roll mode">
             {innerOptions.map((mode, index) => {
-              const [mx, my] = polar(index * (360 / innerOptions.length), 36);
               const chosen = mode.id === innerValue;
               return (
                 <g
@@ -436,9 +437,26 @@ export default function GuildChoiceWheel({
                       </g>
                     );
                   })()}
-                  <text x={mx} y={my} textAnchor="middle" dominantBaseline="central" aria-hidden="true">
-                    {mode.short || mode.label}
-                  </text>
+                  {(() => {
+                    // The word follows its own arc so a full word such as
+                    // "Disadvantage" fits the narrow ring without crossing the
+                    // centre. Arcs in the lower half run the other way, so
+                    // every word reads left to right.
+                    const centre = index * (360 / innerOptions.length);
+                    const half = Math.min(54, 180 / innerOptions.length - 6);
+                    const lower = Math.cos((centre * Math.PI) / 180) < 0;
+                    const from = polar(lower ? centre + half : centre - half, INNER_LABEL_RADIUS);
+                    const to = polar(lower ? centre - half : centre + half, INNER_LABEL_RADIUS);
+                    const arcId = `${uid}-mode-${index}`;
+                    return (
+                      <>
+                        <path id={arcId} d={`M ${from[0]} ${from[1]} A ${INNER_LABEL_RADIUS} ${INNER_LABEL_RADIUS} 0 0 ${lower ? 0 : 1} ${to[0]} ${to[1]}`} fill="none" stroke="none" />
+                        <text className="guild-wheel__inner-word" dominantBaseline="central" aria-hidden="true">
+                          <textPath href={`#${arcId}`} startOffset="50%" textAnchor="middle">{mode.short || mode.label}</textPath>
+                        </text>
+                      </>
+                    );
+                  })()}
                 </g>
               );
             })}
