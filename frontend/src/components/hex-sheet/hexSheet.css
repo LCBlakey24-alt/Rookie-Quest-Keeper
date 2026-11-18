@@ -775,3 +775,17 @@ html body #root .hex-spell__cast text { fill: var(--hex-text); font: 800 40px/1 
 #root .hex-sheet .hex-trait__name { --rq-fill-color: transparent; }
 /* The turning hexagons behind the sheet take the chosen theme's colour. */
 .hex-sheet > .rq-hex-backdrop .rq-hex-backdrop__hex :is(polygon, circle) { stroke: rgb(var(--hex-glow-rgb)); }
+
+
+/* Line-only wheels (owner decision, 18 Nov 2026): the wedges are invisible
+   tap areas; only the lines between them glow. The active section is shown
+   by its label colour; keyboard focus keeps a clear outline. */
+.hex-wheel.is-dividers .hex-wheel__wedge .hex-glow__halo { display: none; }
+.hex-wheel.is-dividers .hex-wheel__wedge .hex-glow__edge { stroke-opacity: 0; }
+.hex-wheel.is-dividers .hex-wheel__wedge .hex-glow__fill { fill: transparent; }
+.hex-wheel.is-dividers .hex-wheel__wedge--empty { opacity: 0.25; }
+.hex-wheel.is-dividers .hex-wheel__slot.is-active .hex-wheel__label,
+.hex-wheel.is-dividers .hex-wheel__slot:focus-visible .hex-wheel__label { fill: var(--hex-hi, #ff5c93); }
+.hex-wheel.is-dividers .hex-wheel__slot:focus-visible .hex-wheel__wedge .hex-glow__edge { stroke: var(--hex-text); stroke-width: 1.2; stroke-opacity: 1; }
+.hex-wheel.is-dividers .hex-wheel__divider { stroke: var(--guild-h3, #ff8fbf); stroke-width: 0.5; stroke-opacity: 0.85; stroke-linecap: round; pointer-events: none; }
+.hex-wheel.is-dividers .hex-wheel__divider-glow { stroke: var(--guild-c1, #ff1976); stroke-width: 3; opacity: 0.55; stroke-linecap: round; pointer-events: none; }

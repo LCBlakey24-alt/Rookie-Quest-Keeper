@@ -135,3 +135,18 @@ html body #root .guild-wheel.has-inner-ring button.guild-wheel__confirm,
   width: min(22%, 100px) !important;
   top: calc(50% - 2px);
 }
+
+
+/* Line-only wheels (owner decision, 18 Nov 2026): no wedges, no ring, no
+   glow inside the wheel. A thin blush line separates each option and is
+   the only thing in the ring that glows. The chosen option is shown by its
+   label colour and the pointer; keyboard focus keeps a clear outline. */
+.guild-wheel__divider { stroke: var(--guild-h3, #ff8fbf); stroke-width: 0.5; stroke-opacity: 0.85; stroke-linecap: round; pointer-events: none; }
+.guild-wheel__divider-glow { stroke: var(--guild-c1, #ff1976); stroke-width: 3.2; opacity: 0.55; stroke-linecap: round; pointer-events: none; }
+.guild-wheel__segment:focus-visible .guild-wheel__face { stroke: #fff; stroke-width: 1.2; }
+.guild-wheel__segment.is-preview .guild-wheel__face { fill: transparent; }
+.guild-wheel__inner-mode path,
+.guild-wheel__inner-mode.is-selected path { fill: transparent; stroke: none; }
+.guild-wheel__inner-mode.is-selected text { fill: var(--_hi); }
+.guild-wheel__inner-mode .guild-wheel__divider-glow { stroke-width: 2.4; }
+.guild-wheel__inner-mode:focus-visible path { stroke: #fff; stroke-width: 1.2; }

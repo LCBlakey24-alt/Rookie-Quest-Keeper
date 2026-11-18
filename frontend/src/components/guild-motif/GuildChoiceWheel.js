@@ -296,13 +296,10 @@ export default function GuildChoiceWheel({
           <filter id={`${uid}-blur`} x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.6" /></filter>
           <clipPath id={`${uid}-case`}><polygon points={hexPoints(R)} /></clipPath>
           <clipPath id={`${uid}-core`}><polygon points={hexPoints(coreRadius)} /></clipPath>
-          {options.map((option, index) => (
-            <clipPath key={option.id} id={`${uid}-seg-${index}`}><path d={segmentPath(index, step)} /></clipPath>
-          ))}
+          <filter id={`${uid}-line`} filterUnits="userSpaceOnUse" x="-110" y="-110" width="220" height="220"><feGaussianBlur stdDeviation="1.6" /></filter>
         </defs>
         <polygon className="guild-wheel__case" points={hexPoints(R)} />
         <polygon className="guild-wheel__glow guild-wheel__glow--case" points={hexPoints(R)} clipPath={`url(#${uid}-case)`} filter={`url(#${uid}-blur)`} />
-        <circle className="guild-wheel__rim" cx="0" cy="0" r={RING_OUTER} />
         <g className="guild-wheel__ring" style={{ transform: `rotate(${rotation}deg)`, ...(glideMs ? { transitionDuration: `${glideMs}ms`, transitionTimingFunction: GLIDE_EASING } : {}) }}>
           {options.map((option, index) => {
             const [lx, ly] = polar(index * step, LABEL_RADIUS);
@@ -322,9 +319,19 @@ export default function GuildChoiceWheel({
                 onClick={() => commit(index)}
               >
                 <path className="guild-wheel__face" d={segmentPath(index, step)} />
-                {/* Light blue inside every wedge; orange inside the one at the top. */}
-                <path className="guild-wheel__glow" d={segmentPath(index, step)} clipPath={`url(#${uid}-seg-${index})`} filter={`url(#${uid}-blur)`} />
-                <path className="guild-wheel__edge" d={segmentPath(index, step)} />
+                {(() => {
+                  // No wedges and no ring (owner decision, 18 Nov 2026): a
+                  // single line after each option, glowing on both sides.
+                  // The transparent face above is the option's tap area.
+                  const [ax, ay] = polar(index * step + step / 2, RING_INNER + 2);
+                  const [bx, by] = polar(index * step + step / 2, RING_OUTER - 2);
+                  return (
+                    <g aria-hidden="true">
+                      <line className="guild-wheel__divider-glow" x1={ax} y1={ay} x2={bx} y2={by} filter={`url(#${uid}-line)`} />
+                      <line className="guild-wheel__divider" x1={ax} y1={ay} x2={bx} y2={by} />
+                    </g>
+                  );
+                })()}
                 {/* Printed on the ring: the label turns with its segment, and
                     flips on the lower half so it always reads upright. */}
                 <g transform={`rotate(${index * step + (readsUpsideDown(index * step + rotation) ? 180 : 0)} ${lx} ${ly})`} aria-hidden="true">
@@ -419,6 +426,16 @@ export default function GuildChoiceWheel({
                   }}
                 >
                   <path d={segmentPath(index, 360 / innerOptions.length, 47, 25)} />
+                  {(() => {
+                    const [ax, ay] = polar(index * (360 / innerOptions.length) + 180 / innerOptions.length, 27);
+                    const [bx, by] = polar(index * (360 / innerOptions.length) + 180 / innerOptions.length, 45);
+                    return (
+                      <g aria-hidden="true">
+                        <line className="guild-wheel__divider-glow" x1={ax} y1={ay} x2={bx} y2={by} filter={`url(#${uid}-line)`} />
+                        <line className="guild-wheel__divider" x1={ax} y1={ay} x2={bx} y2={by} />
+                      </g>
+                    );
+                  })()}
                   <text x={mx} y={my} textAnchor="middle" dominantBaseline="central" aria-hidden="true">
                     {mode.short || mode.label}
                   </text>
