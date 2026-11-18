@@ -5,7 +5,7 @@ from utils.auth import get_current_user, verify_campaign_ownership
 from utils.character_campaign_link import character_belongs_to_campaign, release_character_from_other_campaigns
 from utils.ws_session import CLOSE_FORBIDDEN, REASON_FORBIDDEN, end_live_sessions
 from models import CampaignInvite, CampaignMember
-from routes.prepared_characters import claim_prepared_character, list_prepared_characters
+from utils.prepared_characters import claim_prepared_character, list_prepared_characters
 from typing import Dict, Any
 from datetime import datetime, timezone
 import secrets
