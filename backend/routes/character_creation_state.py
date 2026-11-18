@@ -14,8 +14,8 @@ from typing import Any, Dict, List, Tuple
 from fastapi import APIRouter, Depends, status
 
 from config import db
-from data.character_resources import merge_character_resources, warlock_shape
-from data.spell_slot_rules import class_spell_slots, shared_spell_slots
+from data.character_resources import merge_character_resources
+from data.spell_slot_rules import spell_slots_for_class_mix
 from routes.character_patch import _clean_create
 from routes.characters import (
     display_class_name,
@@ -87,13 +87,6 @@ def _class_entries(class_levels: Dict[str, int], primary_class: str, subclass: s
     ]
 
 
-def _warlock_level(class_levels: Dict[str, int]) -> int:
-    for class_name, level in class_levels.items():
-        if _normalise_name(class_name) == "warlock":
-            return max(0, _int(level, 0))
-    return 0
-
-
 def derive_creation_spell_slots(
     primary_class: str,
     subclass: str,
@@ -109,19 +102,12 @@ def derive_creation_spell_slots(
         "classes": _class_entries(class_levels, primary_class, subclass),
     }
 
-    shared = shared_spell_slots(rules_character, class_levels)
-    if shared:
-        return {str(slot_level): _int(count, 0) for slot_level, count in shared.items()}
-
-    warlock_level = _warlock_level(class_levels)
-    if warlock_level:
-        slot_level, slots = warlock_shape(warlock_level)
-        return {str(slot_level): slots}
-
-    if len(class_levels) == 1:
-        level = next(iter(class_levels.values()), 1)
-        return class_spell_slots(rules_character, primary_class, level)
-    return {}
+    # One spellcasting class uses its own table (a Paladin 5 has 4/2); only a
+    # mix of casters uses the Multiclass Spellcaster table. Routing a single
+    # class through the shared pool understated odd-level Paladins, Rangers
+    # and third casters (a Paladin 5 was created with {"1": 3}).
+    slots = spell_slots_for_class_mix(rules_character, class_levels)
+    return {str(slot_level): _int(count, 0) for slot_level, count in slots.items()}
 
 
 def clamp_slot_state(totals: Any, remaining: Any) -> Dict[str, int]:
