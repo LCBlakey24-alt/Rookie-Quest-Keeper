@@ -4,7 +4,8 @@
  * fields, the same 2024 rule that a Hit Point Die needs at least 1 HP and
  * recovers at least 1, and the same death-save outcomes.
  */
-import { clampDeathCount, getCurrentHp, getMaxHp, parseHitDie } from '@/components/clean-sheet/cleanSheetUtils';
+import { clampDeathCount, getCurrentHp, getMaxHp } from '@/components/clean-sheet/cleanSheetUtils';
+import { hitDicePools, spendHitDie } from '@/data/hitDicePools';
 
 const abilityMod = (score) => Math.floor(((Number(score) || 10) - 10) / 2);
 
@@ -16,16 +17,21 @@ export function rulesEditionOf(character = {}) {
 export function recoveryState(character = {}) {
   const maxHp = getMaxHp(character);
   const currentHp = Math.min(getCurrentHp(character), maxHp);
-  const hitDie = parseHitDie(character?.hit_dice || `${character?.level || 1}d8`);
-  const remaining = Number(character?.hit_dice_remaining ?? character?.level ?? hitDie.total) || 0;
+  // One pool per die size (a Fighter 1 / Wizard 1 has a d10 and a d6).
+  const pools = hitDicePools(character);
+  const remaining = pools.reduce((sum, pool) => sum + pool.remaining, 0);
+  const firstLeft = pools.find((pool) => pool.remaining > 0) || pools[0];
   const successes = clampDeathCount(character?.death_saves_successes);
   const failures = clampDeathCount(character?.death_saves_failures);
   return {
     currentHp,
     maxHp,
-    hitDieSides: hitDie.sides,
-    hitDiceTotal: hitDie.total,
+    pools,
+    hitDieSides: firstLeft?.sides || 8,
+    hitDiceTotal: pools.reduce((sum, pool) => sum + pool.total, 0),
     hitDiceRemaining: Math.max(0, remaining),
+    // Kept so a spend can update the right pool.
+    character,
     conMod: abilityMod(character?.constitution),
     edition: rulesEditionOf(character),
     successes,
@@ -47,12 +53,16 @@ export function hitDieBlocker(state) {
   return null;
 }
 
-/** The save for spending one Hit Die that rolled `die`. */
-export function hitDieUpdates(state, die) {
+/** The save for spending one Hit Die of size `sides` that rolled `die`. */
+export function hitDieUpdates(state, die, sides = state.hitDieSides) {
   const minimum = state.edition === '2024' ? 1 : 0;
   const healed = Math.max(minimum, Number(die) + state.conMod);
   const nextHp = Math.min(state.maxHp, state.currentHp + healed);
-  const updates = { current_hit_points: nextHp, hit_dice_remaining: Math.max(0, state.hitDiceRemaining - 1) };
+  const pooled = state.character ? spendHitDie(state.character, sides) : null;
+  const updates = {
+    current_hit_points: nextHp,
+    ...(pooled ? pooled.updates : { hit_dice_remaining: Math.max(0, state.hitDiceRemaining - 1) }),
+  };
   // Back above 0 HP: the death saves start fresh, as healing on the HP dial does.
   if (nextHp > 0 && (state.successes > 0 || state.failures > 0)) {
     updates.death_saves_successes = 0;

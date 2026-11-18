@@ -1,0 +1,21 @@
+{
+  "_about": "Hit Dice pools shared by frontend/src/data/hitDicePools.js and backend/utils/hit_dice_pools.py (review finding 10).",
+  "cases": [
+    { "name": "Fighter 1 / Wizard 1 legacy save, both left", "character": { "class_levels": { "Fighter": 1, "Wizard": 1 }, "hit_dice": "1d10 + 1d6", "hit_dice_remaining": 2 },
+      "pools": [[10, 1, 1], [6, 1, 1]], "spend": null, "after_spend": { "10": 0, "6": 1 } },
+    { "name": "legacy save with one left counts the small die first", "character": { "class_levels": { "Fighter": 1, "Wizard": 1 }, "hit_dice_remaining": 1 },
+      "pools": [[10, 1, 0], [6, 1, 1]], "spend": null, "after_spend": { "10": 0, "6": 0 } },
+    { "name": "the chosen pool is spent", "character": { "class_levels": { "Fighter": 2, "Wizard": 3 }, "hit_dice_remaining": 5, "hit_dice_remaining_by_die": { "10": 2, "6": 3 } },
+      "pools": [[10, 2, 2], [6, 3, 3]], "spend": 6, "after_spend": { "10": 2, "6": 2 } },
+    { "name": "a stale per-size map (level up changed only the total) falls back safely", "character": { "class_levels": { "Fighter": 2, "Wizard": 1 }, "hit_dice_remaining": 3, "hit_dice_remaining_by_die": { "10": 1, "6": 1 } },
+      "pools": [[10, 2, 2], [6, 1, 1]], "spend": null, "after_spend": { "10": 1, "6": 1 } },
+    { "name": "single class", "character": { "character_class": "Rogue", "level": 4, "hit_dice_remaining": 3 },
+      "pools": [[8, 4, 3]], "spend": null, "after_spend": { "8": 2 } }
+  ],
+  "long_rest": [
+    { "name": "2014 regains half the total, largest first", "edition": "2014", "character": { "class_levels": { "Fighter": 2, "Wizard": 2 }, "hit_dice_remaining": 0, "hit_dice_remaining_by_die": { "10": 0, "6": 0 } },
+      "after": { "10": 2, "6": 0 } },
+    { "name": "2024 regains every die", "edition": "2024", "character": { "class_levels": { "Fighter": 2, "Wizard": 2 }, "hit_dice_remaining": 1, "hit_dice_remaining_by_die": { "10": 0, "6": 1 } },
+      "after": { "10": 2, "6": 2 } }
+  ]
+}

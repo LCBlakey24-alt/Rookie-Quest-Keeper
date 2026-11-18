@@ -1,6 +1,7 @@
 import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import { passiveScore } from '@/data/skillModifiers';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { hitDicePools, spendHitDie as spendPooledHitDie } from '@/data/hitDicePools';
 import { applyDamage, damageOutcomeMessage, damageUpdatesForCharacter } from '@/data/damageTransitions';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -177,7 +178,8 @@ export default function CleanCharacterSheet() {
   const concentratingName = getConcentrationName(concentratingOn) || null;
   const hitDice = character?.hit_dice || `${character?.level || 1}d8`;
   const hitDieInfo = parseHitDie(hitDice);
-  const hitDiceRemaining = Number(character?.hit_dice_remaining ?? character?.level ?? hitDieInfo.total) || 0;
+  // Summed over the per-size pools, so it always matches what can be spent.
+  const hitDiceRemaining = hitDicePools(character || {}).reduce((sum, pool) => sum + pool.remaining, 0);
   const showDeathSaves = currentHp <= 0 || deathSaveSuccesses > 0 || deathSaveFailures > 0;
 
   const passiveScores = useMemo(() => {
@@ -462,13 +464,20 @@ export default function CleanCharacterSheet() {
       toast.info('Already at full HP');
       return;
     }
+    // Multiclass dice are tracked by size: spend the largest die actually
+    // left, never one the character does not have (review finding 10).
+    const pooled = spendPooledHitDie(character);
+    if (!pooled) {
+      toast.error('No hit dice remaining');
+      return;
+    }
     // Use the same 2024 minimum recovery as the old mobile implementation,
     // but now all Hit Die saves travel through the session-aware save queue.
-    const result = rollHitDie(hitDieInfo.sides, conMod, { minimum: rulesEdition === '2024' ? 1 : 0 });
+    const result = rollHitDie(pooled.sides, conMod, { minimum: rulesEdition === '2024' ? 1 : 0 });
     const nextHp = Math.min(maxHp, currentHp + result.total);
     const entry = {
       id: `${Date.now()}-hit-die`,
-      label: `Hit Die d${hitDieInfo.sides}`,
+      label: `Hit Die d${pooled.sides}`,
       d20: result.die,
       modifier: conMod,
       total: result.total,
@@ -479,7 +488,7 @@ export default function CleanCharacterSheet() {
     presentRollBurst(entry);
     setRollHistory(prev => [entry, ...prev].slice(0, 12));
     setSavingQuickState(true);
-    await patchCharacter({ current_hit_points: nextHp, hit_dice_remaining: Math.max(0, hitDiceRemaining - 1) }, { success: `Recovered ${nextHp - currentHp} HP`, error: 'Could not spend hit die' });
+    await patchCharacter({ current_hit_points: nextHp, hit_dice_remaining: pooled.updates.hit_dice_remaining, hit_dice_remaining_by_die: pooled.updates.hit_dice_remaining_by_die }, { success: `Recovered ${nextHp - currentHp} HP`, error: 'Could not spend hit die' });
     setSavingQuickState(false);
   };
 
