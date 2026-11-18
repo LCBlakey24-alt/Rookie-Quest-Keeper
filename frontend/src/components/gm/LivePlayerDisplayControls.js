@@ -7,6 +7,7 @@ import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishS
 import { loadPlayerDisplayResources, playerDisplayResourceWarning } from '@/lib/livePlayerDisplayResources';
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import LiveDisplayLocationExplorer from './LiveDisplayLocationExplorer';
+import TvLinkCard from './TvLinkCard';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
@@ -539,6 +540,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
           {activeSection === 'screen' && <button type="button" onClick={() => setOpen(prev => !prev)} style={secondaryButtonStyle}>{open ? <X size={14} /> : <Eye size={14} />} {open ? 'Hide Advanced' : 'Show Advanced'}</button>}
         </div>
       </header>
+
+      <TvLinkCard campaignId={campaignId} />
 
       <div style={statusStripStyle}>
         <span><strong>Current target:</strong> {currentTarget.label}</span>
