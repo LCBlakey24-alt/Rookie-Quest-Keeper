@@ -43,7 +43,7 @@ function rectanglesOverlap(left: { x: number; y: number; width: number; height: 
     && left.y + left.height > right.y;
 }
 
-test('Player Display fixed controls never cover its security and sync status', async ({ page }) => {
+test('Player Display shows no app buttons, and Fullscreen never covers its security and sync status', async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 768 });
   await page.addInitScript(token => {
     localStorage.setItem('dm_token', token);
@@ -73,16 +73,14 @@ test('Player Display fixed controls never cover its security and sync status', a
   const dice = page.locator('.rq-floating-dice');
   await expect(syncStatus).toContainText('No access');
   await expect(warning).toBeVisible();
-  await expect(feedback).toBeVisible();
-  await expect(dice).toBeVisible();
+  await expect(footerContext).toBeVisible();
+  // The TV is for the whole table: Rook, dice and Feedback stay off it.
+  await expect(feedback).toHaveCount(0);
+  await expect(dice).toHaveCount(0);
 
-  const [fullscreenBox, warningBox, feedbackBox, syncBox, diceBox, contextBox] = await Promise.all([
-    fullscreen.boundingBox(), warning.boundingBox(), feedback.boundingBox(), syncStatus.boundingBox(), dice.boundingBox(), footerContext.boundingBox(),
-  ]);
+  const [fullscreenBox, warningBox] = await Promise.all([fullscreen.boundingBox(), warning.boundingBox()]);
   expect(await fullscreen.evaluate(element => element.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
   expect(rectanglesOverlap(fullscreenBox, warningBox), 'Fullscreen covered the party-sync warning').toBe(false);
-  expect(rectanglesOverlap(feedbackBox, syncBox), 'Feedback covered the access/sync status').toBe(false);
-  expect(rectanglesOverlap(diceBox, contextBox), 'Dice covered the display context footer').toBe(false);
   await assertFitsViewport(page, 1024);
 });
 
