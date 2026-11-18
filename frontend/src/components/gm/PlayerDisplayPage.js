@@ -282,12 +282,12 @@ function DisplayContent({ state, target, hasPartySidebar = false, partyMembers =
 function ShopDisplay({ payload, target }) {
   const items = Array.isArray(payload.items) ? payload.items : [];
   return (
-    <section data-testid="player-display-shop" style={{
-      display: 'grid', alignContent: 'start', gap: isTable(target) ? 12 : 24,
+    <section data-testid="player-display-shop" className="rqk-player-display__shop" style={{
+      display: 'grid', alignContent: isTable(target) ? 'start' : 'center', gap: isTable(target) ? 12 : 24,
       padding: isTable(target) ? 16 : 'clamp(20px, 4vw, 60px)',
       height: '100%', minHeight: 0, overflowY: 'auto', background: theme.bg,
     }}>
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
+      <header className="rqk-player-display__shop-head" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
         <div>
           <p style={{ color: theme.red, fontSize: 14, fontWeight: 800, textTransform: 'uppercase' }}>Shop & Supplies</p>
           <h1 style={{ color: theme.text, fontSize: 'clamp(28px, 4vw, 58px)', margin: 0 }}>{payload.title || 'Shop'}</h1>
@@ -295,7 +295,7 @@ function ShopDisplay({ payload, target }) {
         </div>
         {payload.image_url && <img src={payload.image_url} alt="Shop" style={{ maxWidth: isTable(target) ? 110 : 220, maxHeight: isTable(target) ? 95 : 160, objectFit: 'cover' }} />}
       </header>
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 10 }}>
+      <div className="rqk-player-display__shop-board" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 10 }}>
         {items.map((item, index) => <React.Fragment key={String(index) + '-' + String(item.name)}>
           <div style={{ display: 'grid', gap: 3, padding: '12px 0', borderBottom: '1px solid ' + theme.line }}>
             <strong style={{ fontSize: isTable(target) ? 16 : 23 }}>{item.name || 'Item'}</strong>
@@ -391,7 +391,7 @@ function NPCGridDisplay({ payload, target }) {
         )}
       </div>
       <div className="rqk-player-display__npc-grid" style={npcGridStyle(target, currentNpcs.length)}>
-        {currentNpcs.map(npc => <NPCCard key={npc.id || npc.name} npc={npc} target={target} compact={npcs.length > 1} />)}
+        {currentNpcs.map(npc => <NPCCard key={npc.id || npc.name} npc={npc} target={target} compact={currentNpcs.length > 4} />)}
         {npcs.length === 0 && <p style={blankTextStyle(target)}>No NPCs selected.</p>}
       </div>
     </section>
@@ -412,7 +412,7 @@ function NPCCard({ npc, target, compact = false }) {
       <div className="rqk-player-display__npc-info" style={npcInfoStyle(target)}>
         <h2 style={npcNameStyle(target)}>{npc.name || 'Unknown Figure'}</h2>
         {npc.subtitle && <p style={npcSubStyle(target)}>{npc.subtitle}</p>}
-        {npc.description && !isTable(target) && !compact && <p style={npcDescriptionStyle}>{npc.description}</p>}
+        {npc.description && !isTable(target) && !compact && <p className="rqk-player-display__npc-desc" style={npcDescriptionStyle}>{npc.description}</p>}
       </div>
     </article>
   );
