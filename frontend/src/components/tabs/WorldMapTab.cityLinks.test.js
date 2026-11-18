@@ -65,3 +65,26 @@ test('linking a saved city map in the pin editor fills its name, type and locati
   await waitFor(() => expect(apiClient.put).toHaveBeenCalled());
   expect(apiClient.put.mock.calls[0][1]).toMatchObject({ name: 'Balderin', pin_type: 'city', linked_local_map_id: 'balderin-map', linked_location_id: 'loc-b' });
 });
+
+test('Road tool: pick two pins, enter a distance, see travel time, save', async () => {
+  const mapWithSpeeds = { ...world, paths: [], travel_speeds: { walking: 24, horseback: 48 } };
+  apiClient.get.mockImplementation((url) => {
+    if (url.endsWith('/world-maps')) return Promise.resolve({ data: [mapWithSpeeds] });
+    if (url.endsWith('/local-maps')) return Promise.resolve({ data: [balderinMap] });
+    return Promise.resolve({ data: [] });
+  });
+  apiClient.post.mockResolvedValue({ data: { id: 'road-1', from_pin_id: 'pin-b', to_pin_id: 'pin-f', distance_value: 48, distance_unit: 'miles', terrain_type: 'road' } });
+  render(<WorldMapTab campaignId="c1" />);
+  fireEvent.click(await screen.findByTestId('world-map-road-button'));
+  fireEvent.click(screen.getByTestId('world-pin-pin-b'));
+  expect(screen.getByText(/From Balderin: now click/)).toBeInTheDocument();
+  fireEvent.click(screen.getByTestId('world-pin-pin-f'));
+
+  expect(screen.getByTestId('road-editor')).toHaveTextContent('Balderin to Old Fort');
+  fireEvent.change(screen.getByTestId('road-distance'), { target: { value: '48' } });
+  expect(screen.getByTestId('road-travel')).toHaveTextContent('On foot: 2 days · Horseback: 1 day');
+  fireEvent.click(screen.getByTestId('road-save'));
+
+  await waitFor(() => expect(apiClient.post).toHaveBeenCalledWith('/campaigns/c1/world-maps/world-1/paths', expect.objectContaining({ from_pin_id: 'pin-b', to_pin_id: 'pin-f', distance_value: 48, terrain_type: 'road' })));
+  expect(await screen.findByRole('button', { name: /Road from Balderin to Old Fort, 48 mi/ })).toBeInTheDocument();
+});
