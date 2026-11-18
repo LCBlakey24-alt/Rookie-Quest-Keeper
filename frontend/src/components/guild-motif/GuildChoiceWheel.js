@@ -29,6 +29,21 @@ function segmentPath(index, step, outer = RING_OUTER, inner = RING_INNER) {
   return `M ${ax} ${ay} A ${outer} ${outer} 0 0 1 ${bx} ${by} L ${cx} ${cy} A ${inner} ${inner} 0 0 0 ${dx} ${dy} Z`;
 }
 
+// MOCK-UP: the divider style is switched on with ?wheels=dividers (or
+// localStorage rqk.wheelStyle = 'dividers') so both looks can be compared.
+function wheelStyle() {
+  try {
+    const fromQuery = new URLSearchParams(window.location.search).get('wheels');
+    if (fromQuery) window.localStorage.setItem('rqk.wheelStyle', fromQuery);
+    return window.localStorage.getItem('rqk.wheelStyle') || 'wedges';
+  } catch { return 'wedges'; }
+}
+
+const ringBandPath = (outer = RING_OUTER, inner = RING_INNER) => (
+  `M 0 ${-outer} A ${outer} ${outer} 0 1 1 0 ${outer} A ${outer} ${outer} 0 1 1 0 ${-outer} Z `
+  + `M 0 ${-inner} A ${inner} ${inner} 0 1 0 0 ${inner} A ${inner} ${inner} 0 1 0 0 ${-inner} Z`
+);
+
 function buzz() {
   try { navigator.vibrate?.(4); } catch { /* not supported */ }
 }
@@ -268,8 +283,9 @@ export default function GuildChoiceWheel({
   const name = hasInnerRing && centreText !== undefined ? String(centreText) : centreText !== undefined && preview === selectedIndex ? String(centreText) : (shown?.label || '');
   const nameClass = name.length > 9 ? ' is-long' : name.length > 6 ? ' is-medium' : '';
 
+  const dividers = wheelStyle() === 'dividers';
   return (
-    <div className={`guild-wheel${onConfirm ? ' has-confirm' : ''}${compact ? ' is-compact' : ''}${hasInnerRing ? ' has-inner-ring' : ''}`} data-testid="guild-choice-wheel">
+    <div className={`guild-wheel${dividers ? ' is-dividers' : ''}${onConfirm ? ' has-confirm' : ''}${compact ? ' is-compact' : ''}${hasInnerRing ? ' has-inner-ring' : ''}`} data-testid="guild-choice-wheel">
       <svg
         ref={svgRef}
         className={`guild-wheel__svg${dragging ? ' is-dragging' : ''}`}
@@ -296,6 +312,8 @@ export default function GuildChoiceWheel({
           <filter id={`${uid}-blur`} x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.6" /></filter>
           <clipPath id={`${uid}-case`}><polygon points={hexPoints(R)} /></clipPath>
           <clipPath id={`${uid}-core`}><polygon points={hexPoints(coreRadius)} /></clipPath>
+          <clipPath id={`${uid}-band`}><path d={ringBandPath()} clipRule="evenodd" /></clipPath>
+          <filter id={`${uid}-line`} filterUnits="userSpaceOnUse" x="-110" y="-110" width="220" height="220"><feGaussianBlur stdDeviation="1.6" /></filter>
           {options.map((option, index) => (
             <clipPath key={option.id} id={`${uid}-seg-${index}`}><path d={segmentPath(index, step)} /></clipPath>
           ))}
@@ -303,6 +321,15 @@ export default function GuildChoiceWheel({
         <polygon className="guild-wheel__case" points={hexPoints(R)} />
         <polygon className="guild-wheel__glow guild-wheel__glow--case" points={hexPoints(R)} clipPath={`url(#${uid}-case)`} filter={`url(#${uid}-blur)`} />
         <circle className="guild-wheel__rim" cx="0" cy="0" r={RING_OUTER} />
+        {dividers && (
+          // One continuous band: a single face and a single inner glow, so
+          // there are no per-wedge edges to misalign.
+          <g className="guild-wheel__band" aria-hidden="true">
+            <path className="guild-wheel__band-face" d={ringBandPath()} fillRule="evenodd" />
+            <path className="guild-wheel__band-glow" d={ringBandPath()} fillRule="evenodd" clipPath={`url(#${uid}-band)`} filter={`url(#${uid}-blur)`} />
+            <circle className="guild-wheel__band-rim" cx="0" cy="0" r={RING_INNER} />
+          </g>
+        )}
         <g className="guild-wheel__ring" style={{ transform: `rotate(${rotation}deg)`, ...(glideMs ? { transitionDuration: `${glideMs}ms`, transitionTimingFunction: GLIDE_EASING } : {}) }}>
           {options.map((option, index) => {
             const [lx, ly] = polar(index * step, LABEL_RADIUS);
@@ -322,9 +349,24 @@ export default function GuildChoiceWheel({
                 onClick={() => commit(index)}
               >
                 <path className="guild-wheel__face" d={segmentPath(index, step)} />
-                {/* Light blue inside every wedge; orange inside the one at the top. */}
-                <path className="guild-wheel__glow" d={segmentPath(index, step)} clipPath={`url(#${uid}-seg-${index})`} filter={`url(#${uid}-blur)`} />
-                <path className="guild-wheel__edge" d={segmentPath(index, step)} />
+                {dividers ? (() => {
+                  // A single line after each option, glowing on both sides.
+                  const [ax, ay] = polar(index * step + step / 2, RING_INNER + 2);
+                  const [bx, by] = polar(index * step + step / 2, RING_OUTER - 2);
+                  return (
+                    <g clipPath={`url(#${uid}-band)`}>
+                      <path className="guild-wheel__pick-glow" d={segmentPath(index, step)} clipPath={`url(#${uid}-seg-${index})`} filter={`url(#${uid}-blur)`} />
+                      <line className="guild-wheel__divider-glow" x1={ax} y1={ay} x2={bx} y2={by} filter={`url(#${uid}-line)`} />
+                      <line className="guild-wheel__divider" x1={ax} y1={ay} x2={bx} y2={by} />
+                    </g>
+                  );
+                })() : (
+                  <>
+                    {/* Light blue inside every wedge; orange inside the one at the top. */}
+                    <path className="guild-wheel__glow" d={segmentPath(index, step)} clipPath={`url(#${uid}-seg-${index})`} filter={`url(#${uid}-blur)`} />
+                    <path className="guild-wheel__edge" d={segmentPath(index, step)} />
+                  </>
+                )}
                 {/* Printed on the ring: the label turns with its segment, and
                     flips on the lower half so it always reads upright. */}
                 <g transform={`rotate(${index * step + (readsUpsideDown(index * step + rotation) ? 180 : 0)} ${lx} ${ly})`} aria-hidden="true">

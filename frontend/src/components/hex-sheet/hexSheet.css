@@ -775,3 +775,11 @@ html body #root .hex-spell__cast text { fill: var(--hex-text); font: 800 40px/1 
 #root .hex-sheet .hex-trait__name { --rq-fill-color: transparent; }
 /* The turning hexagons behind the sheet take the chosen theme's colour. */
 .hex-sheet > .rq-hex-backdrop .rq-hex-backdrop__hex :is(polygon, circle) { stroke: rgb(var(--hex-glow-rgb)); }
+
+/* MOCK-UP: divider style (?wheels=dividers). The wedges meet, only the
+   active one glows, and a glowing line marks each join. */
+.hex-wheel.is-dividers .hex-wheel__slot:not(.is-active) .hex-wheel__wedge .hex-glow__halo { opacity: 0.18; }
+.hex-wheel.is-dividers .hex-wheel__slot:not(.is-active) .hex-wheel__wedge .hex-glow__edge { stroke-opacity: 0.18; }
+.hex-wheel.is-dividers .hex-wheel__wedge--empty { opacity: 0.25; }
+.hex-wheel.is-dividers .hex-wheel__divider { stroke: var(--guild-h3, #ff8fbf); stroke-width: 0.5; stroke-opacity: 0.85; stroke-linecap: round; pointer-events: none; }
+.hex-wheel.is-dividers .hex-wheel__divider-glow { stroke: var(--guild-c1, #ff1976); stroke-width: 3; opacity: 0.55; stroke-linecap: round; pointer-events: none; }

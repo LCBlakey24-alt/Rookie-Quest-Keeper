@@ -20,6 +20,16 @@ import { angleStep, pointerAngle } from '@/components/guild-motif/choiceWheel';
 import { GLIDE_EASING, addSpinSample, glideDuration, releaseVelocity, spinTarget, startSpinSamples } from '@/components/guild-motif/wheelSpin';
 
 const CENTRE_RADIUS = INNER_RADIUS - 4;
+
+// MOCK-UP: ?wheels=dividers (shared with GuildChoiceWheel through localStorage).
+function dividersOn() {
+  try {
+    const fromQuery = new URLSearchParams(window.location.search).get('wheels');
+    if (fromQuery) window.localStorage.setItem('rqk.wheelStyle', fromQuery);
+    return window.localStorage.getItem('rqk.wheelStyle') === 'dividers';
+  } catch { return false; }
+}
+const RING_INNER_EDGE = 42;
 const DRAG_THRESHOLD = 6;
 const clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 
@@ -191,10 +201,11 @@ export default function HexWheel({ wedges = [], centre, variant = 'menu', viewKe
     if (!wedge.disabled) activate(event, wedge.onSelect);
   };
 
+  const dividers = dividersOn();
   return (
     <svg
       ref={svgRef}
-      className={`hex-wheel hex-wheel--${variant}`}
+      className={`hex-wheel hex-wheel--${variant}${dividers ? ' is-dividers' : ''}`}
       viewBox={wheelViewBox()}
       data-hex-radius={OUTER_RADIUS + 2}
       role="group"
@@ -210,6 +221,11 @@ export default function HexWheel({ wedges = [], centre, variant = 'menu', viewKe
       }}
     >
       <GlowFilter id={filterId} />
+      {dividers && (
+        <defs>
+          <filter id={`${filterId}-line`} filterUnits="userSpaceOnUse" x="-110" y="-110" width="220" height="220"><feGaussianBlur stdDeviation="1.5" /></filter>
+        </defs>
+      )}
       {turnable && <defs>{READING_ORDER.map(slot => <path key={slot} id={`${labelPathId}-${slot}`} d={labelArc(slot)} />)}</defs>}
       {glowingFrame ? (
         <g aria-hidden="true">
@@ -222,7 +238,8 @@ export default function HexWheel({ wedges = [], centre, variant = 'menu', viewKe
         {READING_ORDER.map((slot, order) => {
           const deal = { animationDelay: `${order * DEAL_STAGGER_MS}ms`, animationDuration: `${DEAL_DURATION_MS}ms` };
           const wedge = bySlot.get(slot);
-          const polygon = pointsAttribute(slotSegment(slot));
+          // Dividers: wedges meet exactly (no gap), and a glowing line marks each join.
+          const polygon = pointsAttribute(slotSegment(slot, dividers ? { gap: 0 } : undefined));
           if (!wedge) {
             return (
               <g key={slot} className="hex-wheel__deal hex-wheel__slot--empty" style={deal} data-deal-order={order} aria-hidden="true">
@@ -302,6 +319,20 @@ export default function HexWheel({ wedges = [], centre, variant = 'menu', viewKe
             </g>
           );
         })}
+        {dividers && (
+          <g className="hex-wheel__dividers" aria-hidden="true">
+            {[0, 1, 2, 3, 4, 5].map((index) => {
+              const [ax, ay] = polarPoint(index * 60, RING_INNER_EDGE + 2);
+              const [bx, by] = polarPoint(index * 60, RING_OUTER - 2);
+              return (
+                <g key={index}>
+                  <line className="hex-wheel__divider-glow" x1={ax} y1={ay} x2={bx} y2={by} filter={`url(#${filterId}-line)`} />
+                  <line className="hex-wheel__divider" x1={ax} y1={ay} x2={bx} y2={by} />
+                </g>
+              );
+            })}
+          </g>
+        )}
       </g>
       {centre && (
         <g

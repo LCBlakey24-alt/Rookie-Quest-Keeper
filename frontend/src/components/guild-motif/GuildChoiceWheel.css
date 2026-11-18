@@ -135,3 +135,14 @@ html body #root .guild-wheel.has-inner-ring button.guild-wheel__confirm,
   width: min(22%, 100px) !important;
   top: calc(50% - 2px);
 }
+
+/* MOCK-UP: divider style (?wheels=dividers). One band, glowing lines between
+   options, and a soft glow only behind the chosen option. */
+.guild-wheel.is-dividers .guild-wheel__band-face { fill: rgba(var(--guild-bg-rgb, 18, 13, 39), 0.55); }
+.guild-wheel.is-dividers .guild-wheel__band-glow { fill: none; stroke: var(--guild-stroke-cool, var(--_cool)); stroke-width: 6; opacity: 0.45; }
+.guild-wheel.is-dividers .guild-wheel__band-rim { fill: none; stroke: var(--guild-stroke-cool, var(--_cool)); stroke-width: 0.4; stroke-opacity: 0.6; }
+.guild-wheel.is-dividers .guild-wheel__divider { stroke: var(--guild-h3, #ff8fbf); stroke-width: 0.5; stroke-opacity: 0.85; stroke-linecap: round; pointer-events: none; }
+.guild-wheel.is-dividers .guild-wheel__divider-glow { stroke: var(--guild-c1, #ff1976); stroke-width: 3.2; opacity: 0.55; stroke-linecap: round; pointer-events: none; }
+.guild-wheel.is-dividers .guild-wheel__pick-glow { fill: none; stroke: transparent; stroke-width: 8; pointer-events: none; transition: stroke 160ms ease; }
+.guild-wheel.is-dividers .guild-wheel__segment.is-preview .guild-wheel__pick-glow { stroke: var(--guild-stroke-hot, var(--_accent)); opacity: 0.55; }
+.guild-wheel.is-dividers .guild-wheel__segment.is-preview .guild-wheel__face { fill: rgba(var(--guild-c1-rgb, 255, 25, 118), 0.08); }
