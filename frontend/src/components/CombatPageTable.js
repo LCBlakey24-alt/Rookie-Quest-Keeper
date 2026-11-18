@@ -24,6 +24,7 @@ import { applyDeathSaveResult, resolveDeathSaveRoll } from '@/data/combatRollRul
 import { getInitiativeModifier, rollInitiative } from '@/data/initiativeRules';
 import { isPlayerVisibleCombatToken } from '@/data/playerDisplayCombatTokens';
 import { createGenericCombatMap, GENERIC_COMBAT_TERRAINS, normaliseCombatTerrain } from '@/data/genericCombatTerrain';
+import { combatantSide, startingSquares } from '@/data/encounterPlacement';
 import { createDisplayState, publishCampaignDisplayState, publishDisplayState } from '@/lib/liveDisplayBus';
 import {
   combatStateSnapshot,
@@ -450,20 +451,33 @@ export default function CombatPageTable() {
     // tokens. An empty initial render must never erase saved token cells.
     if (!initialised || !mapsLoaded || !combatants.length || mapTokens.length) return;
     const savedTokens = safeArray(displayedMap.tokens);
-    setMapTokens(combatants.map((combatant, index) => {
+    const cols = Number(displayedMap.width) || 30;
+    const rows = Number(displayedMap.height) || 20;
+    // Where each combatant starts: the encounter's own placements first,
+    // then tokens saved on the battle map, then a default square per side.
+    const mapPlacements = savedTokens
+      .filter(token => Number.isInteger(token?.x) && Number.isInteger(token?.y))
+      .map(token => ({ id: token.id, col: token.x, row: token.y }));
+    const encounterIds = new Set(safeArray(scenario?.placements).map(item => String(item.id)));
+    const squares = startingSquares(combatants, [
+      ...safeArray(scenario?.placements),
+      ...mapPlacements.filter(item => !encounterIds.has(String(item.id))),
+    ], cols, rows);
+    setMapTokens(combatants.map((combatant) => {
       const saved = savedTokens.find(token => token.id === combatant.id);
+      const side = combatantSide(combatant);
       return {
         ...saved,
         id: combatant.id,
         name: combatant.name,
-        x: saved?.x ?? (2 + (index % 6)),
-        y: saved?.y ?? (2 + Math.floor(index / 6)),
-        isEnemy: combatant.type !== 'player' && combatant.type !== 'npc',
-        isAlly: combatant.type === 'player' || combatant.type === 'npc',
+        x: squares[combatant.id].col,
+        y: squares[combatant.id].row,
+        isEnemy: side === 'enemy',
+        isAlly: side === 'ally',
         speed: combatant.speed ?? saved?.speed,
       };
     }));
-  }, [combatants, mapTokens.length, displayedMap, initialised, mapsLoaded]);
+  }, [combatants, mapTokens.length, displayedMap, initialised, mapsLoaded, scenario?.placements]);
 
   useEffect(() => {
     if (!initialised || !scenario || !campaignId) return undefined;
