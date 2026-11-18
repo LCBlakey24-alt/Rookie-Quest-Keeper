@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { terrainPattern } from './terrainTextures';
 import { getGenericCombatTerrainImage, normaliseCombatTerrain } from '@/data/genericCombatTerrain';
 
 const GRID_SIZE = 40; // pixels per grid square
@@ -146,23 +147,16 @@ function MapCanvas({
       ctx.fillStyle = pattern;
       ctx.fillRect(0, 0, map.width * gridSize, map.height * gridSize);
     } else {
-      // Preserve hand-authored maps' existing tile renderer and painter.
+      // Painted terrain: each terrain is a seeded texture tile that repeats
+      // seamlessly, so neighbouring grass squares read as one field.
+      const patterns = new Map();
       for (let y = 0; y < map.height; y++) {
         for (let x = 0; x < map.width; x++) {
           const terrainType = map.terrain[y]?.[x] || 'empty';
           const terrain = TERRAIN_TYPES[terrainType] || TERRAIN_TYPES.empty;
-          ctx.fillStyle = terrain.color;
+          const texture = terrainType === 'empty' ? null : terrainPattern(ctx, terrainType, gridSize, patterns);
+          ctx.fillStyle = texture || terrain.color;
           ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
-          if (terrainType !== 'empty') {
-            ctx.fillStyle = 'rgba(255,255,255,0.03)';
-            for (let i = 0; i < 3; i++) {
-              const tx = isGenerated ? x * gridSize + (x * 17 + y * 31 + i * 13) % gridSize
-                : x * gridSize + Math.random() * gridSize;
-              const ty = isGenerated ? y * gridSize + (x * 23 + y * 19 + i * 11) % gridSize
-                : y * gridSize + Math.random() * gridSize;
-              ctx.fillRect(tx, ty, 2, 2);
-            }
-          }
         }
       }
     }
