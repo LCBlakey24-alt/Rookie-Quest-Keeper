@@ -154,3 +154,8 @@ html body #root .guild-wheel.has-inner-ring button.guild-wheel__confirm,
 .guild-wheel.is-dividers .guild-wheel__pick-glow { display: none; }
 .guild-wheel.is-dividers .guild-wheel__segment.is-preview .guild-wheel__face { fill: transparent; }
 .guild-wheel.is-dividers .guild-wheel__band-face { fill: transparent; }
+
+/* Owner feedback (18 Nov): no ring at all -- no outline circles either.
+   Just the labels and the glowing lines between them. */
+.guild-wheel.is-dividers .guild-wheel__rim,
+.guild-wheel.is-dividers .guild-wheel__band-rim { display: none; }
