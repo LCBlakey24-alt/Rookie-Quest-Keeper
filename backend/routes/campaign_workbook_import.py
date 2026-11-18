@@ -17,7 +17,7 @@ from pydantic import ValidationError
 from config import db, logger
 from models import (
     Calendar, CalendarUpdate, CalendarEventCreate, GodCreate, InGameNoteCreate,
-    LocationCreate, NPCCreate, TimelineEventCreate,
+    InventoryItemCreate, LocationCreate, NPCCreate, TimelineEventCreate,
 )
 from routes.campaign_setup import build_campaign_update, create_campaign
 from routes.npcs import create_npc
@@ -25,6 +25,8 @@ from routes.world import create_god, create_location, create_calendar_event, get
 from routes.quests import QuestCreate, create_quest, validate_quest_status
 from routes.story_arcs import StoryArcCreate, create_story_arc
 from routes.notes import create_ingame_note, create_timeline_event
+from routes.inventory import add_inventory_item
+from routes.handouts import create_handout
 from utils.auth import get_current_user, verify_campaign_ownership
 from utils.campaign_workbook import (
     MAX_FILE_BYTES, WorkbookError, generate_template, parse_workbook,
@@ -35,17 +37,21 @@ router = APIRouter()
 
 COLLECTIONS = {
     "NPC": "npcs", "LOCATION": "locations", "GOD": "gods",
+    "LOOT": "inventory", "HANDOUT": "handouts",
     "QUEST": "quests", "STORY ARC": "story_arcs",
     "CALENDAR EVENT": "calendar_events", "SESSION NOTE": "ingame_notes",
     "TIMELINE EVENT": "timeline_events",
 }
 IDENTITY = {
     "NPC": "name", "LOCATION": "name", "GOD": "name",
+    "LOOT": "name", "HANDOUT": "title",
     "QUEST": "title", "STORY ARC": "title", "CALENDAR EVENT": "name",
     "SESSION NOTE": "content", "TIMELINE EVENT": "title",
 }
+# People, places, loot and handouts are saved before quests so a quest can
+# link to records created by the same document.
 PROCESS_ORDER = (
-    "NPC", "LOCATION", "GOD", "QUEST", "STORY ARC",
+    "NPC", "LOCATION", "GOD", "LOOT", "HANDOUT", "QUEST", "STORY ARC",
     "CALENDAR EVENT", "SESSION NOTE", "TIMELINE EVENT",
 )
 DEFAULT_MONTHS = [
@@ -94,6 +100,60 @@ def _calendar_values(raw: dict, campaign_id: str) -> dict:
     }
     check_calendar({"campaign_id": campaign_id, **values})
     return values
+
+
+# Quest fields that name other records. They are linked by name, not saved
+# as quest text: (workbook key, record section, quest field).
+QUEST_LINKS = (
+    ("quest_giver", "NPC", "linked_npc_ids"),
+    ("related_npcs", "NPC", "linked_npc_ids"),
+    ("locations", "LOCATION", "linked_location_ids"),
+    ("rewards", "LOOT", "linked_reward_ids"),
+    ("handouts", "HANDOUT", "linked_handout_ids"),
+)
+LINK_WORDS = {"NPC": "person", "LOCATION": "place", "LOOT": "loot item", "HANDOUT": "handout"}
+
+
+def _names(value: str | None) -> list[str]:
+    """'Mara Quill, Brother Oswin' or one per line -> ['Mara Quill', 'Brother Oswin']."""
+    return [part.strip() for part in re.split(r"[\n,;]+", value or "") if part.strip()]
+
+
+def _yes(value: str | None, field: str) -> bool:
+    text = (value or "").strip().casefold()
+    if text in ("", "no", "n", "false", "0"):
+        return False
+    if text in ("yes", "y", "true", "1"):
+        return True
+    raise WorkbookError(f"{field} must be yes or no.")
+
+
+def quest_link_names(raw: dict) -> dict:
+    """The names a quest asks to be linked to, by record section."""
+    wanted: dict = defaultdict(list)
+    for key, section, _field in QUEST_LINKS:
+        for name in _names(raw.get(key)):
+            if name.casefold() not in {item.casefold() for item in wanted[section]}:
+                wanted[section].append(name)
+    return dict(wanted)
+
+
+def unmatched_links(records: dict, existing: dict) -> list[str]:
+    """Warnings for quest links that match nothing in the document or campaign."""
+    known = {
+        section: {str(raw.get(IDENTITY[section]) or "").strip().casefold() for raw in records.get(section, [])}
+        | existing.get(section, set())
+        for section in LINK_WORDS
+    }
+    warnings = []
+    for raw in records.get("QUEST", []):
+        for section, names in quest_link_names(raw).items():
+            for name in names:
+                if name.casefold() not in known[section]:
+                    warnings.append(
+                        f"Quest \"{raw.get('title')}\": no {LINK_WORDS[section]} called \"{name}\", so it will not be linked."
+                    )
+    return warnings
 
 
 def _models(section: str, raw: dict) -> Any:
@@ -196,8 +256,27 @@ def _models(section: str, raw: dict) -> Any:
         return LocationCreate(**raw)
     if section == "GOD":
         return GodCreate(**raw)
+    if section == "LOOT":
+        return InventoryItemCreate(
+            name=raw["name"],
+            quantity=_integer(raw.get("quantity"), "Quantity", 1, 1, 100000),
+            item_type=(raw.get("item_type") or "misc")[:60],
+            description=raw.get("description", ""),
+            value=raw.get("value", ""),
+            is_magical=_yes(raw.get("is_magical"), "Magical"),
+            attunement_required=_yes(raw.get("attunement_required"), "Needs attunement"),
+            notes=raw.get("notes", ""),
+        )
+    if section == "HANDOUT":
+        # Saved for the GM only; sharing with players stays a separate choice.
+        return {
+            "title": raw["title"],
+            "category": (raw.get("category") or "clue")[:40],
+            "content": raw.get("content", ""),
+        }
     if section == "QUEST":
-        values = {key: value for key, value in raw.items() if key != "objectives"}
+        link_keys = {key for key, _section, _field in QUEST_LINKS}
+        values = {key: value for key, value in raw.items() if key != "objectives" and key not in link_keys}
         values["status"] = validate_quest_status(values.get("status", "draft"))
         values["objectives"] = [
             {"title": line.strip()} for line in raw.get("objectives", "").splitlines() if line.strip()
@@ -235,13 +314,16 @@ def _prepare(parsed: dict, campaign_id: str, calendar_baseline: dict | None = No
     }
     check_calendar(proposed_calendar)
     prepared = defaultdict(list)
+    links = []
     for section in PROCESS_ORDER:
         for raw in records.get(section, []):
             model = _models(section, raw)
             if section == "CALENDAR EVENT":
                 validate_day(proposed_calendar, model.year, model.month, model.day)
             prepared[section].append(model)
-    return {"campaign": campaign_raw, "calendar": calendar, "entries": dict(prepared)}
+            if section == "QUEST":
+                links.append(quest_link_names(raw))
+    return {"campaign": campaign_raw, "calendar": calendar, "entries": dict(prepared), "quest_links": links}
 
 
 async def _file_payload(file: UploadFile) -> bytes:
@@ -261,11 +343,40 @@ async def _existing_names(campaign_id: str, section: str) -> set[str]:
     return {str(row.get(key) or "").strip().casefold() for row in rows}
 
 
+async def _name_ids(campaign_id: str, section: str) -> dict[str, str]:
+    """name (casefolded) -> id for one record type in the campaign."""
+    key = IDENTITY[section]
+    rows = await db[COLLECTIONS[section]].find({"campaign_id": campaign_id}, {"_id": 0, key: 1, "id": 1}).to_list(5000)
+    return {str(row.get(key) or "").strip().casefold(): row.get("id") for row in rows if row.get("id")}
+
+
+async def _existing_link_names(campaign_id: str) -> dict:
+    if not campaign_id:
+        return {}
+    return {section: set((await _name_ids(campaign_id, section)).keys()) for section in LINK_WORDS}
+
+
+async def _apply_quest_links(campaign_id: str, model, wanted: dict) -> None:
+    """Fill a quest's linked_*_ids from the names it gave."""
+    by_field: dict = defaultdict(list)
+    for section, names in (wanted or {}).items():
+        lookup = await _name_ids(campaign_id, section)
+        field = next(field for _key, linked, field in QUEST_LINKS if linked == section)
+        for name in names:
+            record_id = lookup.get(name.casefold())
+            if record_id and record_id not in by_field[field]:
+                by_field[field].append(record_id)
+    for field, ids in by_field.items():
+        setattr(model, field, ids)
+
+
 async def _save_record(campaign_id: str, section: str, model, username: str) -> dict:
     route = {
         "NPC": create_npc,
         "LOCATION": create_location,
         "GOD": create_god,
+        "LOOT": add_inventory_item,
+        "HANDOUT": create_handout,
         "QUEST": create_quest,
         "STORY ARC": create_story_arc,
         "CALENDAR EVENT": create_calendar_event,
@@ -306,6 +417,7 @@ async def preview_campaign_workbook(
         if not campaign_id and not (parsed["records"].get("CAMPAIGN") or [{}])[0].get("name"):
             raise WorkbookError("Fill in Campaign name to create a new campaign.")
         warnings = list(parsed["warnings"])
+        warnings.extend(unmatched_links(parsed["records"], await _existing_link_names(campaign_id)))
         if campaign_id and parsed["records"].get("CAMPAIGN"):
             warnings.append("Existing campaign settings are preserved; imported campaign overview fields will not overwrite them.")
         if stored_calendar and parsed["records"].get("CALENDAR"):
@@ -385,12 +497,15 @@ async def import_campaign_workbook(
 
         for section in PROCESS_ORDER:
             known = await _existing_names(campaign_id, section)
-            for model in prepared["entries"].get(section, []):
+            for index, model in enumerate(prepared["entries"].get(section, [])):
                 key = IDENTITY[section]
-                identity = str(getattr(model, key)).strip().casefold()
+                value = model.get(key) if isinstance(model, dict) else getattr(model, key)
+                identity = str(value).strip().casefold()
                 if identity in known:
                     skipped[section] += 1
                     continue
+                if section == "QUEST":
+                    await _apply_quest_links(campaign_id, model, prepared["quest_links"][index])
                 record = await _save_record(campaign_id, section, model, username)
                 record_id = record.id if hasattr(record, "id") else record.get("id")
                 created_records.append((COLLECTIONS[section], record_id))

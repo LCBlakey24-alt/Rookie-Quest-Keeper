@@ -47,7 +47,7 @@ describe('CampaignWorkbookImportDialog', () => {
     fireEvent.change(destination, { target: { value: 'camp-123' } });
     fireEvent.change(screen.getByLabelText('Completed .docx workbook'), { target: { files: [uploadFile()] } });
     fireEvent.click(screen.getByRole('button', { name: 'Preview contents' }));
-    expect(await screen.findByText('1 sections found')).toBeInTheDocument();
+    expect(await screen.findByText('1 record found')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Confirm import' }));
     await waitFor(() => expect(onImported).toHaveBeenCalledWith(
       expect.objectContaining({ campaign_id: 'camp-123' }),
@@ -64,7 +64,7 @@ describe('CampaignWorkbookImportDialog', () => {
     />);
     fireEvent.change(screen.getByLabelText('Completed .docx workbook'), { target: { files: [uploadFile()] } });
     fireEvent.click(screen.getByRole('button', { name: 'Preview contents' }));
-    expect(await screen.findByText('1 sections found')).toBeInTheDocument();
+    expect(await screen.findByText('1 record found')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Import destination'), { target: { value: 'camp-123' } });
     expect(screen.queryByRole('button', { name: 'Confirm import' })).not.toBeInTheDocument();
   });
@@ -74,7 +74,7 @@ describe('CampaignWorkbookImportDialog', () => {
     render(<CampaignWorkbookImportDialog campaigns={[]} onImported={onImported} onClose={jest.fn()} />);
     fireEvent.change(screen.getByLabelText('Completed .docx workbook'), { target: { files: [uploadFile()] } });
     fireEvent.click(screen.getByRole('button', { name: 'Preview contents' }));
-    expect(await screen.findByText('1 sections found')).toBeInTheDocument();
+    expect(await screen.findByText('1 record found')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Confirm import' }));
 
     expect(await screen.findByText('Import completed. The campaign has been updated.')).toBeInTheDocument();

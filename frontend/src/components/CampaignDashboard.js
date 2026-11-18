@@ -53,6 +53,7 @@ import './CampaignDashboard.css';
 import '@/styles/guildTokens.css';
 import '@/styles/campaignGuild.css';
 import HexLoader from '@/components/guild-motif/HexLoader';
+import CampaignDocumentCard from '@/components/campaign/CampaignDocumentCard';
 
 const uploadTheme = {
   bg: { black: 'var(--guild-bg)', panel: 'var(--guild-bg)', card: 'var(--guild-bg)', hover: 'var(--guild-bg)' },
@@ -643,6 +644,19 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
     { id: 'campaign-rules', label: 'Rules & settings', icon: ScrollText },
   ];
 
+  // A campaign with nothing in it yet leads with the campaign document, the
+  // quickest way to bring an existing campaign in.
+  const campaignIsEmpty = !homeLoading && unavailableSections.length === 0
+    && !data.quests.length && !data.npcs.length && !data.locations.length && !data.notes.length;
+  const documentCard = (prominent) => (
+    <CampaignDocumentCard
+      campaignId={campaignId}
+      campaignName={campaign?.name}
+      prominent={prominent}
+      onImported={() => loadHome()}
+    />
+  );
+
   return (
     <div className="campaign-home-simple guild-command-home">
       <section className="campaign-home-command" aria-labelledby="campaign-home-title">
@@ -662,6 +676,8 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
           </button>
         </div>
       </section>
+
+      {campaignIsEmpty && documentCard(true)}
 
       {unavailableSections.length > 0 && (
         <p className="campaign-home-source-warning" role="status">
@@ -816,6 +832,8 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
           )}
         </article>
       </section>
+
+      {!campaignIsEmpty && documentCard(false)}
 
       <section className="campaign-home-section" aria-labelledby="campaign-quick-start-title">
         <div className="campaign-home-section-heading">
