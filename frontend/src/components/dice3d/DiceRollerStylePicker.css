@@ -1,0 +1,94 @@
+.rq-roller-style {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 10px;
+}
+
+.rq-roller-style fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.rq-roller-style legend {
+  margin-bottom: 6px;
+  color: var(--guild-text-muted, #c9c3e6);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rq-roller-style__options,
+.rq-roller-style__skin-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.rq-roller-style__option,
+.rq-roller-style__skin {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 6px 8px;
+  border: 1px solid var(--guild-edge, rgba(255, 255, 255, 0.16));
+  border-radius: 8px;
+  background: var(--guild-panel, #141032);
+  color: var(--guild-text, #ffffff);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: inset 0 0 14px rgba(var(--guild-c1-rgb, 255, 25, 118), 0.08);
+}
+
+.rq-roller-style__option.is-selected,
+.rq-roller-style__skin.is-selected {
+  border-color: var(--guild-c1, #ff1976);
+  box-shadow: inset 0 0 18px rgba(var(--guild-c1-rgb, 255, 25, 118), 0.28);
+}
+
+/* The native radio stays in the accessibility tree and keyboard order. */
+.rq-roller-style input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.rq-roller-style__option:has(input:focus-visible),
+.rq-roller-style__skin:has(input:focus-visible) {
+  outline: 2px solid var(--guild-focus, #ffffff);
+  outline-offset: 2px;
+}
+
+.rq-roller-style__skin {
+  justify-content: flex-start;
+  font-size: 12px;
+  line-height: 1.15;
+  text-align: left;
+}
+
+.rq-roller-style__swatch {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.rq-roller-style__hint {
+  margin: 6px 0 0;
+  color: var(--guild-text-muted, #c9c3e6);
+  font-size: 12px;
+}
+
+@media (max-width: 380px) {
+  .rq-roller-style__skin-list { grid-template-columns: 1fr; }
+}

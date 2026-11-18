@@ -207,6 +207,16 @@
   .rq-dice-tray__result strong { font-size: 38px; }
 }
 
+/* Dice tower: a taller stage so the whole tower and its tray fit. */
+.rq-dice-tray__panel.is-tower { width: min(460px, 100%); }
+.rq-dice-tray__panel.is-tower .rq-dice-tray__stage {
+  aspect-ratio: 3 / 4;
+  max-height: 64dvh;
+}
+@media (max-width: 520px) {
+  .rq-dice-tray__panel.is-tower .rq-dice-tray__stage { max-height: 58dvh; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* DiceRollFlicker already picks the flat overlay here; this is a second
      line of defence if the tray is ever mounted directly. */

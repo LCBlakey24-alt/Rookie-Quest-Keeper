@@ -6,6 +6,7 @@ import { createDiceTray, expandPercentileDice, specForDie } from '@/components/d
 import { seedFromKey } from '@/components/dice3d/diceFaceReading';
 import { getDye } from '@/components/dice3d/diceDyes';
 import { HEX_CLIP, locateHexWindow } from '@/components/dice3d/hexWindow';
+import { TOWER_MAX_DICE } from '@/components/dice3d/diceTowerRig';
 import { loadDiceDyeId } from '@/lib/diceDyePreference';
 import './DiceTray3DOverlay.css';
 
@@ -86,8 +87,15 @@ function supportsWebGl() {
 }
 
 export default function DiceTray3DOverlay(props) {
-  const { rollId, dyeId, total, label, rollDetail, formulaText, rolls, isRevealed, isCrit, isFumble, onRevealNow, onClose, shape, anchorSelector, resultTone } = props;
-  const isHex = shape === 'hex';
+  const { rollId, dyeId, total, label, rollDetail, formulaText, rolls, isRevealed, isCrit, isFumble, onRevealNow, onClose, shape, anchorSelector, resultTone, rig = 'tray', towerSkin } = props;
+
+  // The tower needs a tall stage, so it always uses the centred panel. A
+  // pool too big for the tube, or a tower throw that could not land every
+  // die flat, uses the ordinary tray instead -- never a wrong number.
+  const [towerFailed, setTowerFailed] = useState(false);
+  const diceCount = Array.isArray(rolls) ? rolls.length : 0;
+  const useTower = rig === 'tower' && !towerFailed && diceCount <= TOWER_MAX_DICE;
+  const isHex = shape === 'hex' && !useTower;
 
   // The hexagon window sits over the wheel's own hexagon (or mid-screen),
   // and follows it if the page scrolls or the window is resized.
@@ -193,7 +201,7 @@ export default function DiceTray3DOverlay(props) {
 
     let tray;
     try {
-      tray = createDiceTray({ canvas, palette, frameScale: isHex ? HEX_FRAME_SCALE : 1 });
+      tray = createDiceTray({ canvas, palette, frameScale: isHex ? HEX_FRAME_SCALE : 1, rig: useTower ? 'tower' : 'tray', towerSkin });
     } catch (error) {
       canvas.remove();
       setFailed(true);
@@ -215,7 +223,8 @@ export default function DiceTray3DOverlay(props) {
       tray.dispose();
       canvas.remove();
       trayRef.current = null;
-      setFailed(true);
+      if (useTower) setTowerFailed(true);
+      else setFailed(true);
       return undefined;
     }
 
@@ -230,7 +239,7 @@ export default function DiceTray3DOverlay(props) {
     };
     // specsRef is read rather than listed: the signature is what decides
     // whether this is a new throw.
-  }, [canRender, diceSignature, handleSettled, palette, isHex]);
+  }, [canRender, diceSignature, handleSettled, palette, isHex, useTower, towerSkin]);
 
   if (!canRender) {
     return <FlatDiceResultOverlay {...props} />;
@@ -291,7 +300,7 @@ export default function DiceTray3DOverlay(props) {
     <div className="rq-dice-tray" data-testid="dice-tray-overlay" role="dialog" aria-modal="true" aria-label="Dice roll">
       <button type="button" className="rq-dice-tray__scrim" aria-label="Dismiss roll" onClick={onClose} />
 
-      <section className={`rq-dice-tray__panel ${outcome}${tone}${isRevealed ? ' is-revealed' : ''}`}>
+      <section className={`rq-dice-tray__panel ${outcome}${tone}${isRevealed ? ' is-revealed' : ''}${useTower ? ' is-tower' : ''}`} data-dice-rig={useTower ? 'tower' : 'tray'}>
         <header className="rq-dice-tray__header">
           <div>
             <span className="rq-dice-tray__eyebrow"><Dices size={14} /> {label || 'Roll'}</span>
