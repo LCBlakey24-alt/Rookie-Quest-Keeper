@@ -131,6 +131,9 @@ export function AppRoutes() {
   const [username, setUsername] = useState(() => preview ? PREVIEW_USER : getStoredAuthUsername());
   const skipNextAuthProbeRef = useRef(false);
   const isPublicBrandRoute = PUBLIC_BRAND_PATHS.has(location.pathname) || location.pathname.startsWith('/auth') || location.pathname === '/reset-password';
+  // The player display is shown to the whole table on a TV: no Rook, dice or
+  // feedback buttons over the scene.
+  const isPlayerDisplay = /\/player-display(?:\/|$)/.test(location.pathname);
 
   const handleAuthLogin = useCallback((token, nextUsername) => {
     if (!preview) {
@@ -238,7 +241,7 @@ export function AppRoutes() {
         <Route path="/characters/:characterId" element={isAuthenticated ? <HexCharacterSheet /> : <SignInRedirect />} />
         <Route path="*" element={<Navigate to={isAuthenticated ? '/home' : '/'} replace />} />
       </Routes>
-      {isAuthenticated && !isPublicBrandRoute && (
+      {isAuthenticated && !isPublicBrandRoute && !isPlayerDisplay && (
         <Suspense fallback={null}>
           {!preview && <RookGlobalAssistant />}
           <FloatingDiceRoller />
