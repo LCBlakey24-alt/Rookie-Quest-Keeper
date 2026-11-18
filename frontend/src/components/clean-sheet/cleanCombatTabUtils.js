@@ -3,14 +3,13 @@ import { rollDiceNotation } from '@/data/diceRoller';
 import { canonicalInventorySlot, getCanonicalEquippedItem } from '@/data/characterInventoryState';
 import { getMonkClassLevel } from '@/data/monkCharacterShape';
 import { getMonkMartialArtsDie } from '@/data/monkProgression';
+import { isSaveProficient } from '@/data/saveProficiencies';
 
 export const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 export const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
 
 export function hasSaveProficiency(character, ability) {
-  const saves = character?.saving_throw_proficiencies || [];
-  const short = ability.slice(0, 3).toLowerCase();
-  return saves.some(save => String(save).toLowerCase() === ability || String(save).toLowerCase() === short);
+  return isSaveProficient(character, ability);
 }
 
 export function rollDice(count = 1, sides = 8, modifier = 0, rng = Math.random) {
