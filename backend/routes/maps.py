@@ -87,7 +87,8 @@ async def create_world_map(campaign_id: str, map_data: WorldMapCreate, username:
         scale_value=map_data.scale_value,
         scale_unit=map_data.scale_unit,
         travel_speeds=map_data.travel_speeds or default_travel_speeds,
-        notes=map_data.notes
+        notes=map_data.notes,
+        grid=getattr(map_data, 'grid', None),
     )
     
     await db.world_maps.insert_one(world_map.model_dump())
