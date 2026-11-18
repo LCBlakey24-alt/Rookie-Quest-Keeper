@@ -109,3 +109,14 @@ export function describeDistance(from, to, options = {}) {
   const feet = distanceFeet(from, to, options);
   return `${feet} ft (${squares} ${squares === 1 ? 'square' : 'squares'})`;
 }
+
+/**
+ * A creature's walking speed in feet from however it was stored: a number,
+ * "30 ft., fly 60 ft." (the first number), or { walk: 30 }. Defaults to 30.
+ */
+export function walkingSpeedFeet(speed, fallback = 30) {
+  if (Number.isFinite(Number(speed)) && Number(speed) > 0) return Number(speed);
+  if (speed && typeof speed === 'object') return walkingSpeedFeet(speed.walk ?? speed.walking, fallback);
+  const match = String(speed || '').match(/\d+/);
+  return match ? Number(match[0]) : fallback;
+}
