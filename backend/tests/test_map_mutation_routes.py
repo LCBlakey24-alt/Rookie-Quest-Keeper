@@ -493,3 +493,46 @@ def test_local_linked_place_must_exist_in_campaign(monkeypatch):
             'campaign-a', 'local-1', {'linked_place_id': 'missing'}, username='gm-a'
         ))
     assert exc.value.status_code == 422
+
+
+def test_world_pin_can_link_a_town_map_only_from_the_same_campaign(monkeypatch):
+    queries = []
+
+    class LocalMaps:
+        async def find_one(self, query, projection=None):
+            queries.append(query)
+            return {'id': 'balderin-map'} if query['id'] == 'balderin-map' else None
+
+    monkeypatch.setattr(maps, 'db', SimpleNamespace(local_maps=LocalMaps()))
+
+    asyncio.run(maps._validate_pin_links('campaign-a', linked_local_map_id=' balderin-map '))
+    assert queries == [{'id': 'balderin-map', 'campaign_id': 'campaign-a'}]
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(maps._validate_pin_links('campaign-a', linked_local_map_id='map-from-b'))
+    assert exc.value.status_code == 422
+
+
+def test_new_world_pin_keeps_its_town_map_link(monkeypatch):
+    pushed = []
+
+    async def verify(campaign_id, username):
+        return None
+
+    class LocalMaps:
+        async def find_one(self, query, projection=None):
+            return {'id': query['id']}
+
+    class WorldMaps:
+        async def update_one(self, query, update):
+            pushed.append(update['$push']['pins'])
+            return SimpleNamespace(matched_count=1)
+
+    monkeypatch.setattr(maps, 'verify_campaign_ownership', verify)
+    monkeypatch.setattr(maps, 'db', SimpleNamespace(local_maps=LocalMaps(), world_maps=WorldMaps()))
+
+    pin = asyncio.run(maps.add_world_map_pin(
+        'campaign-a', 'map-1', {'name': 'Balderin', 'linked_local_map_id': 'balderin-map'}, username='gm-a'
+    ))
+    assert pin['linked_local_map_id'] == 'balderin-map'
+    assert pushed[0]['linked_local_map_id'] == 'balderin-map'
