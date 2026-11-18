@@ -1,4 +1,4 @@
-import { getClassFeatures } from '@/data/classFeatures';
+import { getCharacterClassFeatures } from '@/data/characterFeatureSelectors';
 import { featureTypeLabel, toArray } from './cleanSheetUtils';
 
 /*
@@ -12,9 +12,10 @@ export function rulesEditionOf(character) {
 
 /** Class-table features for the character's level plus those saved on the sheet, de-duplicated and in level order. */
 export function buildClassFeatureSummary(character, rulesEdition = rulesEditionOf(character)) {
-  const className = character?.character_class;
-  const level = Number(character?.level || 1);
-  const tableFeatures = getClassFeatures(className, level, rulesEdition);
+  // Each class at its own class level (a Fighter 1 / Wizard 10 is not a
+  // Fighter 11). Class-table features only; subclass features come from
+  // the sheet's own subclass section.
+  const tableFeatures = getCharacterClassFeatures(character, rulesEdition).filter((feature) => feature.source !== 'subclass');
   const characterFeatures = toArray(character?.features || character?.class_features).map((feature, index) => (
     typeof feature === 'string'
       ? { name: feature, description: 'Saved on this character sheet.', type: 'passive', level: null, source: 'sheet' }
