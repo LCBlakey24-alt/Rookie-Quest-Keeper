@@ -1,4 +1,4 @@
-import { activeQuestSummaries, hasOpenQuests } from './liveActiveQuests';
+import { activeQuestSummaries, hasOpenQuests } from './activeQuestSummary';
 
 const quest = (overrides) => ({ id: 'q', title: 'Quest', status: 'active', objectives: [], ...overrides });
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './LiveActiveQuests.css';
 import { ArrowRight, BookOpen, Pin } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
-import { activeQuestSummaries, hasOpenQuests } from '@/components/gm/liveActiveQuests';
+import { activeQuestSummaries, hasOpenQuests } from '@/components/gm/activeQuestSummary';
 
 /**
  * The quests in play, on Live Play's Run screen: what to do next on each,
