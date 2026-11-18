@@ -251,6 +251,10 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
 
         <PrivacyRightsPanel key={profile?.username || username} username={profile?.username || username} />
 
+        {/* Privacy & Data controls are placed here, above the Danger Zone,
+            so account deletion is always the last thing on the page. */}
+        <div className="account-settings-privacy-slot" data-testid="account-privacy-slot" />
+
         <section className="account-settings-panel account-settings-danger" style={dangerPanelStyle} aria-busy={deleteSaving ? 'true' : 'false'}>
           <SectionHeader icon={AlertTriangle} title="Danger Zone" danger />
           <p style={dangerTextStyle}>
