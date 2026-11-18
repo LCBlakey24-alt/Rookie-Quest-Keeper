@@ -141,15 +141,23 @@ function ArtworkField({ contentType, draft, onChange }) {
 
 function AdvancedMechanics({ draft, onChange }) {
   const upd = (key, value) => onChange({ ...draft, [key]: value });
+  // The JSON fields are for confident builders. They stay folded away
+  // unless the draft already has something in them (e.g. Rook filled it).
+  const hasJson = ['resources', 'actions', 'passive_effects', 'scaling', 'upgrades']
+    .some((key) => Array.isArray(draft[key]) && draft[key].length > 0);
   return <section style={advancedStyle}>
     <div style={advancedHeaderStyle}><Zap size={15} /> Sheet automation</div>
-    <p style={helpStyle}>Use these when something should appear on a character sheet, spend charges, scale by level, or change a stat/passive.</p>
+    <p style={helpStyle}>Describe in plain words what should appear on a character sheet. Rook can turn notes into structured fields.</p>
+    <FieldRow label="Automation Notes" value={draft.automation_notes || ''} onChange={v => upd('automation_notes', v)} multiline placeholder="Example: Add Scarab Charges to the resource tracker, max equals Warlock level, GM can adjust Greed Tokens." />
+    <details open={hasJson} data-testid="hb-advanced-json">
+    <summary style={{ cursor: 'pointer', minHeight: 44, display: 'flex', alignItems: 'center', fontWeight: 800 }}>Advanced: structured fields (JSON)</summary>
+    <p style={helpStyle}>For resources, spending, passive effects, scaling and upgrades the sheet can automate.</p>
     <JsonField label="Resources JSON" value={draft.resources || []} onChange={v => upd('resources', v)} placeholder='[{"name":"Scarab Charges","formula":"warlock level","regain":"long rest","visible_on_sheet":true}]' />
     <JsonField label="Actions / Spending JSON" value={draft.actions || []} onChange={v => upd('actions', v)} placeholder='[{"name":"Spend Scarab Charge","action_type":"bonus action","resource_cost":{"Scarab Charges":1}}]' />
     <JsonField label="Passive Sheet Effects JSON" value={draft.passive_effects || []} onChange={v => upd('passive_effects', v)} placeholder='[{"name":"+1 Strength","target":"strength","mode":"bonus","value":1}]' />
     <JsonField label="Scaling JSON" value={draft.scaling || []} onChange={v => upd('scaling', v)} placeholder='[{"level":5,"description":"Damage increases to 2d6"}]' />
     <JsonField label="Upgrades JSON" value={draft.upgrades || []} onChange={v => upd('upgrades', v)} placeholder='[{"level":10,"name":"Improved Pact","description":"..."}]' />
-    <FieldRow label="Automation Notes" value={draft.automation_notes || ''} onChange={v => upd('automation_notes', v)} multiline placeholder="Example: Add Scarab Charges to the resource tracker, max equals Warlock level, GM can adjust Greed Tokens." />
+    </details>
   </section>;
 }
 
