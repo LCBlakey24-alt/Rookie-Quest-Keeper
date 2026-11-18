@@ -101,3 +101,40 @@ export function gridTile(grid) {
   }
   return null;
 }
+
+export const MAX_BATTLE_SQUARES = 80;
+
+/**
+ * Where an uploaded battle map's whole squares are, in image pixels: the
+ * part of the image from the first grid line to the last complete square.
+ * Partial squares at the edges are trimmed so the map is whole squares.
+ */
+export function battleCrop(imageWidth, imageHeight, grid) {
+  const g = normaliseGrid({ ...grid, type: 'square' });
+  const cell = (imageWidth * g.size) / 100;
+  if (!(cell > 0) || !(imageHeight > 0)) return null;
+  const sx = (g.offset_x / 100) * cell;
+  const sy = (g.offset_y / 100) * cell;
+  const cols = Math.min(MAX_BATTLE_SQUARES, Math.floor((imageWidth - sx) / cell + 1e-6));
+  const rows = Math.min(MAX_BATTLE_SQUARES, Math.floor((imageHeight - sy) / cell + 1e-6));
+  if (cols < 1 || rows < 1) return null;
+  return { sx, sy, sw: cols * cell, sh: rows * cell, cols, rows, cell };
+}
+
+/**
+ * Crop an uploaded battle map to its whole squares and shrink it if needed,
+ * so the picture stretched over the map's squares lines up exactly in the
+ * builder, in combat and on the player display. Returns a JPEG data URL.
+ */
+export function cropBattleImage(image, grid, maxSide = 2600) {
+  const crop = battleCrop(image.naturalWidth || image.width, image.naturalHeight || image.height, grid);
+  if (!crop) return null;
+  const scale = Math.min(1, maxSide / Math.max(crop.sw, crop.sh));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(crop.sw * scale));
+  canvas.height = Math.max(1, Math.round(crop.sh * scale));
+  const context = canvas.getContext('2d');
+  if (!context) return null;
+  context.drawImage(image, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, canvas.width, canvas.height);
+  return { dataUrl: canvas.toDataURL('image/jpeg', 0.86), cols: crop.cols, rows: crop.rows };
+}

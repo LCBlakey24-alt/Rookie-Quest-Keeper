@@ -37,7 +37,10 @@ export function startingMap(saved, fresh = {}) {
   if (saved && Array.isArray(saved.terrain) && saved.terrain.length) return saved;
   const width = Number(fresh.width || saved?.width) || DEFAULT_MAP_WIDTH;
   const height = Number(fresh.height || saved?.height) || DEFAULT_MAP_HEIGHT;
-  return { ...(saved || {}), ...createEmptyMap(width, height, fresh.ground || 'empty'), name: fresh.name || saved?.name };
+  const map = { ...(saved || {}), ...createEmptyMap(width, height, fresh.ground || 'empty'), name: fresh.name || saved?.name };
+  // Uploaded battle artwork, already cropped to these squares.
+  if (fresh.background_image) map.background_image = fresh.background_image;
+  return map;
 }
 
 function MapBuilder({ campaignId, onClose, initialMap, existingMap, newMap, onMapSaved }) {
@@ -135,6 +138,10 @@ function MapBuilder({ campaignId, onClose, initialMap, existingMap, newMap, onMa
         walls: mapData.walls,
         doors: mapData.doors,
         objects: mapData.objects,
+        // Keep uploaded artwork; without it a saved upload reopened blank.
+        ...((mapData.background_image || mapData.backgroundImage)
+          ? { background_image: mapData.background_image || mapData.backgroundImage }
+          : {}),
         fog_of_war: fogOfWar,
         tokens: tokens.map(t => ({
           id: t.id,
