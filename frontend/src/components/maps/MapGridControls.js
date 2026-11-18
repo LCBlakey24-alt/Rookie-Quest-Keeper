@@ -11,7 +11,8 @@ const wrap = (value) => ((value % 100) + 100) % 100;
  * how many cells fit across, then nudge size and position until the lines sit
  * on the artwork's own grid. Changes show live; `onSave` stores them.
  */
-export default function MapGridControls({ grid, onChange, onSave, onCancel, saving = false }) {
+export default function MapGridControls({ grid, onChange, onSave, onCancel, saving = false, types, saveLabel = 'Save grid' }) {
+  const options = types ? GRID_TYPES.filter((option) => types.includes(option.id)) : GRID_TYPES;
   const settings = normaliseGrid(grid);
   const set = (patch) => onChange?.(normaliseGrid({ ...settings, ...patch }));
   const active = settings.type !== 'none';
@@ -22,7 +23,7 @@ export default function MapGridControls({ grid, onChange, onSave, onCancel, savi
   return (
     <section className="rq-grid-controls" aria-label="Map grid" data-testid="map-grid-controls">
       <div className="rq-grid-controls__types" role="radiogroup" aria-label="Grid type">
-        {GRID_TYPES.map((option) => (
+        {options.length > 1 && options.map((option) => (
           <button
             key={option.id}
             type="button"
@@ -105,12 +106,14 @@ export default function MapGridControls({ grid, onChange, onSave, onCancel, savi
         </div>
       )}
 
+      {(onSave || onCancel) && (
       <footer className="rq-grid-controls__actions">
         {onCancel && <button type="button" className="rq-grid-controls__button" onClick={onCancel}>Cancel</button>}
         <button type="button" className="rq-grid-controls__button rq-grid-controls__button--primary" onClick={() => onSave?.(settings)} disabled={saving} data-testid="map-grid-save">
-          {saving ? 'Saving…' : 'Save grid'}
+          {saving ? 'Saving…' : saveLabel}
         </button>
       </footer>
+      )}
     </section>
   );
 }

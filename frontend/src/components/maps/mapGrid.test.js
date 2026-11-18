@@ -72,3 +72,21 @@ describe('MapGridControls', () => {
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ type: 'square', size: 5 }));
   });
 });
+
+describe('battle map crop', () => {
+  const { battleCrop, MAX_BATTLE_SQUARES } = jest.requireActual('./mapGrid');
+
+  it('keeps whole squares from the first grid line, trimming part squares', () => {
+    // 1200 x 800 artwork with 40px squares starting 10px in: 29 whole squares across, 19 down.
+    const crop = battleCrop(1200, 800, { type: 'square', size: (40 / 1200) * 100, offset_x: 25, offset_y: 0 });
+    expect(crop).toMatchObject({ cols: 29, rows: 20 });
+    expect(crop.sx).toBeCloseTo(10);
+    expect(crop.sw).toBeCloseTo(29 * 40);
+    expect(crop.sh).toBeCloseTo(800);
+  });
+
+  it('never makes an empty or oversized map', () => {
+    expect(battleCrop(0, 800, { size: 5 })).toBeNull();
+    expect(battleCrop(10000, 10000, { size: 0.5 }).cols).toBe(MAX_BATTLE_SQUARES);
+  });
+});

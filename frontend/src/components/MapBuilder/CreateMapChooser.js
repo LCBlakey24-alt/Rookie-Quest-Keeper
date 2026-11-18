@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import React, { useState } from 'react';
 import { Building, Globe, Map as MapIcon, X } from 'lucide-react';
 import './NewBattleMapDialog.css';
@@ -15,7 +16,8 @@ export const SETTLEMENT_KINDS = [
 export default function CreateMapChooser({ onCancel, onChoose }) {
   const [step, setStep] = useState('type');
 
-  return (
+  // Rendered on <body> so it sits above the campaign header, not under it.
+  return createPortal(
     <div className="rq-new-map__backdrop">
       <section className="rq-new-map" role="dialog" aria-modal="true" aria-labelledby="rq-create-map-title" data-testid="create-map-chooser">
         <header className="rq-new-map__head">
@@ -57,6 +59,7 @@ export default function CreateMapChooser({ onCancel, onChoose }) {
           </>
         )}
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }

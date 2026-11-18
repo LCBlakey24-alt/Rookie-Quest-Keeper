@@ -36,3 +36,12 @@
 .rq-new-map__choice { text-align: left; background: transparent; color: inherit; font: inherit; align-content: start; gap: 6px; padding: 14px; }
 .rq-new-map__choice:hover, .rq-new-map__choice:focus-visible { border-color: var(--guild-c1, #ff1976); box-shadow: inset 0 0 18px rgba(var(--guild-c1-rgb, 255, 25, 118), 0.25); outline: none; }
 .rq-new-map__choice svg { color: var(--guild-c1, #ff1976); }
+.rq-new-map--wide { width: min(980px, 100%); }
+.rq-new-map__options--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.rq-new-map__group > .campaign-button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; justify-self: start; }
+.rq-new-map__hint, .rq-new-map__fit { margin: 0; font-size: 13px; color: var(--guild-text-muted, #c9c3e6); }
+.rq-new-map__fit { font-weight: 700; color: var(--guild-text, #fff); }
+.rq-new-map__error { margin: 0; color: var(--rq-danger, #ff6b6b); font-size: 13px; }
+.rq-new-map__artwork { position: relative; line-height: 0; border: 1px solid var(--guild-edge, rgba(255,255,255,0.16)); }
+.rq-new-map__artwork img { width: 100%; height: auto; display: block; }
+@media (max-width: 560px) { .rq-new-map__options--two { grid-template-columns: 1fr; } }
