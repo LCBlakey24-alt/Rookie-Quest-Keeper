@@ -1,4 +1,5 @@
 import RouteLoadingScreen from '@/components/RouteLoadingScreen';
+import { getSaveProficiencies } from '@/data/saveProficiencies';
 import { passiveScore } from '@/data/skillModifiers';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { applyDamage, damageOutcomeMessage, damageUpdatesForCharacter } from '@/data/damageTransitions';
@@ -167,7 +168,7 @@ export default function CleanCharacterSheet() {
   const speed = deriveWalkingSpeed(character);
   const initiative = getInitiativeModifier(character);
   const skillProficiencies = character?.skill_proficiencies || [];
-  const saveProficiencies = character?.saving_throw_proficiencies || [];
+  const saveProficiencies = getSaveProficiencies(character);
   const activeConditions = character?.conditions || [];
   const exhaustionLevel = Number(character?.exhaustion_level || 0);
   const deathSaveSuccesses = clampDeathCount(character?.death_saves_successes);
