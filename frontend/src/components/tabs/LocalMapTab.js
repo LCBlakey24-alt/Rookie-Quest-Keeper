@@ -6,8 +6,11 @@ import { Input } from '@/components/ui/input';
 import { 
   Map, Upload, Plus, MapPin, Trash2, Save, X,
   Store, Beer, Church, Hammer, Building, BookOpen, Home,
-  Eye, ZoomIn, ZoomOut, Edit2
+  Eye, ZoomIn, ZoomOut, Edit2, Grid3x3
 } from 'lucide-react';
+import MapGridOverlay from '@/components/maps/MapGridOverlay';
+import MapGridControls from '@/components/maps/MapGridControls';
+import { normaliseGrid } from '@/components/maps/mapGrid';
 
 
 // GM Theme - Midnight Neon
@@ -49,6 +52,9 @@ function LocalMapTab({ campaignId }) {
   const [showPinEditor, setShowPinEditor] = useState(false);
   const [selectedPin, setSelectedPin] = useState(null);
   const [zoom, setZoom] = useState(1);
+  const [gridDraft, setGridDraft] = useState(null);
+  const [imageAspect, setImageAspect] = useState(0);
+  const [savingGrid, setSavingGrid] = useState(false);
   
   const fileInputRef = useRef(null);
 
@@ -113,6 +119,9 @@ function LocalMapTab({ campaignId }) {
       const response = await apiClient.post(`/campaigns/${campaignId}/local-maps`, newMapData);
       setLocalMaps([...localMaps, response.data]);
       setSelectedMap(response.data);
+      // Straight on to lining up a grid; "No grid" is the default.
+      setGridDraft(normaliseGrid(response.data?.grid));
+      setMode('grid');
       setShowUpload(false);
       setNewMapData({ name: '', location_id: '', map_type: 'city', image_data: '' });
       toast.success('Local map created!');
@@ -337,7 +346,7 @@ function LocalMapTab({ campaignId }) {
             {mapsForLocation.length > 0 && (
               <select
                 value={selectedMap?.id || ''}
-                onChange={(e) => setSelectedMap(mapsForLocation.find(m => m.id === e.target.value))}
+                onChange={(e) => { setSelectedMap(mapsForLocation.find(m => m.id === e.target.value)); setMode('view'); setGridDraft(null); }}
                 style={{
                   background: theme.panel,
                   border: `1px solid ${theme.border}`,
@@ -366,6 +375,24 @@ function LocalMapTab({ campaignId }) {
               >
                 <Plus size={14} style={{ marginRight: '6px' }} />
                 Add Place
+              </Button>
+
+              <Button
+                onClick={() => {
+                  if (mode === 'grid') { setMode('view'); setGridDraft(null); return; }
+                  setGridDraft(normaliseGrid(selectedMap.grid));
+                  setMode('grid');
+                }}
+                data-testid="local-map-grid-button"
+                style={{
+                  background: mode === 'grid' ? theme.subtle : 'transparent',
+                  border: `1px solid ${mode === 'grid' ? theme.primary : theme.border}`,
+                  color: mode === 'grid' ? theme.primary : theme.muted,
+                  padding: '8px 14px'
+                }}
+              >
+                <Grid3x3 size={14} style={{ marginRight: '6px' }} />
+                Grid
               </Button>
 
               <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
@@ -401,6 +428,32 @@ function LocalMapTab({ campaignId }) {
           )}
         </div>
 
+        {selectedMap && mode === 'grid' && (
+          <div style={{ padding: 10, background: theme.bg, borderBottom: `1px solid ${theme.border}` }}>
+            <MapGridControls
+              grid={gridDraft}
+              onChange={setGridDraft}
+              onCancel={() => { setMode('view'); setGridDraft(null); }}
+              saving={savingGrid}
+              onSave={async (grid) => {
+                setSavingGrid(true);
+                try {
+                  await apiClient.put(`/campaigns/${campaignId}/local-maps/${selectedMap.id}`, { grid });
+                  setSelectedMap(prev => ({ ...prev, grid }));
+                  setLocalMaps(prev => prev.map(m => (m.id === selectedMap.id ? { ...m, grid } : m)));
+                  setMode('view');
+                  setGridDraft(null);
+                  toast.success(grid.type === 'none' ? 'Grid removed' : 'Grid saved');
+                } catch (error) {
+                  toast.error(error?.response?.data?.detail || 'Could not save the grid');
+                } finally {
+                  setSavingGrid(false);
+                }
+              }}
+            />
+          </div>
+        )}
+
         {/* Map Display */}
         <div style={{ flex: 1, overflow: 'auto', background: theme.bg }}>
           {selectedMap ? (
@@ -417,8 +470,10 @@ function LocalMapTab({ campaignId }) {
                   src={selectedMap.image_data}
                   alt={selectedMap.name}
                   style={{ width: '100%', height: 'auto', display: 'block' }}
+                  onLoad={(e) => setImageAspect(e.currentTarget.naturalWidth ? e.currentTarget.naturalHeight / e.currentTarget.naturalWidth : 0)}
                 />
               )}
+              <MapGridOverlay grid={mode === 'grid' ? gridDraft : selectedMap.grid} aspect={imageAspect} />
 
               {/* Pins */}
               {selectedMap.pins?.map(pin => {

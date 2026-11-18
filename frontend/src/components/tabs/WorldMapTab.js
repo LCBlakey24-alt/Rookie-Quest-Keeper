@@ -1,7 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
-import { Building, Castle, Home, Map, MapPin, Mountain, Plus, Save, Trees, Trash2, Upload, Waves, X } from 'lucide-react';
+import { Building, Castle, Grid3x3, Home, Map, MapPin, Mountain, Plus, Save, Trees, Trash2, Upload, Waves, X } from 'lucide-react';
+import MapGridOverlay from '@/components/maps/MapGridOverlay';
+import MapGridControls from '@/components/maps/MapGridControls';
+import { normaliseGrid } from '@/components/maps/mapGrid';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
@@ -92,6 +95,8 @@ export default function WorldMapTab({ campaignId }) {
   const [showPinEditor, setShowPinEditor] = useState(false);
   const [pinForm, setPinForm] = useState(EMPTY_PIN);
   const [saving, setSaving] = useState(false);
+  const [gridDraft, setGridDraft] = useState(null);
+  const [imageAspect, setImageAspect] = useState(0);
   const fileInputRef = useRef(null);
   const mapRef = useRef(null);
 
@@ -164,6 +169,8 @@ export default function WorldMapTab({ campaignId }) {
       const created = response.data;
       setWorldMaps(prev => [...prev, created]);
       setSelectedMap(created);
+      setGridDraft(normaliseGrid(created?.grid));
+      setMode('grid');
       setShowUpload(false);
       setNewMapData(EMPTY_MAP);
       setUploadFileName('');
@@ -257,6 +264,28 @@ export default function WorldMapTab({ campaignId }) {
     }
   };
 
+  const startGrid = () => {
+    setGridDraft(normaliseGrid(selectedMap?.grid));
+    setMode('grid');
+  };
+
+  const saveGrid = async (grid) => {
+    if (!selectedMap) return;
+    setSaving(true);
+    try {
+      await apiClient.put(`/campaigns/${campaignId}/world-maps/${selectedMap.id}`, { grid });
+      setSelectedMap(prev => ({ ...prev, grid }));
+      setWorldMaps(prev => prev.map(map => map.id === selectedMap.id ? { ...map, grid } : map));
+      setMode('view');
+      setGridDraft(null);
+      toast.success(grid.type === 'none' ? 'Grid removed' : 'Grid saved');
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not save the grid');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const deleteMap = async () => {
     if (!selectedMap || !window.confirm(`Delete ${selectedMap.name}?`)) return;
     setSaving(true);
@@ -285,7 +314,7 @@ export default function WorldMapTab({ campaignId }) {
         </div>
         <div style={headerActionsStyle}>
           {worldMaps.length > 0 && (
-            <select value={selectedMap?.id || ''} onChange={event => setSelectedMap(worldMaps.find(map => map.id === event.target.value) || null)} style={selectStyle}>
+            <select value={selectedMap?.id || ''} onChange={event => { setSelectedMap(worldMaps.find(map => map.id === event.target.value) || null); setMode('view'); setGridDraft(null); }} style={selectStyle}>
               {worldMaps.map(map => <option key={map.id} value={map.id}>{map.name}</option>)}
             </select>
           )}
@@ -298,14 +327,33 @@ export default function WorldMapTab({ campaignId }) {
         <nav style={toolbarStyle}>
           <button type="button" onClick={() => setMode('view')} style={toolButtonStyle(mode === 'view')}><Map size={15} /> View</button>
           <button type="button" onClick={() => setMode('addPin')} style={toolButtonStyle(mode === 'addPin')}><Plus size={15} /> Add Pin</button>
-          <span style={hintStyle}>{mode === 'addPin' ? 'Click the map to place a new pin.' : 'Click an existing pin to edit it.'}</span>
+          <button type="button" onClick={startGrid} style={toolButtonStyle(mode === 'grid')} data-testid="world-map-grid-button"><Grid3x3 size={15} /> Grid</button>
+          <span style={hintStyle}>{mode === 'addPin' ? 'Click the map to place a new pin.' : mode === 'grid' ? 'Choose squares or hexes, then line them up with your map.' : 'Click an existing pin to edit it.'}</span>
         </nav>
+      )}
+
+      {selectedMap && mode === 'grid' && (
+        <div style={{ padding: 10, background: rq.bg, borderBottom: `1px solid ${rq.line}` }}>
+          <MapGridControls
+            grid={gridDraft}
+            onChange={setGridDraft}
+            onSave={saveGrid}
+            onCancel={() => { setMode('view'); setGridDraft(null); }}
+            saving={saving}
+          />
+        </div>
       )}
 
       <main style={mapStageStyle}>
         {selectedMap ? (
           <div ref={mapRef} onClick={handleMapClick} style={mapCanvasStyle(mode === 'addPin')}>
-            <img src={mapImageSource(selectedMap)} alt={selectedMap.name} style={mapImageStyle} />
+            <img
+              src={mapImageSource(selectedMap)}
+              alt={selectedMap.name}
+              style={mapImageStyle}
+              onLoad={event => setImageAspect(event.currentTarget.naturalWidth ? event.currentTarget.naturalHeight / event.currentTarget.naturalWidth : 0)}
+            />
+            <MapGridOverlay grid={mode === 'grid' ? gridDraft : selectedMap.grid} aspect={imageAspect} />
             {(selectedMap.pins || []).map(pin => <MapPinMarker key={pin.id} pin={pin} onClick={openPin} />)}
           </div>
         ) : (
@@ -426,7 +474,7 @@ const toolbarStyle = { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 
 const hintStyle = { color: rq.muted, fontSize: 12, marginLeft: 4 };
 const mapStageStyle = { flex: 1, minHeight: 0, overflow: 'auto', background: rq.bg, padding: 12 };
 const mapCanvasStyle = (adding) => ({ position: 'relative', width: '100%', minWidth: 280, maxWidth: '100%', margin: '0 auto', cursor: adding ? 'crosshair' : 'default' });
-const mapImageStyle = { width: '100%', height: 'auto', display: 'block', userSelect: 'none', border: `1px solid ${rq.line}` };
+const mapImageStyle = { width: '100%', height: 'auto', display: 'block', userSelect: 'none', outline: `1px solid ${rq.line}` };
 const emptyStateStyle = { minHeight: 380, display: 'grid', placeItems: 'center', alignContent: 'center', textAlign: 'center', gap: 10, color: rq.soft, background: rq.card, border: `1px dashed ${rq.line}`, padding: 28 };
 const overlayStyle = { position: 'fixed', inset: 0, zIndex: 5000, background: 'rgba(0,0,0,0.78)', display: 'grid', placeItems: 'center', padding: 14 };
 const modalStyle = { width: 'min(560px, calc(100vw - 28px))', maxHeight: 'calc(100dvh - 28px)', overflowY: 'auto', background: rq.panel, border: `1px solid ${rq.line}`, borderLeft: `7px solid ${rq.red}`, color: rq.text, padding: 16, fontFamily: fontStack };
