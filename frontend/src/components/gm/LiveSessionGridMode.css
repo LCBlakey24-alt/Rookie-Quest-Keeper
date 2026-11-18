@@ -183,11 +183,11 @@
 
 .rqk-live-grid__nav-button:hover:not(.is-active) {
   background: var(--rq-card-hover, #19354e) !important;
-  border-color: var(--rq-secondary, #79bce8) !important;
+  border-color: var(--rq-secondary, var(--guild-h3)) !important;
 }
 
 .rqk-live-grid :is(button, summary):focus-visible {
-  outline: 3px solid var(--rq-secondary, #79bce8) !important;
+  outline: 3px solid var(--rq-secondary, var(--guild-h3)) !important;
   outline-offset: 2px;
 }
 
@@ -216,7 +216,7 @@
 
 .rqk-live-grid__brief-eyebrow {
   margin: 0 0 6px;
-  color: var(--rq-secondary, #79bce8);
+  color: var(--rq-secondary, var(--guild-h3));
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.12em;
@@ -452,7 +452,7 @@
 .rqk-live-party { display: grid; gap: 8px; }
 .rqk-live-party__label {
   margin: 0; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--guild-hi, #ffb066);
+  color: var(--guild-hi, var(--guild-hi));
 }
 .rqk-live-party__list {
   list-style: none; margin: 0; padding: 0;

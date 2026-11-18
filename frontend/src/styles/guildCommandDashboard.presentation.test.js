@@ -10,8 +10,8 @@ describe('Approved Guild Command screenshot-to-web implementation', () => {
   const entry = read('../index.js');
 
   test('uses final yellow to ember-red to deep-red gradient with centre blend', () => {
-    expect(citrus).toContain('--rq-citrus-yellow: #FF8A1F;');
-    expect(citrus).toContain('--rq-citrus-orange: #F4551F;');
+    expect(citrus).toContain('--rq-citrus-yellow: var(--guild-c1);');
+    expect(citrus).toContain('--rq-citrus-orange: var(--guild-h1);');
     expect(citrus).toContain('--rq-citrus-blood: #E03A2F;');
     expect(citrus).toContain('var(--rq-citrus-yellow) 28%,');
     expect(citrus).toContain('var(--rq-citrus-orange) 50%,');

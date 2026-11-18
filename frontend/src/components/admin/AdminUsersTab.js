@@ -10,7 +10,7 @@ const rq = {
   input: 'var(--guild-bg-deep, #071a33)',
   border: 'var(--guild-line, rgba(176,77,255,0.45))',
   borderDefault: 'rgba(79,179,255,0.25)',
-  accent: 'var(--guild-hi, #ffb066)',
+  accent: 'var(--guild-hi, var(--guild-hi))',
   accentHover: 'var(--guild-c3, #4fb3ff)',
   accentSoft: 'var(--guild-select, rgba(96,156,232,0.2))',
   text: 'var(--guild-text, #ffffff)',

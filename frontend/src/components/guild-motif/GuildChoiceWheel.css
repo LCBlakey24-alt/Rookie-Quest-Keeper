@@ -6,8 +6,8 @@
    the top, the case and the centre glow peach, pink and gold. */
 .guild-wheel {
   --_bg: var(--guild-bg, #0a2342); --_panel: var(--guild-panel, #0e2d55);
-  --_accent: var(--guild-accent, #f2892f); --_accent-rgb: var(--guild-accent-rgb, 242, 137, 47);
-  --_hi: var(--guild-hi, #ffb066); --_text: var(--guild-text, #ffffff); --_muted: var(--guild-muted, #c6d3e2);
+  --_accent: var(--guild-accent, var(--guild-c1)); --_accent-rgb: var(--guild-accent-rgb, 242, 137, 47);
+  --_hi: var(--guild-hi, var(--guild-hi)); --_text: var(--guild-text, #ffffff); --_muted: var(--guild-muted, #c6d3e2);
   --_cool: var(--guild-cool, #6fb8ff);
   display: grid; justify-items: center; gap: 4px; width: 100%; position: relative;
 }

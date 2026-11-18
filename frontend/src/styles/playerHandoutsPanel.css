@@ -26,17 +26,17 @@
 /* Refresh / action buttons */
 .player-handouts-surface button {
   min-height: 38px !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 5px !important;
-  background: #112A40 !important;
+  background: var(--guild-panel) !important;
   color: #F7F1E7 !important;
   font-weight: 850 !important;
 }
 
 .player-handouts-surface button:hover:not(:disabled),
 .player-handouts-surface button:focus-visible {
-  background: #17364F !important;
-  border-color: #f2892f !important;
+  background: var(--guild-panel) !important;
+  border-color: var(--guild-c1) !important;
   outline: none !important;
 }
 
@@ -44,15 +44,15 @@
 .player-handouts-surface > section > h4 svg,
 .player-handouts-surface article > button > svg,
 .player-handouts-surface [role='status'] svg {
-  color: #79BCE8 !important;
+  color: var(--guild-h3) !important;
 }
 
 /* Error / unread notice */
 .player-handouts-surface [role='status'] {
   padding: 9px 10px !important;
   margin: 0 !important;
-  background: #112A40 !important;
-  border: 1px solid #f2892f !important;
+  background: var(--guild-panel) !important;
+  border: 1px solid var(--guild-c1) !important;
   border-radius: 5px !important;
   color: #F7F1E7 !important;
   font-size: 11px !important;
@@ -62,8 +62,8 @@
 .player-handouts-surface > section > div:has(> svg + span) {
   gap: 7px !important;
   padding: 8px 9px !important;
-  background: rgba(121,188,232,.08) !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  background: rgba(var(--guild-c2-rgb), .08) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 5px !important;
   color: #F7F1E7 !important;
   font-size: 11px !important;
@@ -87,8 +87,8 @@
   display: inline-flex !important;
   align-items: center !important;
   padding: 0 6px !important;
-  background: rgba(121,188,232,.10) !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  background: rgba(var(--guild-c2-rgb), .10) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 4px !important;
   color: #F7F1E7 !important;
   font-size: 9px !important;
@@ -105,27 +105,27 @@
 .player-handouts-surface > section > div:has(> button) > button {
   min-height: 32px !important;
   padding: 0 8px !important;
-  background: #112A40 !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  background: var(--guild-panel) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 5px !important;
   color: #F7F1E7 !important;
   font-size: 10px !important;
 }
 
 .player-handouts-surface > section > div:has(> button) > button[style*="--rq-accent-primary"],
-.player-handouts-surface > section > div:has(> button) > button[style*="#f2892f"],
-.player-handouts-surface > section > div:has(> button) > button[style*="#f2892f"] {
-  background: rgba(121,188,232,.10) !important;
-  border-color: #f2892f !important;
+.player-handouts-surface > section > div:has(> button) > button[style*="var(--guild-c1)"],
+.player-handouts-surface > section > div:has(> button) > button[style*="var(--guild-c1)"] {
+  background: rgba(var(--guild-c2-rgb), .10) !important;
+  border-color: var(--guild-c1) !important;
 }
 
 /* Handout cards */
 .player-handouts-surface article {
   padding: 0 !important;
   overflow: hidden !important;
-  background: #112A40 !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
-  border-left: 1px solid rgba(242, 137, 47,.18) !important;
+  background: var(--guild-panel) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
+  border-left: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 7px !important;
   color: #F7F1E7 !important;
 }
@@ -149,7 +149,7 @@
 
 .player-handouts-surface article > button:first-child:hover,
 .player-handouts-surface article > button:first-child:focus-visible {
-  background: rgba(121,188,232,.06) !important;
+  background: rgba(var(--guild-c2-rgb), .06) !important;
   outline: none !important;
 }
 
@@ -167,7 +167,7 @@
 .player-handouts-surface article > div {
   margin-top: 0 !important;
   padding: 9px !important;
-  border-top: 1px solid rgba(242, 137, 47,.14) !important;
+  border-top: 1px solid rgba(var(--guild-c1-rgb), .14) !important;
   color: #F7F1E7 !important;
   font-size: 11px !important;
   line-height: 1.45 !important;
@@ -181,9 +181,9 @@
 }
 
 .player-handouts-surface article img {
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 5px !important;
-  background: #071A29 !important;
+  background: var(--guild-bg-deep) !important;
 }
 
 /* Save / share row */
@@ -195,16 +195,16 @@
 .player-handouts-surface article > div > div:has(> button) > button {
   min-height: 34px !important;
   padding: 0 8px !important;
-  background: #112A40 !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  background: var(--guild-panel) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   color: #F7F1E7 !important;
   font-size: 10px !important;
 }
 
 .player-handouts-surface article > div > div:has(> button) > button[style*="--rq-accent-primary"],
-.player-handouts-surface article > div > div:has(> button) > button[style*="#f2892f"] {
-  background: rgba(121,188,232,.10) !important;
-  border-color: #f2892f !important;
+.player-handouts-surface article > div > div:has(> button) > button[style*="var(--guild-c1)"] {
+  background: rgba(var(--guild-c2-rgb), .10) !important;
+  border-color: var(--guild-c1) !important;
 }
 
 .player-handouts-surface article > div > div:has(> button) > span {
@@ -212,8 +212,8 @@
   display: inline-flex !important;
   align-items: center !important;
   padding: 0 8px !important;
-  background: #071A29 !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  background: var(--guild-bg-deep) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 5px !important;
   color: #F7F1E7 !important;
   font-size: 9px !important;
@@ -226,15 +226,15 @@
   display: inline-flex !important;
   align-items: center !important;
   gap: 5px !important;
-  background: #071A29 !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  background: var(--guild-bg-deep) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 5px !important;
   color: #F7F1E7 !important;
   font-size: 10px !important;
 }
 
 .player-handouts-surface article input[type='checkbox'] {
-  accent-color: #79BCE8 !important;
+  accent-color: var(--guild-h3) !important;
 }
 
 /* Empty state */
@@ -243,8 +243,8 @@
   display: grid !important;
   place-items: center !important;
   gap: 6px !important;
-  background: #112A40 !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  background: var(--guild-panel) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 7px !important;
   color: #F7F1E7 !important;
   font-size: 11px !important;
@@ -262,7 +262,7 @@
 
   .player-handouts-surface > section > button:first-of-type::before {
     content: '↻';
-    color: #79BCE8;
+    color: var(--guild-h3);
     font-size: 20px;
     line-height: 1;
   }

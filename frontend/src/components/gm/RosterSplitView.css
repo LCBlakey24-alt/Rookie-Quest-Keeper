@@ -66,10 +66,10 @@
 }
 #root .rqk-reference-browser__item.is-selected {
   background: var(--rq-card, #0a2342);
-  border-left-color: var(--rq-accent-primary, #f2892f);
+  border-left-color: var(--rq-accent-primary, var(--guild-c1));
 }
 #root .rqk-reference-browser__item:focus-visible {
-  outline: 2px solid var(--rq-accent-primary, #f2892f);
+  outline: 2px solid var(--rq-accent-primary, var(--guild-c1));
   outline-offset: -3px;
   position: relative;
   z-index: 1;
@@ -92,7 +92,7 @@
   white-space: nowrap;
   max-width: 100%;
 }
-#root .rqk-reference-browser__item-badge { color: var(--rq-accent-primary, #f2892f); }
+#root .rqk-reference-browser__item-badge { color: var(--rq-accent-primary, var(--guild-c1)); }
 #root .rqk-reference-browser__detail { padding: clamp(10px, 2vw, 20px); }
 #root .rqk-reference-browser__detail-content { min-width: 0; overflow-wrap: anywhere; }
 #root .rqk-reference-browser__detail-placeholder,
@@ -137,7 +137,7 @@
     border-right: 1px solid var(--rq-border-default, rgba(137,157,176,.18));
     scroll-snap-align: start;
   }
-  #root .rqk-reference-browser__item.is-selected { border-bottom-color: var(--rq-accent-primary, #f2892f); }
+  #root .rqk-reference-browser__item.is-selected { border-bottom-color: var(--rq-accent-primary, var(--guild-c1)); }
   #root .rqk-reference-browser__detail { padding: 9px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -158,7 +158,7 @@
     border-right: 1px solid var(--rq-border-default, rgba(137,157,176,.18));
     scroll-snap-align: start;
   }
-  #root .rqk-reference-browser__item.is-selected { border-bottom-color: var(--rq-accent-primary, #f2892f); }
+  #root .rqk-reference-browser__item.is-selected { border-bottom-color: var(--rq-accent-primary, var(--guild-c1)); }
   #root .rqk-reference-browser__detail { padding: 9px; }
 }
 
@@ -210,7 +210,7 @@
   justify-content: center;
   gap: 5px;
   padding: 8px 10px;
-  border: 1px solid var(--rq-border-strong, rgba(242, 137, 47,.3));
+  border: 1px solid var(--rq-border-strong, rgba(var(--guild-c1-rgb), .3));
   border-radius: 6px;
   color: var(--rq-text-primary, #ffffff);
   background: var(--rq-bg-deep, #0a2342);
@@ -221,10 +221,10 @@
 }
 #root .rqk-reference-browser__paging button:not(:disabled):is(:hover,:focus-visible) {
   background: var(--rq-card, #0a2342);
-  border-color: var(--rq-accent-primary, #f2892f);
+  border-color: var(--rq-accent-primary, var(--guild-c1));
 }
 #root .rqk-reference-browser__paging button:focus-visible {
-  outline: 2px solid var(--rq-accent-primary, #f2892f);
+  outline: 2px solid var(--rq-accent-primary, var(--guild-c1));
   outline-offset: 2px;
 }
 #root .rqk-reference-browser__paging button:disabled {
@@ -266,7 +266,7 @@
     white-space: normal !important;
     line-height: 1.4 !important;
     background-color: var(--guild-bg) !important;
-    background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F, #F4551F, #E03A2F)) !important;
+    background-image: var(--rq-citrus-gradient, linear-gradient(90deg, var(--guild-c1), var(--guild-h1), #E03A2F)) !important;
     background-position: left center !important;
     background-size: 0% 3px !important;
     background-repeat: no-repeat !important;

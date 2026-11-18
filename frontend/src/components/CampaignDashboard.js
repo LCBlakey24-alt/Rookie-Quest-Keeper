@@ -56,9 +56,9 @@ import HexLoader from '@/components/guild-motif/HexLoader';
 
 const uploadTheme = {
   bg: { black: 'var(--guild-bg)', panel: 'var(--guild-bg)', card: 'var(--guild-bg)', hover: 'var(--guild-bg)' },
-  accent: { primary: '#f2892f', secondary: 'var(--guild-hi)', subtle: 'rgba(242, 137, 47,0.12)' },
+  accent: { primary: 'var(--guild-c1)', secondary: 'var(--guild-hi)', subtle: 'rgba(var(--guild-c1-rgb), 0.12)' },
   text: { white: '#ffffff', primary: '#ffffff', secondary: '#D5C9B6', muted: '#AEAB9F' },
-  border: 'rgba(242, 137, 47,0.26)',
+  border: 'rgba(var(--guild-c1-rgb), 0.26)',
 };
 
 function tabFromHash() {

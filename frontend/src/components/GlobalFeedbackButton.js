@@ -7,7 +7,7 @@ import apiClient from '@/lib/apiClient';
 import '@/styles/globalFeedbackPlayer.css';
 
 const rq = {
-  panel: '#071522',
+  panel: 'var(--guild-bg-deep)',
   input: '#081B2A',
   border: 'rgba(255,45,170,0.18)',
   borderDefault: 'rgba(255,45,170,0.18)',

@@ -35,7 +35,7 @@
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 10px;
   background-color: var(--guild-bg);
-  background-image: var(--rq-ledger-rule, #F4551F);
+  background-image: var(--rq-ledger-rule, var(--guild-h1));
   background-repeat: no-repeat;
   background-position: left top;
   background-size: 100% 2px;
@@ -198,7 +198,7 @@
 
 /* A natural 20 or a 1 is a moment at the table, so it is marked -- but with
    a rule and the numeral's colour, not a coloured fill. */
-.rq-dice-tray__panel.is-crit .rq-dice-tray__result strong { color: #FF8A1F; }
+.rq-dice-tray__panel.is-crit .rq-dice-tray__result strong { color: var(--guild-c1); }
 .rq-dice-tray__panel.is-fumble .rq-dice-tray__result strong { color: #E03A2F; }
 
 @media (max-width: 719px) {
@@ -305,7 +305,7 @@ html body .rq-dice-tray.rq-dice-tray--hex[role='dialog'] {
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--guild-hi, #ffb066);
+  color: var(--guild-hi, var(--guild-hi));
   pointer-events: none;
 }
 .rq-dice-hex__result {

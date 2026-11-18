@@ -463,7 +463,7 @@
 }
 
 .rook-assistant-panel {
-  background: #071522 !important;
+  background: var(--guild-bg-deep) !important;
   border-radius: 9px !important;
   backdrop-filter: none !important;
 }

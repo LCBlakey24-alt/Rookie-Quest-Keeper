@@ -218,7 +218,7 @@
     border-radius: 50% !important;
     background-color: var(--guild-bg) !important;
     border: 1px solid rgba(var(--guild-c2-rgb),.45) !important;
-    color: #FF8A1F !important;
+    color: var(--guild-c1) !important;
     font-weight: 850 !important;
   }
   #root .guild-command-home .guild-command-party__avatar {

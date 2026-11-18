@@ -5,12 +5,12 @@
   --rqk-tv-ink: var(--guild-bg);
   --rqk-tv-navy: var(--guild-bg);
   --rqk-tv-panel: var(--guild-bg);
-  --rqk-tv-gold: #f2892f;
+  --rqk-tv-gold: var(--guild-c1);
   --rqk-tv-cream: #ffffff;
   /* Approved yellow-to-red accent. Used only as thin rules: title underlines
      and section markers — never as a panel or card fill. */
   --rqk-tv-citrus: var(--rq-citrus-gradient, linear-gradient(90deg,
-    #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%));
+    var(--guild-c1) 0%, var(--guild-c1) 28%, var(--guild-h1) 50%, #E03A2F 72%, #E03A2F 100%));
   --rqk-tv-line: rgba(var(--guild-c2-rgb), 0.28);
   color: var(--rqk-tv-cream);
   isolation: isolate;
@@ -43,7 +43,7 @@
 }
 .rqk-player-display__npc-card {
   background: var(--rqk-tv-panel) !important;
-  border-color: rgba(242, 137, 47,.30) !important;
+  border-color: rgba(var(--guild-c1-rgb), .30) !important;
   border-left-color: var(--rqk-tv-gold) !important;
   box-shadow: none !important;
 }
@@ -66,7 +66,7 @@
 .rqk-player-display__fullscreen {
   border-radius: 6px !important;
   background: rgba(10, 35, 66,.93) !important;
-  border-color: rgba(242, 137, 47,.5) !important;
+  border-color: rgba(var(--guild-c1-rgb), .5) !important;
   color: var(--rqk-tv-cream) !important;
   box-shadow: none !important;
 }
@@ -98,7 +98,7 @@
 .rqk-player-display__npc-pages button {
   min-height: 40px;
   padding: 0 12px;
-  border: 1px solid rgba(242, 137, 47, .45);
+  border: 1px solid rgba(var(--guild-c1-rgb),  .45);
   border-radius: 5px;
   background: var(--rqk-tv-panel);
   color: var(--rqk-tv-cream);
@@ -302,7 +302,7 @@
   --rq-bg-deep: transparent;
   --rq-bg-panel: var(--guild-bg, #0a2342);
   --rq-card: var(--guild-bg, #0a2342);
-  --rq-primary: var(--guild-hi, #ffb066);
+  --rq-primary: var(--guild-hi, var(--guild-hi));
   --rq-accent-soft: rgba(var(--guild-h2-rgb, 255, 95, 160), 0.12);
   --rq-line: var(--guild-line, rgba(176, 77, 255, 0.45));
   --rq-line-strong: rgba(var(--guild-hi-rgb, 255, 176, 102), 0.55);

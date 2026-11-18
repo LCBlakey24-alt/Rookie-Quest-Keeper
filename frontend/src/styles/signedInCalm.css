@@ -6,13 +6,13 @@
 /* -------------------------------------------------------------------------- */
 
 html body #root .rqk-app-shell {
-  background: #071522 !important;
+  background: var(--guild-bg-deep) !important;
 }
 
 html body #root .rqk-app-workspace,
 html body #root .rqk-app-shell-content {
   min-width: 0 !important;
-  background: #071522 !important;
+  background: var(--guild-bg-deep) !important;
 }
 
 html body #root .rqk-app-rail {

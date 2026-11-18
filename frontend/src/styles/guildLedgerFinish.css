@@ -355,7 +355,7 @@
     .player-campaign-card h2
   ) {
     font-family: var(--rq-font-display, Georgia, serif) !important;
-    color: var(--rq-guild-heading, #ffb066) !important;
+    color: var(--rq-guild-heading, var(--guild-hi)) !important;
     -webkit-text-fill-color: currentColor !important;
     line-height: 1.18 !important;
     overflow-wrap: anywhere !important;
@@ -445,10 +445,10 @@
     padding: 18px !important;
     background: var(--rq-bg-panel, #0a2342) !important;
     border-radius: 9px !important;
-    border-left: 3px solid var(--rq-guild-heading, #ffb066) !important;
+    border-left: 3px solid var(--rq-guild-heading, var(--guild-hi)) !important;
   }
   #root .rqk-app-shell .player-dashboard-unavailable strong {
-    color: var(--rq-guild-heading, #ffb066) !important;
+    color: var(--rq-guild-heading, var(--guild-hi)) !important;
   }
   #root .rqk-app-shell .player-dashboard-unavailable p { margin: 0 !important; line-height: 1.5 !important; }
   #root .rqk-app-shell .player-campaign-tabs {

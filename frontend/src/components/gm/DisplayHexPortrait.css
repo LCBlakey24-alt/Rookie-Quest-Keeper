@@ -10,7 +10,7 @@
 .rqk-display-hex--cool .rqk-display-hex__stop-1 { stop-color: var(--guild-c1, #ff3d8b); }
 .rqk-display-hex--cool .rqk-display-hex__stop-2 { stop-color: var(--guild-c2, #b04dff); }
 .rqk-display-hex--cool .rqk-display-hex__stop-3 { stop-color: var(--guild-c3, #4fb3ff); }
-.rqk-display-hex--hot .rqk-display-hex__stop-1 { stop-color: var(--guild-h1, #ffb066); }
+.rqk-display-hex--hot .rqk-display-hex__stop-1 { stop-color: var(--guild-h1, var(--guild-hi)); }
 .rqk-display-hex--hot .rqk-display-hex__stop-2 { stop-color: var(--guild-h2, #ff5fa0); }
 .rqk-display-hex--hot .rqk-display-hex__stop-3 { stop-color: var(--guild-h3, #ffd27a); }
 .rqk-display-hex--hot .rqk-display-hex__glow { opacity: 0.55; }

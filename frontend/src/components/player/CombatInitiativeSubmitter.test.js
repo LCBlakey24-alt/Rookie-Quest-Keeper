@@ -30,9 +30,9 @@ describe('player combat initiative widget', () => {
 
   test('uses the flat player palette instead of the retired red theme', () => {
     expect(source).toContain("panel: 'var(--guild-bg)'");
-    expect(source).toContain("card: '#112A40'");
-    expect(source).toContain("blue: '#79BCE8'");
-    expect(source).toContain("lineStrong: '#f2892f'");
+    expect(source).toContain("card: 'var(--guild-panel)'");
+    expect(source).toContain("blue: 'var(--guild-h3)'");
+    expect(source).toContain("lineStrong: 'var(--guild-c1)'");
     expect(source).not.toMatch(/var\(--rq-accent-primary\)|#d00000/i);
   });
 
