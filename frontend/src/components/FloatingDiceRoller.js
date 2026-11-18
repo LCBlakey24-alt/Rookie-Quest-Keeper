@@ -317,7 +317,7 @@ export default function FloatingDiceRoller() {
   };
 
   return (
-    <div className={`rq-floating-dice ${isCharacterSheet ? 'is-character-sheet' : 'is-app-shell'} ${requestedCheck ? 'has-group-check-request' : ''}`} aria-label="Floating dice roller">
+    <div className={`rq-floating-dice ${isCharacterSheet ? 'is-character-sheet' : 'is-app-shell'} ${requestedCheck ? 'has-group-check-request' : ''}`} role="region" aria-label="Floating dice roller">
       {open && createPortal(
         <div className={`rq-dice-wheel-overlay${rollFlicker ? ' has-roll' : ''}`} data-testid="dice-wheel-overlay">
           <button

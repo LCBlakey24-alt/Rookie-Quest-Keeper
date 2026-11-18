@@ -524,6 +524,7 @@ export default function CharacterImportPage() {
           <input
             ref={fileInputRef}
             type="file"
+            aria-label="Upload a character sheet file"
             accept=".json,.txt,.md,.pdf,.png,.jpg,.jpeg,.webp,application/pdf,image/png,image/jpeg,image/webp"
             onChange={handleFile}
             disabled={scan.status === 'scanning'}

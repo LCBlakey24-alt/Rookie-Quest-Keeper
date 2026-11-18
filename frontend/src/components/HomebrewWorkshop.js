@@ -516,7 +516,7 @@ export default function HomebrewWorkshop() {
       <header className="hb-panel hb-header" style={headerStyle}>
         <button type="button" onClick={() => navigate('/home')} className="hb-back" style={secondaryButtonStyle} data-testid="hb-back-btn"><ArrowLeft size={15} /> Back</button>
         <div style={{ minWidth: 0, flex: 1 }}><p style={eyebrowStyle}>Rook-assisted creation</p><h1 className="hb-title" style={titleStyle}><Sparkles size={28} /> Homebrew Workshop</h1><p style={subtitleStyle}>Download a fillable template, write your class, feat, subclass, species, spell, item, monster, NPC, or custom rule, then upload it back. Rook parses it into structured fields that can flow into builders and sheets.</p></div>
-        <select value={edition} onChange={event => setEdition(event.target.value)} style={selectButtonStyle} data-testid="hb-edition"><option value="2014">2014 Rules</option><option value="2024">2024 Rules</option></select>
+        <select value={edition} onChange={event => setEdition(event.target.value)} style={selectButtonStyle} data-testid="hb-edition" aria-label="Rules edition"><option value="2014">2014 Rules</option><option value="2024">2024 Rules</option></select>
       </header>
 
       <section className="hb-types" style={typeGridStyle}>{TYPES.map(item => { const Icon = item.icon; const active = type === item.key; return <button key={item.key} type="button" onClick={() => switchType(item.key)} className={`hb-type${active ? ' is-active' : ''}`} aria-pressed={active} style={typeCardStyle(active)} data-testid={`hb-type-${item.key}`}><Icon size={18} /><strong>{item.label}</strong><span>{item.help}</span></button>; })}</section>
