@@ -97,9 +97,9 @@
   #root .character-page-v2 {
     --rq-cc-title-gradient: linear-gradient(
       90deg,
-      var(--rq-citrus-yellow, #FF8A1F) 0%,
-      var(--rq-citrus-yellow, #FF8A1F) 28%,
-      var(--rq-ember-red-orange, #F4551F) 50%,
+      var(--rq-citrus-yellow, var(--guild-c1)) 0%,
+      var(--rq-citrus-yellow, var(--guild-c1)) 28%,
+      var(--rq-ember-red-orange, var(--guild-h1)) 50%,
       var(--rq-citrus-blood, #E03A2F) 72%,
       var(--rq-citrus-blood, #E03A2F) 100%
     );

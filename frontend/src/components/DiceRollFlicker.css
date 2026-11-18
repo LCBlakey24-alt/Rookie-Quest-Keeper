@@ -23,7 +23,7 @@
 
 .rq-dice-preparing svg {
   flex: 0 0 auto;
-  color: #ff8a1f;
+  color: var(--guild-c1);
   animation: rq-dice-preparing-spin 900ms linear infinite;
 }
 

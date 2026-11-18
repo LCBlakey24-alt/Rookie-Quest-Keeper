@@ -34,7 +34,7 @@ describe('Player display — responsive, player-safe presentation', () => {
     const css = read('./PlayerDisplayPage.css');
     const source = read('./PlayerDisplayPage.js');
     expect(css).toContain('--rqk-tv-navy: var(--guild-bg)');
-    expect(css).toContain('--rqk-tv-gold: #f2892f');
+    expect(css).toContain('--rqk-tv-gold: var(--guild-c1)');
     expect(css).toContain('--rqk-tv-cream: #ffffff');
     expect(source).toContain('<PlayerBanner banner={payload.banner} target={target} />');
     expect(source).toContain('showPartySidebar && <PartySidebar');

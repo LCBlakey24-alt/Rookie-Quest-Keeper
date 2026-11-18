@@ -18,7 +18,7 @@
 .rqk-workbook-head { display:flex; gap:16px; align-items:flex-start; justify-content:space-between; }
 .rqk-workbook-head h2 { font-family:var(--guild-font-display,Georgia,serif); color:inherit; margin:2px 0 9px; font-size:clamp(22px, 3.1vw, 31px); }
 .rqk-workbook-head p { margin:0; color:var(--guild-muted,#c9d2e6); line-height:1.5; }
-.rqk-workbook-head .rqk-workbook-eyebrow { font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--guild-hi,#ffb066); }
+.rqk-workbook-head .rqk-workbook-eyebrow { font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--guild-hi,var(--guild-hi)); }
 .rqk-workbook-close { flex:none; display:grid; place-items:center; width:38px; height:38px; color:inherit; border:1px solid var(--guild-line,rgba(176,77,255,.4)); border-radius:10px; background:transparent; cursor:pointer; }
 .rqk-workbook-steps { display:grid; gap:14px; margin-top:22px; }
 .rqk-workbook-steps section { min-width:0; border:1px solid var(--guild-line,rgba(176,77,255,.4)); border-radius:14px; padding:16px; background:rgba(255,255,255,.025); }
@@ -30,13 +30,13 @@
 .rqk-workbook-steps input[type=file] { overflow-wrap:anywhere; }
 .rqk-workbook-steps .rqk-workbook-hint { font-size:12px; line-height:1.55; color:var(--guild-muted,#c9d2e6); }
 .rqk-workbook-secondary, .rqk-workbook-primary { display:inline-flex; gap:9px; align-items:center; justify-content:center; min-height:42px; padding:9px 15px; border-radius:10px; border:1px solid var(--guild-line,rgba(176,77,255,.55)); color:inherit; background:rgba(176,77,255,.10); font-weight:700; cursor:pointer; }
-.rqk-workbook-primary { border-color:var(--guild-hi,#ffb066); background:rgba(255,176,102,.14); }
-.rqk-workbook-dialog :is(button,select,input):focus-visible { outline:2px solid var(--guild-hi,#ffb066); outline-offset:2px; }
+.rqk-workbook-primary { border-color:var(--guild-hi,var(--guild-hi)); background:rgba(255,176,102,.14); }
+.rqk-workbook-dialog :is(button,select,input):focus-visible { outline:2px solid var(--guild-hi,var(--guild-hi)); outline-offset:2px; }
 .rqk-workbook-dialog button:disabled { cursor:not-allowed; opacity:.55; }
 .rqk-workbook-preview { margin-top:14px; display:grid; gap:7px; padding:13px; border-radius:10px; border:1px solid var(--guild-line,rgba(176,77,255,.38)); }
 .rqk-workbook-preview span { color:var(--guild-muted,#c9d2e6); }
 .rqk-workbook-file { display:flex; gap:7px; align-items:center; overflow-wrap:anywhere; }
-.rqk-workbook-warning { border-left:2px solid var(--guild-hi,#ffb066); padding-left:9px; color:var(--guild-muted,#c9d2e6); }
+.rqk-workbook-warning { border-left:2px solid var(--guild-hi,var(--guild-hi)); padding-left:9px; color:var(--guild-muted,#c9d2e6); }
 .rqk-workbook-error { color:#ffc4c4; padding:12px; border:1px solid #b94a4f; border-radius:10px; }
 .rqk-workbook-success { color:#bcf4d0; }
 .rqk-workbook-foot { margin-top:15px; font-size:12px; color:var(--guild-muted,#c9d2e6); line-height:1.5; }

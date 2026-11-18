@@ -11,7 +11,7 @@
   padding: 16px !important;
   background: var(--guild-bg) !important;
   background-image: none !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 7px !important;
   box-shadow: none !important;
 }
@@ -55,28 +55,28 @@
   min-height: 40px !important;
   white-space: nowrap !important;
   color: #F7F1E7 !important;
-  background: #112A40 !important;
+  background: var(--guild-panel) !important;
   background-image: none !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 5px !important;
   box-shadow: none !important;
 }
 
 #root .characters-library-page--simple .library-page-button-primary {
-  background: #112A40 !important;
-  border-color: #f2892f !important;
+  background: var(--guild-panel) !important;
+  border-color: var(--guild-c1) !important;
   color: #F7F1E7 !important;
 }
 
 #root .characters-library-page--simple :where(.library-page-button,.library-page-button-secondary):hover,
 #root .characters-library-page--simple :where(.library-page-button,.library-page-button-secondary):focus-visible {
-  background: #17364F !important;
-  border-color: #f2892f !important;
+  background: var(--guild-panel) !important;
+  border-color: var(--guild-c1) !important;
   outline: none !important;
 }
 
 #root .characters-library-page--simple :where(.library-page-button,.library-page-button-secondary) svg {
-  color: #79BCE8 !important;
+  color: var(--guild-h3) !important;
 }
 
 #root .characters-library-page--simple .characters-card-grid {
@@ -95,17 +95,17 @@
   flex-direction: column !important;
   gap: 10px !important;
   padding: 12px !important;
-  background: #112A40 !important;
+  background: var(--guild-panel) !important;
   background-image: none !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 7px !important;
   box-shadow: none !important;
 }
 
 #root .characters-library-page--simple .character-library-card--simple:hover,
 #root .characters-library-page--simple .character-library-card--simple:focus-within {
-  background: #17364F !important;
-  border-color: rgba(242, 137, 47,.42) !important;
+  background: var(--guild-panel) !important;
+  border-color: rgba(var(--guild-c1-rgb), .42) !important;
 }
 
 #root .characters-library-page--simple .character-card-main {
@@ -145,9 +145,9 @@
   align-items: center !important;
   justify-content: center !important;
   padding: 0 7px !important;
-  background: rgba(121,188,232,.10) !important;
+  background: rgba(var(--guild-c2-rgb), .10) !important;
   color: #F7F1E7 !important;
-  border: 1px solid rgba(242, 137, 47,.28) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .28) !important;
   border-radius: 5px !important;
   font-size: 9px !important;
   font-weight: 800 !important;
@@ -226,15 +226,15 @@
 }
 
 #root .characters-library-page--simple .library-page-button-danger {
-  background: #112A40 !important;
+  background: var(--guild-panel) !important;
   color: #F7F1E7 !important;
-  border-color: rgba(242, 137, 47,.28) !important;
+  border-color: rgba(var(--guild-c1-rgb), .28) !important;
 }
 
 #root .characters-library-page--simple .library-page-button-danger:hover,
 #root .characters-library-page--simple .library-page-button-danger:focus-visible {
-  background: #17364F !important;
-  border-color: #f2892f !important;
+  background: var(--guild-panel) !important;
+  border-color: var(--guild-c1) !important;
 }
 
 /* Mobile: compact hero, one card per row, finger-friendly actions. */

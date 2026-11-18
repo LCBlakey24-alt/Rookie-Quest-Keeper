@@ -114,7 +114,7 @@
 
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-roll-chip:hover,
   #root .character-page-v2 .clean-sheet-stats-tab--compact .clean-sheet-saving-throw-strip .clean-sheet-roll-chip:focus-visible {
-    background: #17364F !important;
+    background: var(--guild-panel) !important;
     border-color: var(--cs-accent) !important;
   }
 }

@@ -2,7 +2,7 @@
 
 .player-dashboard-page {
   min-height: 100vh;
-  background: var(--rq-bg-main, #071522);
+  background: var(--rq-bg-main, var(--guild-bg-deep));
   color: #F7F1E7;
   padding: 20px;
   display: flex;
@@ -14,9 +14,9 @@
 .player-dashboard-context,
 .player-join-strip,
 .player-dashboard-tab-shell {
-  background: var(--rq-bg-panel, #0C2234);
+  background: var(--rq-bg-panel, var(--guild-bg));
   background-image: none !important;
-  border: 1px solid rgba(242, 137, 47,.18);
+  border: 1px solid rgba(var(--guild-c1-rgb), .18);
   border-radius: 7px;
   box-shadow: none;
 }
@@ -114,10 +114,10 @@
 .player-join-strip select {
   min-height: 40px;
   min-width: 0;
-  background: var(--rq-bg-input, #071A29) !important;
+  background: var(--rq-bg-input, var(--guild-bg-deep)) !important;
   background-image: none !important;
   color: #F7F1E7 !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 5px !important;
   padding: 0 10px;
   box-shadow: none !important;
@@ -154,15 +154,15 @@
   display: flex;
   gap: 8px;
   align-items: flex-start;
-  background: var(--rq-bg-panel-alt, #112A40);
-  border: 1px solid rgba(242, 137, 47,.18);
+  background: var(--rq-bg-panel-alt, var(--guild-panel));
+  border: 1px solid rgba(var(--guild-c1-rgb), .18);
   border-radius: 5px;
   padding: 9px;
   box-shadow: none;
 }
 
 .player-dashboard-summary-icon {
-  color: #79BCE8 !important;
+  color: var(--guild-h3) !important;
 }
 
 .player-dashboard-summary-copy {
@@ -205,15 +205,15 @@
   gap: 0;
   width: 100%;
   height: auto !important;
-  border-bottom: 1px solid rgba(242, 137, 47,.18);
+  border-bottom: 1px solid rgba(var(--guild-c1-rgb), .18);
 }
 
 .player-dashboard-tab {
   min-width: 0;
   min-height: 44px;
   border: 0 !important;
-  border-right: 1px solid rgba(242, 137, 47,.18) !important;
-  background: var(--rq-bg-panel-alt, #112A40) !important;
+  border-right: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
+  background: var(--rq-bg-panel-alt, var(--guild-panel)) !important;
   background-image: none !important;
   color: #F7F1E7 !important;
   padding: 9px 10px;
@@ -228,7 +228,7 @@
 }
 
 .player-dashboard-tab svg {
-  color: #79BCE8 !important;
+  color: var(--guild-h3) !important;
   flex: 0 0 auto;
 }
 
@@ -239,7 +239,7 @@
 .player-dashboard-tab-active,
 .player-dashboard-tab[data-state="active"] {
   background-color: var(--rq-control-blue, #0a2342) !important;
-  background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F 0% 28%, #F4551F 50%, #E03A2F 72% 100%)) !important;
+  background-image: var(--rq-citrus-gradient, linear-gradient(90deg, var(--guild-c1) 0% 28%, var(--guild-h1) 50%, #E03A2F 72% 100%)) !important;
   background-size: 100% 3px !important;
   background-position: left bottom !important;
   background-repeat: no-repeat !important;
@@ -260,17 +260,17 @@
 }
 
 .player-dashboard-card {
-  background: var(--rq-bg-panel-alt, #112A40) !important;
+  background: var(--rq-bg-panel-alt, var(--guild-panel)) !important;
   background-image: none !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 7px !important;
   box-shadow: none !important;
 }
 
 .player-dashboard-card:hover,
 .player-dashboard-card:focus-within {
-  background: #17364F !important;
-  border-color: rgba(242, 137, 47,.42) !important;
+  background: var(--guild-panel) !important;
+  border-color: rgba(var(--guild-c1-rgb), .42) !important;
 }
 
 .player-dashboard-card-content {
@@ -295,8 +295,8 @@
 }
 
 .player-dashboard-empty-state {
-  background: var(--rq-bg-panel-alt, #112A40);
-  border: 1px solid rgba(242, 137, 47,.18);
+  background: var(--rq-bg-panel-alt, var(--guild-panel));
+  border: 1px solid rgba(var(--guild-c1-rgb), .18);
   border-radius: 7px;
   padding: 18px;
   text-align: center;
@@ -314,27 +314,27 @@
 }
 
 .player-dashboard-page .btn-primary {
-  background: var(--rq-bg-panel-alt, #112A40) !important;
-  border: 1px solid #f2892f !important;
+  background: var(--rq-bg-panel-alt, var(--guild-panel)) !important;
+  border: 1px solid var(--guild-c1) !important;
 }
 
 .player-dashboard-page .btn-outline {
-  background: var(--rq-bg-panel-alt, #112A40) !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  background: var(--rq-bg-panel-alt, var(--guild-panel)) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
 }
 
 .player-dashboard-page .btn-primary:hover,
 .player-dashboard-page .btn-primary:focus-visible,
 .player-dashboard-page .btn-outline:hover,
 .player-dashboard-page .btn-outline:focus-visible {
-  background: #17364F !important;
-  border-color: #f2892f !important;
+  background: var(--guild-panel) !important;
+  border-color: var(--guild-c1) !important;
   outline: none !important;
 }
 
 .player-dashboard-page .btn-primary svg,
 .player-dashboard-page .btn-outline svg {
-  color: #79BCE8 !important;
+  color: var(--guild-h3) !important;
 }
 
 .player-dashboard-page select {

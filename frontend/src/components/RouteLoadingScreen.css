@@ -51,7 +51,7 @@
 
 #root .route-loading-screen .rqk-route-eyebrow {
   margin: 0 0 5px !important;
-  color: var(--guild-hi, #ffb066) !important;
+  color: var(--guild-hi, var(--guild-hi)) !important;
   font-family: var(--guild-font-body, 'Inter', system-ui, sans-serif) !important;
   font-size: .78rem !important;
   font-weight: 700 !important;
@@ -131,7 +131,7 @@
 }
 
 #root .route-loading-screen .rqk-route-recovery button:focus-visible {
-  outline: 2px solid var(--guild-hi, #ffb066) !important;
+  outline: 2px solid var(--guild-hi, var(--guild-hi)) !important;
   outline-offset: 3px !important;
 }
 

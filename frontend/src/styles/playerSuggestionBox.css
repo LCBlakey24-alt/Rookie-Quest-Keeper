@@ -1,7 +1,7 @@
 .player-suggestion-box {
   margin-top: 12px;
   background: var(--guild-bg);
-  border: 1px solid rgba(242, 137, 47,.18);
+  border: 1px solid rgba(var(--guild-c1-rgb), .18);
   border-radius: 7px;
   color: #F7F1E7;
   box-shadow: none;
@@ -20,10 +20,10 @@
   height: 38px;
   display: grid;
   place-items: center;
-  background: #112A40;
-  border: 1px solid rgba(242, 137, 47,.18);
+  background: var(--guild-panel);
+  border: 1px solid rgba(var(--guild-c1-rgb), .18);
   border-radius: 5px;
-  color: #79BCE8;
+  color: var(--guild-h3);
 }
 
 .player-suggestion-box__intro > div:nth-child(2) {
@@ -66,8 +66,8 @@
   justify-content: center;
   gap: 6px;
   padding: 0 10px;
-  background: #112A40;
-  border: 1px solid #f2892f;
+  background: var(--guild-panel);
+  border: 1px solid var(--guild-c1);
   border-radius: 5px;
   color: #F7F1E7;
   font: inherit;
@@ -79,14 +79,14 @@
 
 .player-suggestion-box__toggle svg,
 .player-suggestion-box__actions button svg {
-  color: #79BCE8;
+  color: var(--guild-h3);
 }
 
 .player-suggestion-box__toggle:hover,
 .player-suggestion-box__toggle:focus-visible,
 .player-suggestion-box__actions button:hover:not(:disabled),
 .player-suggestion-box__actions button:focus-visible:not(:disabled) {
-  background: #17364F;
+  background: var(--guild-panel);
   outline: none;
 }
 
@@ -94,8 +94,8 @@
   display: grid;
   gap: 8px;
   padding: 12px;
-  border-top: 1px solid rgba(242, 137, 47,.18);
-  background: #071522;
+  border-top: 1px solid rgba(var(--guild-c1-rgb), .18);
+  background: var(--guild-bg-deep);
 }
 
 .player-suggestion-box__form label {
@@ -113,8 +113,8 @@
   box-sizing: border-box;
   min-height: 40px;
   padding: 8px 9px;
-  background: #071A29;
-  border: 1px solid rgba(242, 137, 47,.18);
+  background: var(--guild-bg-deep);
+  border: 1px solid rgba(var(--guild-c1-rgb), .18);
   border-radius: 5px;
   color: #F7F1E7;
   font: inherit;
@@ -130,8 +130,8 @@
 }
 
 .player-suggestion-box__form :where(input, select, textarea):focus {
-  border-color: #f2892f;
-  outline: 1px solid #f2892f;
+  border-color: var(--guild-c1);
+  outline: 1px solid var(--guild-c1);
   outline-offset: 1px;
 }
 

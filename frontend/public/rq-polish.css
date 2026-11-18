@@ -366,7 +366,7 @@
 #root .rqk-auth-heading p,
 #root .rqk-auth-assurance > span,
 #root .rqk-auth-next-steps > span {
-  color: #ffb066 !important;
+  color: #ff5c93 !important;
 }
 
 #root .rqk-auth-feature-card {
@@ -377,7 +377,7 @@
 
 #root .rqk-auth-feature-icon {
   background: rgba(140, 54, 221, 0.12) !important;
-  color: #f2892f !important;
+  color: #ff1976 !important;
   border: 1px solid rgba(140, 54, 221, 0.30) !important;
   border-radius: 5px !important;
 }

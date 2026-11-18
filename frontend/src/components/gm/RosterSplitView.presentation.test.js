@@ -7,7 +7,7 @@ const component = fs.readFileSync(path.join(__dirname, 'RosterSplitView.js'), 'u
 describe('Guild Command reference roster presentation', () => {
   test('selected NPC or beast uses a citrus underline, not a gold or red filled card', () => {
     expect(css).toContain('background-color: var(--guild-bg) !important;');
-    expect(css).toContain('background-image: var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F, #F4551F, #E03A2F))');
+    expect(css).toContain('background-image: var(--rq-citrus-gradient, linear-gradient(90deg, var(--guild-c1), var(--guild-h1), #E03A2F))');
     expect(css).toContain('background-size: 0% 3px !important;');
     expect(css).toContain('background-size: 100% 3px !important;');
     expect(css).toContain('border-bottom-color: #E03A2F !important;');

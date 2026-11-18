@@ -13,11 +13,11 @@ describe('Account Settings presentation ownership', () => {
 
     expect(css).not.toMatch(/rq-sunset-gradient|rq-sunset-cream|linear-gradient|radial-gradient|conic-gradient/i);
     expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542/i);
-    expect(css).toContain('#071522');
+    expect(css).toContain('var(--guild-bg-deep)');
     expect(css).toContain('var(--guild-bg)');
-    expect(css).toContain('#112A40');
-    expect(css).toContain('#79BCE8');
-    expect(css).toContain('#f2892f');
+    expect(css).toContain('var(--guild-panel)');
+    expect(css).toContain('var(--guild-h3)');
+    expect(css).toContain('var(--guild-c1)');
     expect(css).toContain('Destructive account actions keep semantic danger colouring');
     expect(css).not.toMatch(/account-settings-primary[\s\S]{0,220}#d00000/i);
     expect(route).toContain("@/styles/accountSettings.css");

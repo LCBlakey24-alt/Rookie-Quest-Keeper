@@ -50,7 +50,7 @@
 }
 
 .rqk-live-page__utility > summary::marker {
-  color: var(--rq-secondary, #79bce8);
+  color: var(--rq-secondary, var(--guild-h3));
 }
 
 .rqk-live-page__utility > summary span:last-child {
@@ -68,7 +68,7 @@
 }
 
 .rqk-live-page__utility > summary:focus-visible {
-  outline: 3px solid var(--rq-secondary, #79bce8);
+  outline: 3px solid var(--rq-secondary, var(--guild-h3));
   outline-offset: 2px;
 }
 

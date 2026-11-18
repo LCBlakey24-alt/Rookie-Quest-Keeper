@@ -13,10 +13,10 @@
 .player-notes-button,
 .player-notes-icon-button {
   min-height: 40px !important;
-  background: #112A40 !important;
+  background: var(--guild-panel) !important;
   background-image: none !important;
   color: #F7F1E7 !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 5px !important;
   box-shadow: none !important;
   font-weight: 850 !important;
@@ -31,7 +31,7 @@
 }
 
 .player-notes-button--primary {
-  border-color: #f2892f !important;
+  border-color: var(--guild-c1) !important;
 }
 
 .player-notes-icon-button {
@@ -46,8 +46,8 @@
 .player-notes-button:focus-visible,
 .player-notes-icon-button:hover:not(:disabled),
 .player-notes-icon-button:focus-visible {
-  background: #17364F !important;
-  border-color: #f2892f !important;
+  background: var(--guild-panel) !important;
+  border-color: var(--guild-c1) !important;
   outline: none !important;
 }
 
@@ -57,13 +57,13 @@
 .player-notes-meta svg,
 .player-notes-badge svg,
 .player-notes-empty svg {
-  color: #79BCE8 !important;
+  color: var(--guild-h3) !important;
 }
 
 .player-notes-error {
   padding: 9px 10px;
-  background: #112A40;
-  border: 1px solid #f2892f;
+  background: var(--guild-panel);
+  border: 1px solid var(--guild-c1);
   border-radius: 5px;
   color: #F7F1E7;
   font-size: 12px;
@@ -100,8 +100,8 @@
   display: inline-grid;
   place-items: center;
   padding: 0 6px;
-  background: rgba(121,188,232,.10);
-  border: 1px solid rgba(242, 137, 47,.18);
+  background: rgba(var(--guild-c2-rgb), .10);
+  border: 1px solid rgba(var(--guild-c1-rgb), .18);
   border-radius: 4px;
   color: #F7F1E7;
   font-size: 10px;
@@ -121,9 +121,9 @@
 .player-notes-card {
   min-width: 0;
   overflow: hidden;
-  background: #112A40 !important;
+  background: var(--guild-panel) !important;
   background-image: none !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 7px !important;
   color: #F7F1E7 !important;
   box-shadow: none !important;
@@ -131,8 +131,8 @@
 
 .player-notes-card:hover,
 .player-notes-card:focus-within {
-  background: #17364F !important;
-  border-color: rgba(242, 137, 47,.42) !important;
+  background: var(--guild-panel) !important;
+  border-color: rgba(var(--guild-c1-rgb), .42) !important;
 }
 
 .player-notes-card-content {
@@ -168,8 +168,8 @@
   align-items: center;
   gap: 5px;
   padding: 0 7px;
-  background: rgba(121,188,232,.10);
-  border: 1px solid rgba(242, 137, 47,.18);
+  background: rgba(var(--guild-c2-rgb), .10);
+  border: 1px solid rgba(var(--guild-c1-rgb), .18);
   border-radius: 4px;
   color: #F7F1E7;
   font-size: 10px;
@@ -214,8 +214,8 @@
 .player-notes-recap-expanded {
   margin-top: 8px;
   padding: 9px;
-  background: #071A29;
-  border: 1px solid rgba(242, 137, 47,.18);
+  background: var(--guild-bg-deep);
+  border: 1px solid rgba(var(--guild-c1-rgb), .18);
   border-radius: 5px;
 }
 
@@ -240,8 +240,8 @@
   gap: 7px;
   padding: 18px;
   text-align: center;
-  background: #112A40 !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  background: var(--guild-panel) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 7px !important;
   box-shadow: none !important;
 }
@@ -269,7 +269,7 @@
   overflow: auto !important;
   background: var(--guild-bg) !important;
   background-image: none !important;
-  border: 1px solid rgba(242, 137, 47,.28) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .28) !important;
   border-radius: 7px !important;
   color: #F7F1E7 !important;
   box-shadow: none !important;
@@ -308,9 +308,9 @@
   width: 100%;
   min-height: 40px;
   padding: 8px 9px;
-  background: #071A29 !important;
+  background: var(--guild-bg-deep) !important;
   background-image: none !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 5px !important;
   color: #F7F1E7 !important;
   box-shadow: none !important;
@@ -323,8 +323,8 @@
 }
 
 .player-notes-field :where(input,select,textarea):focus-visible {
-  border-color: #f2892f !important;
-  outline: 1px solid #f2892f !important;
+  border-color: var(--guild-c1) !important;
+  outline: 1px solid var(--guild-c1) !important;
   outline-offset: 1px !important;
 }
 

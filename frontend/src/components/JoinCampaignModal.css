@@ -14,7 +14,7 @@
   align-items: center;
   gap: 9px;
   padding: 0 36px 12px 0;
-  background: var(--rq-ledger-rule, linear-gradient(90deg, #FF8A1F 0% 28%, #F4551F 50%, #E03A2F 72% 100%)) left bottom / 100% 2px no-repeat;
+  background: var(--rq-ledger-rule, linear-gradient(90deg, var(--guild-c1) 0% 28%, var(--guild-h1) 50%, #E03A2F 72% 100%)) left bottom / 100% 2px no-repeat;
   color: var(--rq-text-primary, #F5F1E8);
   font-size: 1.35rem;
   line-height: 1.3;
@@ -39,7 +39,7 @@
 }
 .rqk-join-dialog .rqk-join-code:focus-visible {
   border-bottom-color: transparent;
-  background: var(--rq-ledger-rule, linear-gradient(90deg, #FF8A1F, #F4551F, #E03A2F)) left bottom / 100% 2px no-repeat;
+  background: var(--rq-ledger-rule, linear-gradient(90deg, var(--guild-c1), var(--guild-h1), #E03A2F)) left bottom / 100% 2px no-repeat;
 }
 .rqk-join-help { margin: 0; color: var(--rq-text-muted, rgba(255, 255, 255, .70)); font-size: .85rem; line-height: 1.5; }
 .rqk-join-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
@@ -50,7 +50,7 @@
   border-radius: 5px;
   background: var(--rq-bg, #0a2342);
   color: var(--rq-text-primary, #F5F1E8);
-  background-image: var(--rq-ledger-rule, linear-gradient(90deg, #FF8A1F, #F4551F, #E03A2F));
+  background-image: var(--rq-ledger-rule, linear-gradient(90deg, var(--guild-c1), var(--guild-h1), #E03A2F));
   background-size: 0% 3px;
   background-position: left bottom;
   background-repeat: no-repeat;
