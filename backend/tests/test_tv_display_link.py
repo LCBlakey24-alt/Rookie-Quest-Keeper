@@ -15,7 +15,20 @@ os.environ.setdefault('APP_URL', 'http://localhost:3000')
 os.environ.setdefault('CORS_ORIGINS', 'http://localhost:3000')
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import routes.tv_display as tv  # noqa: E402
+import importlib.util  # noqa: E402
+
+
+def _load_route(name):
+    # Load the one route file, not the routes package (which pulls in every
+    # router and their optional dependencies).
+    path = Path(__file__).resolve().parents[1] / 'routes' / f'{name}.py'
+    spec = importlib.util.spec_from_file_location(f'focused_{name}_test_module', path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+tv = _load_route('tv_display')
 import copy  # noqa: E402
 
 
