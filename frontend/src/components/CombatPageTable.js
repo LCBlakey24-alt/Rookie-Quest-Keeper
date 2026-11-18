@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { applyDamage, damageOutcomeMessage } from '@/data/damageTransitions';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   CHECKPOINT_VERSION,
@@ -569,20 +570,39 @@ export default function CombatPageTable() {
       let nextTemp = combatant.tempHp || 0;
 
       if (damage > 0) {
-        const absorbed = Math.min(nextTemp, damage);
-        nextTemp -= absorbed;
-        nextHp = Math.max(0, nextHp - (damage - absorbed));
-        if (combatant.concentrating_on || safeArray(combatant.conditions).includes('concentrating')) {
-          const dc = Math.max(10, Math.floor(damage / 2));
-          toast.warning(`${combatant.name}: concentration check DC ${dc}`);
-        }
-      } else if (change > 0) {
-        nextHp = Math.min(combatant.maxHp, nextHp + change);
+        // Shared rules (data/damageTransitions.js): dropping to 0 ends
+        // concentration instead of asking for a save, and damage at 0 is
+        // a failed death save. The GM can still adjust saves by hand.
+        const conditions = safeArray(combatant.conditions);
+        const concentrating = Boolean(combatant.concentrating_on || conditions.includes('concentrating'));
+        const saves = combatant.deathSaves || { successes: 0, failures: 0 };
+        const outcome = applyDamage({
+          currentHp: combatant.hp,
+          tempHp: nextTemp,
+          maxHp: combatant.maxHp,
+          amount: damage,
+          successes: saves.successes,
+          failures: saves.failures,
+          concentrating,
+        });
+        if (outcome.concentrationCheckDc) toast.warning(`${combatant.name}: concentration check DC ${outcome.concentrationCheckDc}`);
+        const outcomeLine = damageOutcomeMessage(combatant.name, outcome);
+        if (outcomeLine) toast.warning(outcomeLine);
+        return {
+          ...combatant,
+          hp: outcome.currentHp,
+          tempHp: outcome.tempHp,
+          deathSaves: { successes: outcome.successes, failures: outcome.failures },
+          ...(outcome.endsConcentration ? {
+            concentrating_on: null,
+            conditions: conditions.filter((condition) => condition !== 'concentrating'),
+          } : {}),
+        };
       }
+      if (change > 0) nextHp = Math.min(combatant.maxHp, nextHp + change);
 
       const wasDown = combatant.hp <= 0;
       const nowDown = nextHp <= 0;
-      if (!wasDown && nowDown) toast.warning(`${combatant.name} is down`);
       if (wasDown && !nowDown) toast.success(`${combatant.name} is back up`);
 
       return {

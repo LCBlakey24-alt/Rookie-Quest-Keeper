@@ -11,6 +11,7 @@ import CleanSheetFeaturesTab from '@/components/clean-sheet/CleanSheetFeaturesTa
 import CleanSpellsTab from '@/components/clean-sheet/CleanSpellsTab';
 // After the clean-sheet tabs, as on the classic sheet, so both chunks load their styles in one order.
 import DiceRollFlicker from '@/components/DiceRollFlicker';
+import { damageOutcomeMessage } from '@/data/damageTransitions';
 import { buildClassFeatureSummary, buildProficiencySummary, groupByActionEconomy, rulesEditionOf } from '@/components/clean-sheet/sheetFeatureSummary';
 import { deriveArmorClass, deriveWalkingSpeed } from '@/data/characterCombatDerivations';
 import LevelUpWizard from '@/components/LevelUpWizard';
@@ -257,6 +258,8 @@ export default function HexCharacterSheet() {
     toast.success(target === 'temp'
       ? `Temporary HP is now ${result.tempHp}`
       : `Hit points ${result.currentHp} / ${result.maxHp}${result.tempHp ? ` (+${result.tempHp} temp)` : ''}`);
+    const outcomeLine = adjustment.outcome ? damageOutcomeMessage(character?.name, adjustment.outcome) : null;
+    if (outcomeLine) toast.warning(outcomeLine, { duration: 8000 });
     const concentratingOn = getConcentrationName(character?.concentrating_on || character?.concentration);
     if (adjustment.damage > 0 && concentratingOn) {
       const dc = getConcentrationSaveDc(adjustment.damage);
