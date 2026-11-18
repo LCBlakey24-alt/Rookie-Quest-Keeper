@@ -31,7 +31,7 @@ MAP_MUTATION_ROUTE_KEYS = {
 
 WORLD_PIN_FIELDS = {
     'x', 'y', 'name', 'pin_type', 'linked_location_id', 'linked_place_id',
-    'description', 'icon', 'color',
+    'linked_local_map_id', 'description', 'icon', 'color',
 }
 LOCAL_PIN_FIELDS = {
     'x', 'y', 'name', 'pin_type', 'linked_place_id', 'description', 'icon', 'color',
@@ -88,8 +88,21 @@ async def _validate_pin_links(
     *,
     linked_location_id: Any = None,
     linked_place_id: Any = None,
+    linked_local_map_id: Any = None,
 ) -> None:
     """Reject links to campaign data that does not belong to the active campaign."""
+    local_map_id = _link_value(linked_local_map_id)
+    if local_map_id:
+        # A world pin can open one of this campaign's town/city maps.
+        local_map = await db.local_maps.find_one(
+            {'id': local_map_id, 'campaign_id': campaign_id},
+            {'_id': 0, 'id': 1},
+        )
+        if not local_map:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail='Linked town or city map was not found in this campaign',
+            )
     location_id = _link_value(linked_location_id)
     if location_id:
         location = await db.locations.find_one(
@@ -171,6 +184,7 @@ async def add_world_map_pin(
         campaign_id,
         linked_location_id=pin_data.get('linked_location_id'),
         linked_place_id=pin_data.get('linked_place_id'),
+        linked_local_map_id=pin_data.get('linked_local_map_id'),
     )
     new_pin = {
         'id': str(uuid.uuid4()),
@@ -180,6 +194,7 @@ async def add_world_map_pin(
         'pin_type': pin_data.get('pin_type', 'location'),
         'linked_location_id': pin_data.get('linked_location_id'),
         'linked_place_id': pin_data.get('linked_place_id'),
+        'linked_local_map_id': _link_value(pin_data.get('linked_local_map_id')) or None,
         'description': pin_data.get('description', ''),
         'icon': pin_data.get('icon', 'MapPin'),
         'color': pin_data.get('color', '#E11D48'),
@@ -205,12 +220,15 @@ async def update_world_map_pin(
     changes = _allowed(pin_data, WORLD_PIN_FIELDS)
     if not changes:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='No supported pin fields to update')
-    if 'linked_location_id' in changes or 'linked_place_id' in changes:
+    if 'linked_location_id' in changes or 'linked_place_id' in changes or 'linked_local_map_id' in changes:
         await _validate_pin_links(
             campaign_id,
             linked_location_id=changes.get('linked_location_id'),
             linked_place_id=changes.get('linked_place_id'),
+            linked_local_map_id=changes.get('linked_local_map_id'),
         )
+    if 'linked_local_map_id' in changes:
+        changes['linked_local_map_id'] = _link_value(changes['linked_local_map_id']) or None
     set_values = {f'pins.$.{key}': value for key, value in changes.items()}
     set_values['updated_at'] = _now()
     result = await db.world_maps.update_one(

@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
-import { Building, Castle, Grid3x3, Home, Map, MapPin, Mountain, Plus, Save, Trees, Trash2, Upload, Waves, X } from 'lucide-react';
+import { Building, Castle, Grid3x3, Home, Map, MapPin, Mountain, Plus, Save, Trees, Trash2, Upload, Waves, X, ZoomIn } from 'lucide-react';
+import CityMapView from '@/components/maps/CityMapView';
 import MapGridOverlay from '@/components/maps/MapGridOverlay';
 import MapGridControls from '@/components/maps/MapGridControls';
 import { normaliseGrid } from '@/components/maps/mapGrid';
@@ -34,7 +35,18 @@ const PIN_TYPES = [
 ];
 
 const EMPTY_MAP = { name: '', scale_value: 50, scale_unit: 'miles', image_data: '' };
-const EMPTY_PIN = { name: '', pin_type: 'city', description: '', linked_location_id: '', x: 50, y: 50 };
+const EMPTY_PIN = { name: '', pin_type: 'city', description: '', linked_location_id: '', linked_local_map_id: '', x: 50, y: 50 };
+const ZOOM_MS = 650;
+
+const prefersReducedMotion = () => typeof window !== 'undefined'
+  && typeof window.matchMedia === 'function'
+  && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/** The town/city map a world pin opens, if it links one that still exists. */
+export function linkedLocalMap(pin, localMaps) {
+  if (!pin?.linked_local_map_id) return null;
+  return (localMaps || []).find(map => map.id === pin.linked_local_map_id) || null;
+}
 
 export function mapImageSource(map) {
   if (!map || typeof map !== 'object') return '';
@@ -97,13 +109,65 @@ export default function WorldMapTab({ campaignId }) {
   const [saving, setSaving] = useState(false);
   const [gridDraft, setGridDraft] = useState(null);
   const [imageAspect, setImageAspect] = useState(0);
+  const [localMaps, setLocalMaps] = useState([]);
+  const [zoomPin, setZoomPin] = useState(null); // pin being zoomed into
+  const [openCity, setOpenCity] = useState(null); // { map, pin } once zoomed in
+  const zoomTimer = useRef(null);
   const fileInputRef = useRef(null);
   const mapRef = useRef(null);
 
   useEffect(() => {
     fetchWorldMaps();
     fetchLocations();
+    fetchLocalMaps();
   }, [campaignId]);
+
+  useEffect(() => () => window.clearTimeout(zoomTimer.current), []);
+
+  const fetchLocalMaps = async () => {
+    try {
+      const response = await apiClient.get(`/campaigns/${campaignId}/local-maps`);
+      setLocalMaps(Array.isArray(response.data) ? response.data : []);
+    } catch {
+      setLocalMaps([]);
+    }
+  };
+
+  // Click a pin that links a town or city map: zoom in on it, then open it.
+  const zoomInto = (pin, map) => {
+    window.clearTimeout(zoomTimer.current);
+    if (prefersReducedMotion()) { setOpenCity({ map, pin }); return; }
+    setZoomPin(pin);
+    zoomTimer.current = window.setTimeout(() => { setOpenCity({ map, pin }); setZoomPin(null); }, ZOOM_MS);
+  };
+
+  const leaveCity = () => {
+    window.clearTimeout(zoomTimer.current);
+    setOpenCity(null);
+    setZoomPin(null);
+  };
+
+  const handlePinClick = pin => {
+    const map = mode === 'view' ? linkedLocalMap(pin, localMaps) : null;
+    if (map) zoomInto(pin, map);
+    else openPin(pin);
+  };
+
+  // Linking a saved town map fills in what it can: name, type and location.
+  const chooseLinkedMap = mapId => {
+    const map = localMaps.find(item => item.id === mapId);
+    setPinForm(prev => {
+      if (!map) return { ...prev, linked_local_map_id: '' };
+      const location = locations.find(item => item.id === map.location_id);
+      return {
+        ...prev,
+        linked_local_map_id: map.id,
+        name: prev.name.trim() ? prev.name : (location?.name || map.name || ''),
+        pin_type: ['city', 'town', 'village'].includes(map.map_type) ? map.map_type : prev.pin_type,
+        linked_location_id: prev.linked_location_id || map.location_id || '',
+      };
+    });
+  };
 
   const fetchWorldMaps = async () => {
     setLoading(true);
@@ -207,6 +271,7 @@ export default function WorldMapTab({ campaignId }) {
       pin_type: pin.pin_type || 'city',
       description: pin.description || '',
       linked_location_id: pin.linked_location_id || '',
+      linked_local_map_id: pin.linked_local_map_id || '',
       x: pin.x ?? 50,
       y: pin.y ?? 50,
     });
@@ -314,7 +379,7 @@ export default function WorldMapTab({ campaignId }) {
         </div>
         <div style={headerActionsStyle}>
           {worldMaps.length > 0 && (
-            <select value={selectedMap?.id || ''} onChange={event => { setSelectedMap(worldMaps.find(map => map.id === event.target.value) || null); setMode('view'); setGridDraft(null); }} style={selectStyle}>
+            <select value={selectedMap?.id || ''} onChange={event => { setSelectedMap(worldMaps.find(map => map.id === event.target.value) || null); setMode('view'); setGridDraft(null); leaveCity(); }} style={selectStyle}>
               {worldMaps.map(map => <option key={map.id} value={map.id}>{map.name}</option>)}
             </select>
           )}
@@ -323,12 +388,12 @@ export default function WorldMapTab({ campaignId }) {
         </div>
       </header>
 
-      {selectedMap && (
+      {selectedMap && !openCity && (
         <nav style={toolbarStyle}>
           <button type="button" onClick={() => setMode('view')} style={toolButtonStyle(mode === 'view')}><Map size={15} /> View</button>
           <button type="button" onClick={() => setMode('addPin')} style={toolButtonStyle(mode === 'addPin')}><Plus size={15} /> Add Pin</button>
           <button type="button" onClick={startGrid} style={toolButtonStyle(mode === 'grid')} data-testid="world-map-grid-button"><Grid3x3 size={15} /> Grid</button>
-          <span style={hintStyle}>{mode === 'addPin' ? 'Click the map to place a new pin.' : mode === 'grid' ? 'Choose squares or hexes, then line them up with your map.' : 'Click an existing pin to edit it.'}</span>
+          <span style={hintStyle}>{mode === 'addPin' ? 'Click the map to place a new pin.' : mode === 'grid' ? 'Choose squares or hexes, then line them up with your map.' : 'Click a pin to edit it. Pins with a magnifier open their town or city map.'}</span>
         </nav>
       )}
 
@@ -344,9 +409,27 @@ export default function WorldMapTab({ campaignId }) {
         </div>
       )}
 
-      <main style={mapStageStyle}>
-        {selectedMap ? (
-          <div ref={mapRef} onClick={handleMapClick} style={mapCanvasStyle(mode === 'addPin')}>
+      <main style={{ ...mapStageStyle, overflow: zoomPin ? 'hidden' : mapStageStyle.overflow, padding: openCity ? 0 : mapStageStyle.padding }}>
+        {openCity ? (
+          <CityMapView
+            map={openCity.map}
+            worldName={selectedMap?.name}
+            onBack={leaveCity}
+            onEditPin={() => { const pin = openCity.pin; leaveCity(); openPin(pin); }}
+          />
+        ) : selectedMap ? (
+          <div
+            ref={mapRef}
+            onClick={handleMapClick}
+            data-testid="world-map-canvas"
+            style={{
+              ...mapCanvasStyle(mode === 'addPin'),
+              transformOrigin: zoomPin ? `${zoomPin.x}% ${zoomPin.y}%` : 'center',
+              transform: zoomPin ? 'scale(4)' : 'none',
+              opacity: zoomPin ? 0.15 : 1,
+              transition: `transform ${ZOOM_MS}ms cubic-bezier(0.55, 0, 0.75, 0.3), opacity ${ZOOM_MS}ms ease-in`,
+            }}
+          >
             <img
               src={mapImageSource(selectedMap)}
               alt={selectedMap.name}
@@ -354,7 +437,7 @@ export default function WorldMapTab({ campaignId }) {
               onLoad={event => setImageAspect(event.currentTarget.naturalWidth ? event.currentTarget.naturalHeight / event.currentTarget.naturalWidth : 0)}
             />
             <MapGridOverlay grid={mode === 'grid' ? gridDraft : selectedMap.grid} aspect={imageAspect} />
-            {(selectedMap.pins || []).map(pin => <MapPinMarker key={pin.id} pin={pin} onClick={openPin} />)}
+            {(selectedMap.pins || []).map(pin => <MapPinMarker key={pin.id} pin={pin} opensMap={Boolean(linkedLocalMap(pin, localMaps))} onClick={handlePinClick} />)}
           </div>
         ) : (
           <div style={emptyStateStyle}>
@@ -432,6 +515,12 @@ export default function WorldMapTab({ campaignId }) {
             <div style={formGridStyle}>
               <Field label="Name"><input value={pinForm.name} onChange={event => setPinForm(prev => ({ ...prev, name: event.target.value }))} style={inputStyle} /></Field>
               <Field label="Type"><select value={pinForm.pin_type} onChange={event => setPinForm(prev => ({ ...prev, pin_type: event.target.value }))} style={selectStyle}>{PIN_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}</select></Field>
+              <Field label="Opens town or city map">
+                <select value={pinForm.linked_local_map_id} onChange={event => chooseLinkedMap(event.target.value)} style={selectStyle} data-testid="pin-linked-local-map">
+                  <option value="">No map</option>
+                  {localMaps.map(map => <option key={map.id} value={map.id}>{map.name}</option>)}
+                </select>
+              </Field>
               <Field label="Link location"><select value={pinForm.linked_location_id} onChange={event => setPinForm(prev => ({ ...prev, linked_location_id: event.target.value }))} style={selectStyle}><option value="">No linked location</option>{locations.map(location => <option key={location.id} value={location.id}>{location.name}</option>)}</select></Field>
             </div>
             <Field label="Description"><textarea value={pinForm.description} onChange={event => setPinForm(prev => ({ ...prev, description: event.target.value }))} style={textareaStyle} /></Field>
@@ -448,13 +537,21 @@ export default function WorldMapTab({ campaignId }) {
   );
 }
 
-function MapPinMarker({ pin, onClick }) {
+function MapPinMarker({ pin, onClick, opensMap = false }) {
   const type = pinTypeFor(pin.pin_type);
   const Icon = type.icon;
   return (
-    <button type="button" onClick={event => { event.stopPropagation(); onClick(pin); }} style={pinMarkerStyle(pin, type)} title={pin.name}>
+    <button
+      type="button"
+      onClick={event => { event.stopPropagation(); onClick(pin); }}
+      style={pinMarkerStyle(pin, type)}
+      title={opensMap ? `Open ${pin.name}` : pin.name}
+      aria-label={opensMap ? `Open the ${pin.name} map` : `Edit pin ${pin.name}`}
+      data-testid={`world-pin-${pin.id}`}
+    >
       <Icon size={16} />
       <span>{pin.name}</span>
+      {opensMap && <ZoomIn size={13} aria-hidden="true" />}
     </button>
   );
 }
