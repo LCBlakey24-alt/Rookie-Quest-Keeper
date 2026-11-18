@@ -79,3 +79,17 @@ describe('tokens', () => {
 test('size presets are small battle areas', () => {
   expect(BATTLE_MAP_SIZES.map((size) => [size.cols, size.rows])).toEqual([[15, 10], [20, 15], [30, 20]]);
 });
+
+describe('walkingSpeedFeet', () => {
+  const { walkingSpeedFeet } = jest.requireActual('./battleGrid');
+  it('reads numbers, stat block text and speed objects', () => {
+    expect(walkingSpeedFeet(25)).toBe(25);
+    expect(walkingSpeedFeet('30 ft., fly 60 ft.')).toBe(30);
+    expect(walkingSpeedFeet({ walk: 40, swim: 20 })).toBe(40);
+  });
+  it('falls back to 30 ft when unknown', () => {
+    expect(walkingSpeedFeet('')).toBe(30);
+    expect(walkingSpeedFeet(null)).toBe(30);
+    expect(walkingSpeedFeet('—', 25)).toBe(25);
+  });
+});

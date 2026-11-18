@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { terrainPattern } from './terrainTextures';
+import { describeDistance, reachableCells, walkingSpeedFeet, withinReach } from '@/data/battleGrid';
 import { getGenericCombatTerrainImage, normaliseCombatTerrain } from '@/data/genericCombatTerrain';
 
 const GRID_SIZE = 40; // pixels per grid square
@@ -43,7 +44,11 @@ function MapCanvas({
   zoom: controlledZoom,
   onZoomChange,
   isPlayerView = false,
-  backgroundImageUrl = ''
+  backgroundImageUrl = '',
+  // Combat aids: shade where a dragged token can move, and a ruler tool.
+  showMovement = false,
+  measureMode = false,
+  feetPerSquare = 5,
 }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -58,6 +63,8 @@ function MapCanvas({
     ? Math.max(0.25, Math.min(3, Number(controlledZoom))) : localZoom;
   const [draggingToken, setDraggingToken] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
+  const [rulerStart, setRulerStart] = useState(null);
+  useEffect(() => { if (!measureMode) setRulerStart(null); }, [measureMode]);
   const [terrainArtwork, setTerrainArtwork] = useState(null);
   const [backgroundArtwork, setBackgroundArtwork] = useState(null);
 
@@ -238,6 +245,17 @@ function MapCanvas({
       }
     }
 
+    // Where the dragged token can move this turn, from its walking speed.
+    const measureFrom = draggingToken && showMovement
+      ? { col: draggingToken.x, row: draggingToken.y }
+      : (measureMode && rulerStart ? { col: rulerStart.gridX, row: rulerStart.gridY } : null);
+    const dragSpeed = draggingToken && showMovement ? walkingSpeedFeet(draggingToken.speed) : null;
+    if (dragSpeed) {
+      ctx.fillStyle = 'rgba(96, 200, 255, 0.2)';
+      reachableCells(measureFrom, dragSpeed, map.width, map.height, { feetPerSquare })
+        .forEach(({ col, row }) => ctx.fillRect(col * gridSize, row * gridSize, gridSize, gridSize));
+    }
+
     // Draw tokens
     tokens?.forEach(token => {
       const tx = token.x * gridSize + gridSize / 2;
@@ -313,6 +331,42 @@ function MapCanvas({
       }
     }
 
+    // Distance line: a dragged token's move, or the ruler.
+    if (measureFrom && hoveredCell) {
+      const to = { col: hoveredCell.gridX, row: hoveredCell.gridY };
+      const inReach = dragSpeed ? withinReach(measureFrom, to, dragSpeed, { feetPerSquare }) : true;
+      const colour = inReach ? '#7CF5C0' : '#FF6B8B';
+      const fx = (measureFrom.col + 0.5) * gridSize;
+      const fy = (measureFrom.row + 0.5) * gridSize;
+      const hx = (to.col + 0.5) * gridSize;
+      const hy = (to.row + 0.5) * gridSize;
+      ctx.save();
+      ctx.strokeStyle = colour;
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 6]);
+      ctx.beginPath();
+      ctx.moveTo(fx, fy);
+      ctx.lineTo(hx, hy);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.strokeRect(to.col * gridSize + 1.5, to.row * gridSize + 1.5, gridSize - 3, gridSize - 3);
+      const label = describeDistance(measureFrom, to, { feetPerSquare }) + (inReach ? '' : ' · too far');
+      ctx.font = `bold ${Math.max(12, gridSize * 0.32)}px Inter, system-ui, sans-serif`;
+      const width = ctx.measureText(label).width + 14;
+      const lx = hx + gridSize * 0.6;
+      const ly = hy - gridSize * 0.6;
+      ctx.fillStyle = 'rgba(10, 6, 18, 0.9)';
+      ctx.fillRect(lx, ly - gridSize * 0.3, width, gridSize * 0.6);
+      ctx.strokeStyle = colour;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(lx, ly - gridSize * 0.3, width, gridSize * 0.6);
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, lx + 7, ly);
+      ctx.restore();
+    }
+
     // Draw fog of war overlay (for GM editing)
     if (!isPlayerView && fogOfWar && tool === 'fog') {
       ctx.fillStyle = 'rgba(128, 0, 128, 0.3)';
@@ -326,7 +380,7 @@ function MapCanvas({
     }
 
     ctx.restore();
-  }, [map, tokens, fogOfWar, showGrid, gridSize, panOffset, zoom, hoveredCell, tool, selectedTerrain, isPlayerView, genericTerrain, terrainArtwork, backgroundArtwork, savedBackgroundUrl]);
+  }, [map, tokens, fogOfWar, showGrid, gridSize, panOffset, zoom, hoveredCell, tool, selectedTerrain, isPlayerView, genericTerrain, terrainArtwork, backgroundArtwork, savedBackgroundUrl, draggingToken, rulerStart, showMovement, measureMode, feetPerSquare]);
 
   // Redraw when dependencies change
   useEffect(() => {
@@ -342,6 +396,13 @@ function MapCanvas({
     if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
       setIsPanning(true);
       setLastPanPos({ x: e.clientX, y: e.clientY });
+      return;
+    }
+
+    // Ruler: a click sets where to measure from; click again to start over.
+    if (measureMode) {
+      const inside = cell.gridX >= 0 && cell.gridX < map.width && cell.gridY >= 0 && cell.gridY < map.height;
+      setRulerStart(inside && !(rulerStart && rulerStart.gridX === cell.gridX && rulerStart.gridY === cell.gridY) ? cell : null);
       return;
     }
 

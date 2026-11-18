@@ -230,6 +230,7 @@ export default function CombatPageTable() {
   const [terrainType, setTerrainType] = useState('stone');
   const [showBattleGrid, setShowBattleGrid] = useState(true);
   const [mapTokens, setMapTokens] = useState([]);
+  const [measuring, setMeasuring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1);
   const [collectedLoot, setCollectedLoot] = useState([]);
   const [initialised, setInitialised] = useState(false);
@@ -459,6 +460,7 @@ export default function CombatPageTable() {
         y: saved?.y ?? (2 + Math.floor(index / 6)),
         isEnemy: combatant.type !== 'player' && combatant.type !== 'npc',
         isAlly: combatant.type === 'player' || combatant.type === 'npc',
+        speed: combatant.speed ?? saved?.speed,
       };
     }));
   }, [combatants, mapTokens.length, displayedMap, initialised, mapsLoaded]);
@@ -1167,6 +1169,10 @@ export default function CombatPageTable() {
               onClick={() => setShowBattleGrid(value => !value)}>
               Grid {showBattleGrid ? 'on' : 'off'}
             </button>
+            <button type="button" aria-pressed={measuring} onClick={() => setMeasuring(value => !value)}
+              title="Click a square, then point at another to measure. Click again to clear.">
+              Ruler {measuring ? 'on' : 'off'}
+            </button>
             <button type="button" onClick={() => setMapZoom(value => Math.max(0.5, value - 0.2))}>−</button>
             <span>{Math.round(mapZoom * 100)}%</span>
             <button type="button" onClick={() => setMapZoom(value => Math.min(2, value + 0.2))}>+</button>
@@ -1187,6 +1193,9 @@ export default function CombatPageTable() {
               gridSize={scenario.grid_size || 40}
               zoom={mapZoom}
               onZoomChange={setMapZoom}
+              showMovement
+              measureMode={measuring}
+              feetPerSquare={Number(displayedMap?.feet_per_square || scenario.feet_per_square) || 5}
             />
           </div>
         </main>
@@ -1381,10 +1390,11 @@ const combatCss = `
   .combat-order-tools { display: grid; grid-template-columns: minmax(80px,1fr) auto auto auto; gap: 4px; align-items: end; }
   .combat-order-tools button { min-height: 34px; border: 1px solid ${rq.line}; background: ${rq.panel}; color: ${rq.soft}; padding: 0 7px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 9px; font-weight: 900; }
   .combat-order-tools .remove { color: #fca5a5; }
-  .combat-map-toolbar { display: grid; grid-template-columns: minmax(0,1fr) 34px auto 34px; gap: 4px; align-items: center; }
-  .combat-map-toolbar select { min-height: 36px; min-width: 0; background: ${rq.panel}; border: 1px solid ${rq.line}; color: ${rq.text}; padding: 0 7px; }
-  .combat-map-toolbar button { height: 36px; border: 1px solid ${rq.line}; background: ${rq.panel}; color: ${rq.text}; cursor: pointer; }
-  .combat-map-toolbar span { color: ${rq.muted}; font-size: 10px; text-align: center; }
+  .combat-map-toolbar { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  .combat-map-toolbar select { flex: 1 1 160px; min-height: 44px; min-width: 0; background: ${rq.panel}; border: 1px solid ${rq.line}; color: ${rq.text}; padding: 0 7px; }
+  .combat-map-toolbar button { min-height: 44px; min-width: 44px; padding: 0 10px; white-space: nowrap; border: 1px solid ${rq.line}; background: ${rq.panel}; color: ${rq.text}; cursor: pointer; }
+  .combat-map-toolbar button[aria-pressed='true'] { border-color: ${rq.red}; }
+  .combat-map-toolbar span { min-width: 40px; color: ${rq.muted}; font-size: 11px; text-align: center; }
   .combat-map-canvas { height: min(68vh,700px); min-height: 420px; border: 1px solid ${rq.line}; background: #141414; overflow: hidden; }
   .combat-map-empty { min-height: 360px; display: grid; place-items: center; align-content: center; gap: 7px; border: 1px dashed ${rq.line}; color: ${rq.muted}; text-align: center; padding: 20px; }
   .combat-map-empty strong { color: ${rq.text}; }
