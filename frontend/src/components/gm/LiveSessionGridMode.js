@@ -14,6 +14,7 @@ import {
 import { currentCombatAccount, readCombatCheckpoint } from '@/components/combat/combatCheckpoint';
 import { useDeviceLayout } from '@/layouts/deviceLayout';
 import './LiveSessionGridMode.css';
+import LiveActiveQuests from '@/components/gm/LiveActiveQuests';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const rq = {
@@ -300,6 +301,8 @@ function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players 
           <Swords size={18} /> {nextEncounter ? 'Review & run encounter' : 'Open encounters'} <ArrowRight size={16} />
         </button>
       </section>
+
+      <LiveActiveQuests campaignId={campaignId} onOpenQuests={() => onSelect('story')} />
 
       <LivePartyRow players={players} onOpenParty={() => onSelect('party')} />
 
