@@ -3,9 +3,9 @@ import GuildChoiceWheel from '@/components/guild-motif/GuildChoiceWheel';
 
 const DIE_SIDES = [20, 100, 4, 6, 8, 10, 12];
 const ROLL_MODES = [
-  { id: 'normal', short: 'N', label: 'Normal' },
-  { id: 'advantage', short: 'ADV', label: 'Advantage' },
-  { id: 'disadvantage', short: 'DIS', label: 'Disadvantage' },
+  { id: 'normal', short: 'Neutral', label: 'Neutral' },
+  { id: 'advantage', short: 'Advantage', label: 'Advantage' },
+  { id: 'disadvantage', short: 'Disadvantage', label: 'Disadvantage' },
 ];
 
 /**
@@ -51,7 +51,7 @@ export default function GlobalDiceSelectionWheel({
       />
       <div className="rq-global-dice-wheel__access" aria-label="Dice wheel alternatives">
         <button type="button" aria-label="Previous die" onClick={() => step(-1)}>‹</button>
-        <span aria-live="polite">d{selectedSides} · {rollMode}</span>
+        <span aria-live="polite">d{selectedSides} · {(ROLL_MODES.find(mode => mode.id === rollMode) || ROLL_MODES[0]).label.toLowerCase()}</span>
         <button type="button" aria-label="Next die" onClick={() => step(1)}>›</button>
       </div>
       <span className="rq-global-dice-wheel__dye" aria-hidden="true">Material: {dyeId}</span>
