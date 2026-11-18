@@ -146,3 +146,11 @@ html body #root .guild-wheel.has-inner-ring button.guild-wheel__confirm,
 .guild-wheel.is-dividers .guild-wheel__pick-glow { fill: none; stroke: transparent; stroke-width: 8; pointer-events: none; transition: stroke 160ms ease; }
 .guild-wheel.is-dividers .guild-wheel__segment.is-preview .guild-wheel__pick-glow { stroke: var(--guild-stroke-hot, var(--_accent)); opacity: 0.55; }
 .guild-wheel.is-dividers .guild-wheel__segment.is-preview .guild-wheel__face { fill: rgba(var(--guild-c1-rgb, 255, 25, 118), 0.08); }
+
+/* Owner feedback (18 Nov): no glow inside the ring at all -- only the
+   separation lines glow. The chosen option is shown by its label colour
+   and the pointer. */
+.guild-wheel.is-dividers .guild-wheel__band-glow,
+.guild-wheel.is-dividers .guild-wheel__pick-glow { display: none; }
+.guild-wheel.is-dividers .guild-wheel__segment.is-preview .guild-wheel__face { fill: transparent; }
+.guild-wheel.is-dividers .guild-wheel__band-face { fill: transparent; }

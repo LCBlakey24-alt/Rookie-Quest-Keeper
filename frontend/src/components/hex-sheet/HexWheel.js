@@ -321,6 +321,8 @@ export default function HexWheel({ wedges = [], centre, variant = 'menu', viewKe
         })}
         {dividers && (
           <g className="hex-wheel__dividers" aria-hidden="true">
+            <circle className="hex-wheel__ring-rim" cx={0} cy={0} r={RING_OUTER} />
+            <circle className="hex-wheel__ring-rim" cx={0} cy={0} r={RING_INNER_EDGE} />
             {[0, 1, 2, 3, 4, 5].map((index) => {
               const [ax, ay] = polarPoint(index * 60, RING_INNER_EDGE + 2);
               const [bx, by] = polarPoint(index * 60, RING_OUTER - 2);
