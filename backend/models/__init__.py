@@ -892,6 +892,28 @@ COMBAT_TERRAIN_IDS = {'stone', 'cobblestone', 'grass', 'dirt', 'sand',
                       'wood', 'water', 'snow', 'mud', 'lava'}
 
 
+def _clean_placements(value):
+    """Keep only {id, col, row} entries: where each combatant starts on the grid."""
+    if value is None:
+        return value
+    cleaned = []
+    seen = set()
+    for item in value or []:
+        if not isinstance(item, dict):
+            continue
+        token_id = str(item.get("id") or "").strip()[:200]
+        try:
+            col = int(item.get("col"))
+            row = int(item.get("row"))
+        except (TypeError, ValueError):
+            continue
+        if not token_id or token_id in seen or not (0 <= col < 100 and 0 <= row < 100):
+            continue
+        seen.add(token_id)
+        cleaned.append({"id": token_id, "col": col, "row": row})
+    return cleaned[:300]
+
+
 class CombatScenario(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -904,6 +926,8 @@ class CombatScenario(BaseModel):
     terrain_type: str = "stone"
     battlefield_mode: Optional[Literal["saved", "generic", "none"]] = None
     tokens: List[Dict[str, Any]] = []
+    # Starting squares for combatants, set in the encounter builder.
+    placements: List[Dict[str, Any]] = []
     grid_size: int = Field(default=40, ge=10, le=200)
     grid_cols: int = Field(default=30, ge=5, le=100)
     grid_rows: int = Field(default=20, ge=5, le=100)
@@ -916,6 +940,11 @@ class CombatScenario(BaseModel):
     def validate_terrain(cls, value):
         return value if value in COMBAT_TERRAIN_IDS else "stone"
 
+    @field_validator("placements", mode="before")
+    @classmethod
+    def validate_placements(cls, value):
+        return _clean_placements(value)
+
 
 class CombatScenarioCreate(BaseModel):
     name: str
@@ -926,6 +955,8 @@ class CombatScenarioCreate(BaseModel):
     terrain_type: str = "stone"
     battlefield_mode: Optional[Literal["saved", "generic", "none"]] = None
     tokens: List[Dict[str, Any]] = []
+    # Starting squares for combatants, set in the encounter builder.
+    placements: List[Dict[str, Any]] = []
     grid_size: int = Field(default=40, ge=10, le=200)
     grid_cols: int = Field(default=30, ge=5, le=100)
     grid_rows: int = Field(default=20, ge=5, le=100)
@@ -939,6 +970,11 @@ class CombatScenarioCreate(BaseModel):
             raise ValueError("Unknown combat terrain")
         return value
 
+    @field_validator("placements", mode="before")
+    @classmethod
+    def validate_placements(cls, value):
+        return _clean_placements(value)
+
 
 class CombatScenarioUpdate(BaseModel):
     name: Optional[str] = None
@@ -949,6 +985,8 @@ class CombatScenarioUpdate(BaseModel):
     terrain_type: Optional[str] = None
     battlefield_mode: Optional[Literal["saved", "generic", "none"]] = None
     tokens: Optional[List[Dict[str, Any]]] = None
+    # Starting squares for combatants, set in the encounter builder.
+    placements: Optional[List[Dict[str, Any]]] = None
     grid_size: Optional[int] = Field(default=None, ge=10, le=200)
     grid_cols: Optional[int] = Field(default=None, ge=5, le=100)
     grid_rows: Optional[int] = Field(default=None, ge=5, le=100)
@@ -961,6 +999,11 @@ class CombatScenarioUpdate(BaseModel):
         if value is not None and value not in COMBAT_TERRAIN_IDS:
             raise ValueError("Unknown combat terrain")
         return value
+
+    @field_validator("placements", mode="before")
+    @classmethod
+    def validate_placements(cls, value):
+        return _clean_placements(value)
 
 class InGameNote(BaseModel):
     model_config = ConfigDict(extra="ignore")
