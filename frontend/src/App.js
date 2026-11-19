@@ -60,6 +60,7 @@ const MyCampaignsPage = lazyWithChunkRetry(() => import('@/components/MyCampaign
 const CampaignDashboard = lazyWithChunkRetry(() => import('@/components/CampaignDashboard'));
 const LiveSessionWithSecondScreenPage = lazyWithChunkRetry(() => import('@/components/gm/LiveSessionWithSecondScreenPage'));
 const PlayerDisplayPage = lazyWithChunkRetry(() => import('@/components/gm/PlayerDisplayPage'));
+const TvCodeEntry = lazyWithChunkRetry(() => import('@/components/gm/TvCodeEntry'));
 const SecondScreenRemotePage = lazyWithChunkRetry(() => import('@/components/gm/SecondScreenRemotePage'));
 const PlayerCampaignPage = lazyWithChunkRetry(() => import('@/components/player/PlayerCampaignPage'));
 const CombatPage = lazyWithChunkRetry(() => import('@/components/CombatPage'));
@@ -110,6 +111,11 @@ function CampaignDashboardRoute() {
   return <AppShell><CampaignDashboard /></AppShell>;
 }
 
+function TvDisplayRoute() {
+  const { tvCode } = useParams();
+  return <PlayerDisplayPage tvCode={tvCode} />;
+}
+
 function ThemeRouter() {
   const location = useLocation();
   const { setTheme } = useTheme();
@@ -117,7 +123,7 @@ function ThemeRouter() {
   useEffect(() => {
     const path = location.pathname;
     if (PUBLIC_BRAND_PATHS.has(path) || path.startsWith('/auth') || path === '/reset-password') setTheme(THEMES.LANDING);
-    else if (path.startsWith('/gm-screen') || path.startsWith('/gm-second-screen') || path.startsWith('/combat') || path.includes('/live') || path.includes('/player-display')) setTheme(THEMES.GM);
+    else if (path.startsWith('/gm-screen') || path.startsWith('/gm-second-screen') || path.startsWith('/combat') || path.includes('/live') || path.includes('/player-display') || path === '/tv' || path.startsWith('/tv/')) setTheme(THEMES.GM);
     else setTheme(THEMES.PLAYER);
   }, [location.pathname, setTheme]);
 
@@ -133,7 +139,7 @@ export function AppRoutes() {
   const isPublicBrandRoute = PUBLIC_BRAND_PATHS.has(location.pathname) || location.pathname.startsWith('/auth') || location.pathname === '/reset-password';
   // The player display is shown to the whole table on a TV: no Rook, dice or
   // feedback buttons over the scene.
-  const isPlayerDisplay = /\/player-display(?:\/|$)/.test(location.pathname);
+  const isPlayerDisplay = /\/player-display(?:\/|$)/.test(location.pathname) || /^\/tv(?:\/|$)/.test(location.pathname);
 
   const handleAuthLogin = useCallback((token, nextUsername) => {
     if (!preview) {
@@ -208,6 +214,9 @@ export function AppRoutes() {
         <Route path="/gm-screen/:campaignId" element={isAuthenticated ? <LiveSessionWithSecondScreenPage /> : <SignInRedirect />} />
         <Route path="/gm-second-screen/:campaignId" element={isAuthenticated ? <SecondScreenRemotePage /> : <SignInRedirect />} />
         <Route path="/player-display/:campaignId" element={isAuthenticated ? <PlayerDisplayPage /> : <SignInRedirect />} />
+        {/* TV link: any browser, no sign-in, read-only player display. */}
+        <Route path="/tv" element={<TvCodeEntry />} />
+        <Route path="/tv/:tvCode" element={<TvDisplayRoute />} />
         <Route path="/campaign/:campaignId/player-display" element={isAuthenticated ? <PlayerDisplayPage /> : <SignInRedirect />} />
         <Route path="/player/campaign/:campaignId" element={isAuthenticated ? <AppShell><PlayerCampaignPage /></AppShell> : <SignInRedirect />} />
         <Route path="/mobile/:campaignId" element={isAuthenticated ? <AppShell><PlayerCampaignPage /></AppShell> : <SignInRedirect />} />

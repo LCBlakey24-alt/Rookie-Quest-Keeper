@@ -10,6 +10,7 @@ from routes.admin_audit import router as admin_audit_router
 from routes.admin_metrics import router as admin_metrics_router
 from routes.layout_settings import router as layout_settings_router
 from routes.campaign_invites import router as campaign_invites_router
+from routes.tv_display import router as tv_display_router
 from routes.prepared_characters import router as prepared_characters_router
 from routes.campaign_display import router as campaign_display_router
 from routes.campaign_setup import router as campaign_setup_router
@@ -109,6 +110,7 @@ all_routers = [
     admin_metrics_router,
     layout_settings_router,
     campaign_invites_router,
+    tv_display_router,
     prepared_characters_router,
     campaign_display_router,
     # Register the setup router before the legacy campaigns router so the

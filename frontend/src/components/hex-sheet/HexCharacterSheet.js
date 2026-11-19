@@ -589,7 +589,8 @@ export default function HexCharacterSheet() {
             <ChevronLeft size={16} aria-hidden="true" /> Back
           </button>
         ) : <span className="hex-sheet__back-spacer" aria-hidden="true" />}
-        <ol className="hex-sheet__crumbs" data-testid="hex-crumbs">
+        {/* At the top level the trail is just "Character": kept for screen readers, not shown. */}
+        <ol className={`hex-sheet__crumbs${stack.length > 1 ? '' : ' is-root'}`} data-testid="hex-crumbs">
           {stack.map((entry, index) => (
             <li key={`${entry.view}-${index}`} aria-current={index === stack.length - 1 ? 'location' : undefined}>
               {viewTitle(entry, rows)}
