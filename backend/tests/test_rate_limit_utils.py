@@ -155,3 +155,9 @@ def test_prune_forgets_expired_keys():
     limiter.allow("fresh", limit=5, window_seconds=3600)
     limiter.prune(now=rate_limit.monotonic() + 10)
     assert len(limiter) == 1
+
+
+def test_join_code_lookups_are_rate_limited():
+    from utils.rate_limit import match_rule
+    assert match_rule('POST', '/api/campaign-invites/preview')[1:] == (30, 15 * 60)
+    assert match_rule('POST', '/api/campaign-invites/join')[1:] == (30, 15 * 60)

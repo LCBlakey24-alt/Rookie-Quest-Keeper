@@ -419,8 +419,8 @@ def test_one_sided_path_endpoint_edit_validates_against_existing_other_endpoint(
                 }
             return {'paths': [{'id': 'path-1', 'from_pin_id': 'c', 'to_pin_id': 'b'}]}
 
-        async def update_one(self, query, update):
-            writes.append((query, update))
+        async def update_one(self, query, update, **options):
+            writes.append((query, update, options))
             return Result(1)
 
     monkeypatch.setattr(maps, 'verify_campaign_ownership', verify)
@@ -430,14 +430,16 @@ def test_one_sided_path_endpoint_edit_validates_against_existing_other_endpoint(
         'campaign-a', 'map-1', 'path-1', {'from_pin_id': 'c'}, username='gm-a'
     ))
 
+    # Two arrays in the filter would make `paths.$` ambiguous: the whole road
+    # list is written back, only if it is unchanged since it was read.
     assert writes[0][0] == {
         'id': 'map-1',
         'campaign_id': 'campaign-a',
-        'paths.id': 'path-1',
         'pins.id': {'$all': ['c', 'b']},
+        'paths': [{'id': 'path-1', 'from_pin_id': 'a', 'to_pin_id': 'b'}],
     }
-    assert writes[0][1]['$set']['paths.$.from_pin_id'] == 'c'
-    assert 'paths.$.to_pin_id' not in writes[0][1]['$set']
+    assert writes[0][1]['$set']['paths'] == [{'id': 'path-1', 'from_pin_id': 'c', 'to_pin_id': 'b'}]
+    assert not any(key.startswith('paths.$') for key in writes[0][1]['$set'])
     assert reads[0][0] == {'id': 'map-1', 'campaign_id': 'campaign-a'}
     assert result['from_pin_id'] == 'c'
     assert result['to_pin_id'] == 'b'

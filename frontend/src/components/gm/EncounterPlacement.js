@@ -41,7 +41,8 @@ export default function EncounterPlacement({ campaignId, scenario, combatants, o
     return () => { cancelled = true; };
   }, [campaignId]);
 
-  const savedMap = scenario?.battlefield_mode !== 'generic' && scenario?.map_id
+  // Same rule as Combat: 'generic' and 'none' both mean no saved map.
+  const savedMap = !['generic', 'none'].includes(scenario?.battlefield_mode) && scenario?.map_id
     ? maps.find((map) => String(map.id) === String(scenario.map_id)) : null;
   const map = useMemo(
     () => savedMap || createGenericCombatMap(scenario?.terrain_type || 'stone', scenario?.grid_cols, scenario?.grid_rows),
