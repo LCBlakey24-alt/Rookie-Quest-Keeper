@@ -106,8 +106,17 @@ function buildCombatRoster(partyMembers = [], tokens = []) {
   return [...players, ...creatures].sort((a, b) => Number(b.initiative || 0) - Number(a.initiative || 0));
 }
 
-export default function PlayerDisplayPage() {
-  const { campaignId } = useParams();
+const TV_POLL_MS = 2500;
+
+/**
+ * The player display. With `tvCode` it is the TV link: no sign-in, it
+ * reads the campaign's public display by code every few seconds.
+ */
+export default function PlayerDisplayPage({ tvCode = '' }) {
+  const tvMode = Boolean(tvCode);
+  const params = useParams();
+  const [tvCampaignId, setTvCampaignId] = useState('');
+  const campaignId = tvMode ? tvCampaignId : params.campaignId;
   const [searchParams] = useSearchParams();
   const urlTarget = searchParams.get('target');
   // Display content belongs to the signed-in account. It is re-read on every
@@ -115,7 +124,7 @@ export default function PlayerDisplayPage() {
   const [accountId, setAccountId] = useState(() => currentDisplayAccount());
   const [state, setState] = useState(() => loadDisplayState(campaignId, accountId));
   // 'checking' | 'synced' | 'offline' | 'denied' | 'signed-out'
-  const [syncStatus, setSyncStatus] = useState(() => (accountId ? 'checking' : 'signed-out'));
+  const [syncStatus, setSyncStatus] = useState(() => (tvMode || accountId ? 'checking' : 'signed-out'));
   const [party, setParty] = useState([]);
   const [partyRefreshFailed, setPartyRefreshFailed] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
@@ -160,7 +169,41 @@ export default function PlayerDisplayPage() {
     };
   }, []);
 
+  // TV link: read the public display by code. Nothing is cached for an
+  // account, and a code that stops working blanks the screen at once.
   useEffect(() => {
+    if (!tvMode) return undefined;
+    let cancelled = false;
+    let latestRequest = 0;
+    const read = async () => {
+      // A slow earlier reply must never replace a newer one.
+      const request = ++latestRequest;
+      try {
+        const response = await apiClient.get(`/tv/${encodeURIComponent(tvCode)}/display-state`);
+        if (cancelled || request !== latestRequest) return;
+        const data = response.data || {};
+        setTvCampaignId(data.state?.campaign_id || '');
+        setState(data.state || { mode: 'blank', payload: {} });
+        setParty((Array.isArray(data.party) ? data.party : []).map(normalisePartyMember).filter(member => member?.name));
+        setSyncStatus('synced');
+      } catch (error) {
+        if (cancelled || request !== latestRequest) return;
+        if (error?.response?.status === 404) {
+          setState({ mode: 'blank', payload: {} });
+          setParty([]);
+          setSyncStatus('denied');
+        } else {
+          setSyncStatus('offline');
+        }
+      }
+    };
+    read();
+    const timer = window.setInterval(read, TV_POLL_MS);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [tvMode, tvCode]);
+
+  useEffect(() => {
+    if (tvMode) return undefined;
     // Switching campaign or account starts from that pair's own last-known
     // state (or blank) -- never from what was on screen a moment ago.
     setState(loadDisplayState(campaignId, accountId));
@@ -172,7 +215,7 @@ export default function PlayerDisplayPage() {
     const unsubscribeLocal = subscribeDisplayState(campaignId, setState, accountId);
     const unsubscribeRemote = subscribeRemoteDisplayState(campaignId, setState, { account: accountId, onStatus: setSyncStatus });
     return () => { unsubscribeLocal(); unsubscribeRemote(); };
-  }, [campaignId, accountId]);
+  }, [campaignId, accountId, tvMode]);
 
   const restricted = syncStatus === 'denied' || syncStatus === 'signed-out';
 
@@ -192,6 +235,8 @@ export default function PlayerDisplayPage() {
   useEffect(() => {
     let cancelled = false;
     let latestRequest = 0;
+    // The TV link brings its own party roster with each read.
+    if (tvMode) return () => { cancelled = true; };
     setParty([]);
     setPartyRefreshFailed(false);
     const fetchParty = async () => {
@@ -213,7 +258,7 @@ export default function PlayerDisplayPage() {
     fetchParty();
     const timer = window.setInterval(fetchParty, 15000);
     return () => { cancelled = true; window.clearInterval(timer); };
-  }, [campaignId, accountId]);
+  }, [campaignId, accountId, tvMode]);
 
   const updatedLabel = useMemo(() => {
     if (!state?.updated_at) return '';
@@ -250,7 +295,7 @@ export default function PlayerDisplayPage() {
         <div className="rqk-player-display__stage" style={displayGridStyle(target, showPartySidebar)}>
           {showPartySidebar && <PartySidebar members={partyMembers} />}
           {restricted
-            ? <AccessNotice status={syncStatus} />
+            ? <AccessNotice status={syncStatus} tvMode={tvMode} />
             : <DisplayContent state={state} target={target} hasPartySidebar={showPartySidebar} partyMembers={partyMembers} />}
         </div>
         {!restricted && <PlayerBanner banner={payload.banner} target={target} />}
@@ -641,8 +686,16 @@ function syncLabelFor(status, updatedLabel, mode) {
   return 'Connecting…';
 }
 
-function AccessNotice({ status }) {
+function AccessNotice({ status, tvMode = false }) {
   const signedOut = status === 'signed-out';
+  if (tvMode) {
+    return (
+      <section role="alert" data-testid="player-display-access" style={accessNoticeStyle}>
+        <strong style={accessTitleStyle}>This TV code is not active</strong>
+        <span style={accessBodyStyle}>Ask your GM for the current TV code, then open it here.</span>
+      </section>
+    );
+  }
   return (
     <section role="alert" data-testid="player-display-access" style={accessNoticeStyle}>
       <strong style={accessTitleStyle}>{signedOut ? 'Sign in to view this display' : 'This display is not available to your account'}</strong>
