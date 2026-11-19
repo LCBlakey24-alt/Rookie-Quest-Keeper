@@ -6,6 +6,7 @@ import { getLiveBootstrapExtras } from '@/data/livePlayLoaders';
 import { createDisplayState, loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
 import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
 import genericSecondScreenPresets from '@/data/genericSecondScreenPresets';
+import { openDisplayAndReport } from '@/lib/openDisplayWindow';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const theme = {
@@ -185,8 +186,7 @@ export default function LiveSecondScreenDock({ campaignId }) {
 
   const openDisplay = () => {
     const url = `${window.location.origin}/player-display/${campaignId}?target=${encodeURIComponent(currentTarget)}`;
-    const opened = window.open(url, '_blank', 'noopener,noreferrer');
-    if (!opened) toast.error('Pop-up blocked. Copy the display link instead.');
+    openDisplayAndReport(url, toast);
   };
 
   const copyDisplayLink = async () => {

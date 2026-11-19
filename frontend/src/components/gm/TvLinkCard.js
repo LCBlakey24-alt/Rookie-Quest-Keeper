@@ -28,6 +28,7 @@ export default function TvLinkCard({ campaignId }) {
   }, [campaignId]);
 
   const link = code ? `${origin()}/tv/${code}` : '';
+  const tableLink = code ? `${link}?target=virtual-table` : '';
 
   const makeCode = async (confirmFirst) => {
     if (confirmFirst && !window.confirm('Make a new TV code? Any screen using the old code will go blank.')) return;
@@ -57,12 +58,12 @@ export default function TvLinkCard({ campaignId }) {
     }
   };
 
-  const copy = async () => {
+  const copy = async (url = link, label = 'TV link') => {
     try {
-      await navigator.clipboard.writeText(link);
-      toast.success('TV link copied');
+      await navigator.clipboard.writeText(url);
+      toast.success(`${label} copied`);
     } catch {
-      toast.info(link);
+      toast.info(url);
     }
   };
 
@@ -71,7 +72,7 @@ export default function TvLinkCard({ campaignId }) {
       <div className="rq-tv-link__text">
         <h3 id="rq-tv-link-title"><Tv size={16} aria-hidden="true" /> TV link</h3>
         {code ? (
-          <p>On the TV or another computer, open <strong>{origin()}/tv</strong> and enter the code. No sign-in needed. It only shows the player display.</p>
+          <p>On the computer plugged into the TV, open <strong>{origin()}/tv</strong> and enter the code, or open a copied link. No sign-in needed; it only shows the player display. Pick the standing TV or flat table layout there.</p>
         ) : (
           <p>Show the player display on a smart TV or someone else&apos;s computer without signing in there.</p>
         )}
@@ -79,7 +80,8 @@ export default function TvLinkCard({ campaignId }) {
       {!loaded ? null : code ? (
         <div className="rq-tv-link__code-row">
           <strong className="rq-tv-link__code" aria-label={`TV code ${code.split('').join(' ')}`} data-testid="tv-link-code">{code}</strong>
-          <button type="button" onClick={copy}><Copy size={14} aria-hidden="true" /> Copy link</button>
+          <button type="button" onClick={() => copy(link, 'Standing TV link')}><Copy size={14} aria-hidden="true" /> Standing TV link</button>
+          <button type="button" onClick={() => copy(tableLink, 'Table link')}><Copy size={14} aria-hidden="true" /> Table link</button>
           <button type="button" onClick={() => makeCode(true)} disabled={busy}><RefreshCw size={14} aria-hidden="true" /> New code</button>
           <button type="button" onClick={turnOff} disabled={busy}><X size={14} aria-hidden="true" /> Turn off</button>
         </div>

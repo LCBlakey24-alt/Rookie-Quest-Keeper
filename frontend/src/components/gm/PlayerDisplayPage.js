@@ -119,6 +119,9 @@ export default function PlayerDisplayPage({ tvCode = '' }) {
   const campaignId = tvMode ? tvCampaignId : params.campaignId;
   const [searchParams] = useSearchParams();
   const urlTarget = searchParams.get('target');
+  // Opened for the TV (Live Play's Open TV, or the TV link): offer one big
+  // fullscreen button, since browsers only go fullscreen after a tap there.
+  const [presentPrompt, setPresentPrompt] = useState(() => searchParams.get('present') === '1' || Boolean(tvCode));
   // Display content belongs to the signed-in account. It is re-read on every
   // auth change, in this tab or another, and everything below is keyed on it.
   const [accountId, setAccountId] = useState(() => currentDisplayAccount());
@@ -278,6 +281,15 @@ export default function PlayerDisplayPage({ tvCode = '' }) {
 
   return (
     <main className="rqk-player-display" style={pageStyle(target)} data-testid="player-display-page" data-display-target={target} data-display-mode={mode}>
+      {presentPrompt && !fullscreen && (
+        <div className="rqk-player-display__present" role="dialog" aria-label="Show on this screen">
+          <button type="button" className="rqk-player-display__present-go" onClick={toggleFullscreen} data-testid="present-fullscreen">
+            <Maximize2 size={28} aria-hidden="true" /> Show fullscreen
+          </button>
+          <p>Tap once on the TV screen. Press F any time to switch.</p>
+          <button type="button" className="rqk-player-display__present-skip" onClick={() => setPresentPrompt(false)}>Not now</button>
+        </div>
+      )}
       <button type="button" ref={fullscreenButtonRef} className="rqk-player-display__fullscreen" onClick={toggleFullscreen} style={fullscreenButtonStyle}
         aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
         title={fullscreen ? 'Exit fullscreen (F or Esc)' : 'Enter fullscreen (F)'}>
