@@ -27,8 +27,13 @@ test('ignores unknown or hand-edited values', () => {
 test('tells subscribers when the choice changes', () => {
   const seen = [];
   const stop = subscribeDiceStyle((next) => seen.push(next));
-  saveDiceStyle('basic');
-  stop();
   saveDiceStyle('tower');
-  expect(seen).toEqual([{ style: 'basic', towerSkin: DEFAULT_TOWER_SKIN_ID }]);
+  stop();
+  saveDiceStyle('tray');
+  expect(seen).toEqual([{ style: 'tower', towerSkin: DEFAULT_TOWER_SKIN_ID }]);
+});
+
+test('an old "basic" choice falls back to the 3D tray', () => {
+  window.localStorage.setItem('rq-dice-style', 'basic');
+  expect(loadDiceStyle()).toBe('tray');
 });

@@ -223,3 +223,15 @@ describe('the logo on the tray floor', () => {
     expect(FLOOR_LOGO_URL).toBe('/brand/rqk-hex-logo.png');
   });
 });
+
+describe('the dice tower follow camera', () => {
+  test('rides down the tube with the dice and keeps them in front of it', () => {
+    const { towerFollowShot } = jest.requireActual('./diceTrayScene');
+    const high = towerFollowShot(14, 35, 0.87);
+    const low = towerFollowShot(5, 35, 0.87);
+    expect(high.target[1]).toBeGreaterThan(low.target[1]);
+    expect(high.position[1] - high.target[1]).toBeCloseTo(low.position[1] - low.target[1], 5);
+    // The camera stays in front of the tube (the tray side), looking back at it.
+    expect(low.position[2]).toBeGreaterThan(low.target[2]);
+  });
+});

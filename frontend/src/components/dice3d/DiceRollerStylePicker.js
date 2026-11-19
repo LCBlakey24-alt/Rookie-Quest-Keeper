@@ -12,8 +12,9 @@ import {
 import './DiceRollerStylePicker.css';
 
 /**
- * How this viewer's dice are rolled: Basic, 3D tray or 3D tower, and with
- * the tower, which design. Cosmetic only -- results come from the dice
+ * What plays in the result window after a roll: the 3D dice tray or the 3D
+ * dice tower, and with the tower, which design. Lives in Settings; the
+ * roller itself never changes. Cosmetic only -- results come from the dice
  * engine either way -- and saved on this device.
  */
 export default function DiceRollerStylePicker({ compact = false }) {
@@ -28,8 +29,8 @@ export default function DiceRollerStylePicker({ compact = false }) {
   return (
     <div className={`rq-roller-style${compact ? ' is-compact' : ''}`} data-testid="dice-roller-style">
       <fieldset className="rq-roller-style__modes">
-        <legend>How dice roll</legend>
-        <div className="rq-roller-style__options" role="radiogroup" aria-label="How dice roll">
+        <legend>Dice animation</legend>
+        <div className="rq-roller-style__options" role="radiogroup" aria-label="Dice animation">
           {DICE_STYLES.map((option) => (
             <label key={option.id} className={`rq-roller-style__option${style === option.id ? ' is-selected' : ''}`}>
               <input

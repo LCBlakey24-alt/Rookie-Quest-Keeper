@@ -158,10 +158,10 @@ export default function DiceRollFlicker({
   // While the chunk is loading, show a neutral "Preparing" status instead
   // of flashing the retired flat result before the physical throw appears.
   // A genuine load failure still falls back so a table never loses a roll.
-  // The viewer's roller style: Basic is the flat card, like reduced motion.
+  // The viewer's roller style (Settings): the tray or the tower.
   const [diceStyle, setDiceStyle] = useState(() => ({ style: loadDiceStyle(), towerSkin: loadTowerSkinId() }));
   useEffect(() => subscribeDiceStyle(setDiceStyle), []);
-  const flatOnly = prefersReducedMotion || diceStyle.style === 'basic';
+  const flatOnly = prefersReducedMotion;
   const rig = diceStyle.style === 'tower' ? 'tower' : 'tray';
 
   const [TrayOverlay, setTrayOverlay] = useState(null);

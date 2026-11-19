@@ -483,20 +483,17 @@ export function cameraFraming(positions, fovDegrees, { aspect = 1, scale = 1 } =
  * 3D view too, and the tray's edge is the panel's own hairline border.
  */
 /**
- * The tower's opening shot: the whole tower and its tray, from the front
- * and a little to the right, high enough to see the dice fall past the
- * baffles. Distance is fitted to the canvas so a phone in portrait still
- * shows the crown and the tray.
+ * The tower's close shot: a window onto the tube at height y, so the camera
+ * can ride the dice down past the baffles. About eight units of tower are
+ * in view, fitted to the canvas's shape (the hexagon window is a little
+ * taller than wide).
  */
-export function towerOpeningShot(fovDegrees, aspect = 1) {
-  const target = [0, TOWER.top * 0.47, -1.8];
-  // Tube plus the tallest design's crown, with a little air above it.
-  const height = TOWER.top + 7.5;
-  const width = TRAY_HALF * 2 + 2;
+export function towerFollowShot(y, fovDegrees, aspect = 1) {
+  const target = [0, y - 0.6, TOWER.front - TOWER.depth / 2 + 1.2];
+  const span = 8.5;
   const tanHalf = Math.tan((fovDegrees / 2) * (Math.PI / 180));
-  const fit = Math.max((height / 2) / tanHalf, (width / 2) / (tanHalf * Math.max(0.35, aspect || 1)));
-  const distance = fit * 1.08;
-  const direction = [0.3, 0.38, 1];
+  const distance = Math.max((span / 2) / tanHalf, (span * 0.75 / 2) / (tanHalf * Math.max(0.35, aspect || 1)));
+  const direction = [0.35, 0.3, 1];
   const length = Math.hypot(...direction);
   return {
     position: direction.map((value, index) => target[index] + (value / length) * distance),
@@ -645,7 +642,8 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
 
     const framing = cameraFraming(plan.positions, FOV, { aspect: camera.aspect, scale: frameScale });
     // The tower opens on the whole tower; the tray goes straight to the dice.
-    const opening = tower ? towerOpeningShot(FOV, camera.aspect) : framing;
+    // The tower opens close on its top, where the dice drop in.
+    const opening = tower ? towerFollowShot(TOWER.top + 1, FOV, camera.aspect) : framing;
     camera.position.set(...opening.position);
     camera.lookAt(...opening.target);
     logo.position.set(...floorLogoPlacement(tower ? { target: [0, 0, 0] } : framing).position);
@@ -743,8 +741,15 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
       });
     };
 
+    // Tower: the camera rides the dice down the tube, then sweeps to the tray
+    // as the last die leaves the mouth. Purely visual: the physics and the
+    // result are the rehearsed throw either way.
+    let shot = opening;
+    let sweptToTray = !tower;
+
     const tick = (now) => {
       if (disposed) return;
+      const frameSeconds = lastTime === null ? 1 / 60 : Math.min(0.1, Math.max(0, (now - lastTime) / 1000));
       // Advance the physics by the time that has passed (scaled), in whole
       // steps, until the dice have been still long enough. Then stop
       // stepping: the dice stay exactly where the rehearsal read them.
@@ -764,15 +769,32 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
           settledDelivered = true;
           revealOutcomes();
           if (tower) {
-            // Come down from the tower to the dice before the total shows.
-            cameraMove = { from: opening, to: framing, start: now };
-            window.setTimeout(() => { if (!disposed) onSettled?.(); }, TOWER_CAMERA_MS);
+            // Finish coming down to the dice before the total shows.
+            if (!sweptToTray) { sweptToTray = true; cameraMove = { from: shot, to: framing, start: now }; }
+            const left = cameraMove ? Math.max(0, TOWER_CAMERA_MS - (now - cameraMove.start)) : 0;
+            window.setTimeout(() => { if (!disposed) onSettled?.(); }, left);
           } else {
             onSettled?.();
           }
         }
       }
       lastTime = now;
+
+      if (!sweptToTray && !cameraMove) {
+        const inTube = active.filter((entry) => entry.hull);
+        if (inTube.length) {
+          const y = inTube.reduce((sum, entry) => sum + entry.body.position.y, 0) / inTube.length;
+          const goal = towerFollowShot(Math.max(TOWER.mouth + 1.5, Math.min(TOWER.top + 1, y)), FOV, camera.aspect);
+          const k = 1 - Math.exp(-5 * frameSeconds);
+          const ease = (a, b) => a.map((value, index) => value + (b[index] - value) * k);
+          shot = { position: ease(shot.position, goal.position), target: ease(shot.target, goal.target) };
+          camera.position.set(...shot.position);
+          camera.lookAt(...shot.target);
+        } else {
+          sweptToTray = true;
+          cameraMove = { from: shot, to: framing, start: now };
+        }
+      }
 
       if (cameraMove) {
         const t = easeInOut(Math.min(1, (now - cameraMove.start) / TOWER_CAMERA_MS));

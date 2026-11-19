@@ -14,7 +14,6 @@ import './FloatingDiceRoller.css';
 import './FloatingDiceRollerExperience.css';
 import { characterIdFromPath } from '@/lib/characterRoute';
 import GlobalDiceSelectionWheel from '@/components/dice3d/GlobalDiceSelectionWheel';
-import DiceRollerStylePicker from '@/components/dice3d/DiceRollerStylePicker';
 import { consumePendingDiceOpen, DICE_OPEN_EVENT } from '@/lib/diceOpenRequest';
 
 const HISTORY_LIMIT = 5;
@@ -368,8 +367,6 @@ export default function FloatingDiceRoller() {
                   <button type="button" onClick={() => setPickerStage('style')}>Change style</button>
                 )}
               </div>
-
-              {pickerStage === 'style' && <DiceRollerStylePicker />}
 
               {pickerStage === 'style' ? (
                 <fieldset className="rq-floating-dice__dyes">

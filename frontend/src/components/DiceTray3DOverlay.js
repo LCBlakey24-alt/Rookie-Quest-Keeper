@@ -89,13 +89,14 @@ function supportsWebGl() {
 export default function DiceTray3DOverlay(props) {
   const { rollId, dyeId, total, label, rollDetail, formulaText, rolls, isRevealed, isCrit, isFumble, onRevealNow, onClose, shape, anchorSelector, resultTone, rig = 'tray', towerSkin } = props;
 
-  // The tower needs a tall stage, so it always uses the centred panel. A
-  // pool too big for the tube, or a tower throw that could not land every
-  // die flat, uses the ordinary tray instead -- never a wrong number.
+  // The tower plays in the same window as the tray: the hexagon over the
+  // wheel, or the centred panel elsewhere. A pool too big for the tube, or a
+  // tower throw that could not land every die flat, uses the ordinary tray
+  // instead -- never a wrong number.
   const [towerFailed, setTowerFailed] = useState(false);
   const diceCount = Array.isArray(rolls) ? rolls.length : 0;
   const useTower = rig === 'tower' && !towerFailed && diceCount <= TOWER_MAX_DICE;
-  const isHex = shape === 'hex' && !useTower;
+  const isHex = shape === 'hex';
 
   // The hexagon window sits over the wheel's own hexagon (or mid-screen),
   // and follows it if the page scrolls or the window is resized.

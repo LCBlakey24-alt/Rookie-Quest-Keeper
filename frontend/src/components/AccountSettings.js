@@ -8,10 +8,11 @@ import { setAuthToken } from '@/lib/auth';
 import '@/styles/guildTokens.css';
 import {
   User, Mail, Lock, ArrowLeft, Save, Trash2, Shield,
-  AlertTriangle, CheckCircle, Eye, EyeOff, RefreshCw
+  AlertTriangle, CheckCircle, Eye, EyeOff, RefreshCw, Dices,
 } from 'lucide-react';
 import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import PrivacyRightsPanel from '@/components/privacy/PrivacyRightsPanel';
+import DiceRollerStylePicker from '@/components/dice3d/DiceRollerStylePicker';
 
 function AccountSettings({ username, onLogout, onUsernameChange }) {
   const navigate = useNavigate();
@@ -195,6 +196,12 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
               </Button>
             </div>
           </form>
+        </section>
+
+        <section className="account-settings-panel" style={panelStyle} data-testid="dice-roller-settings">
+          <SectionHeader icon={Dices} title="Dice roller" />
+          <p style={{ ...helpTextStyle, margin: '0 0 16px' }}>The roller works the same either way. This only changes what plays in the dice window after you roll. Saved on this device.</p>
+          <DiceRollerStylePicker />
         </section>
 
         <section className="account-settings-panel" style={panelStyle} aria-busy={passwordSaving || passwordSetupSaving ? 'true' : 'false'}>

@@ -1,9 +1,11 @@
 /**
  * How this viewer likes their dice rolled, and which tower design they use.
  *
- *   basic -- the flat result card, no 3D at all (also what reduced motion gets)
  *   tray  -- physical dice thrown into the tray (the default)
  *   tower -- physical dice dropped through a dice tower into the tray
+ *
+ * Either way the roller is the same; only the animation in the result
+ * window changes. Reduced motion always gets the flat result card.
  *
  * Like the dice colour, these are cosmetic, per-viewer choices: they live in
  * localStorage, need no account round trip, and never change a result. Every
@@ -13,9 +15,8 @@
 import { DEFAULT_TOWER_SKIN_ID, getTowerSkinInfo } from '@/components/dice3d/towerSkinCatalog';
 
 export const DICE_STYLES = [
-  { id: 'basic', name: 'Basic', blurb: 'A quick result card. Lightest on older phones.' },
-  { id: 'tray', name: '3D tray', blurb: 'Real dice thrown into a tray.' },
-  { id: 'tower', name: '3D tower', blurb: 'Dice dropped through a tower into the tray.' },
+  { id: 'tray', name: '3D dice tray', blurb: 'Your dice are thrown into the tray.' },
+  { id: 'tower', name: '3D dice tower', blurb: 'Your dice drop through a tower, tumble down and shoot out into the tray.' },
 ];
 export const DEFAULT_DICE_STYLE = 'tray';
 
