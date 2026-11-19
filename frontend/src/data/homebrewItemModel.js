@@ -268,3 +268,75 @@ export function itemDraftWarnings(rawDraft) {
   if (both.length) warnings.push({ field: 'defences', text: `${both.join(', ')}: immunity already covers resistance.` });
   return warnings;
 }
+
+/* ----------------------------------------------------------------------- */
+/* On the character                                                        */
+/* ----------------------------------------------------------------------- */
+
+const newItemId = () => (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+  ? `homebrew-${crypto.randomUUID()}`
+  : `homebrew-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`);
+
+/** A fresh inventory copy of a saved homebrew item (its own id each time). */
+export function inventoryItemFromHomebrew(doc = {}) {
+  const base = doc.sheet_item && typeof doc.sheet_item === 'object' ? doc.sheet_item : toSheetItem(doc, { homebrewId: doc.id });
+  const item = { ...base, id: newItemId(), homebrew_id: doc.id || base.homebrew_id || '', equipped: false, attuned: false };
+  if (item.charges_max) item.charges = item.charges_max;
+  return item;
+}
+
+/** One short line for a picker: "1d8+1 slashing + 1d6 fire · Resistant to fire". */
+export function homebrewItemSummary(doc = {}) {
+  const item = doc.sheet_item || toSheetItem(doc);
+  const parts = [];
+  if (item.damage) {
+    const magic = Number(item.attack_bonus) || 0;
+    parts.push(`${item.damage}${magic ? `${magic > 0 ? '+' : ''}${magic}` : ''} ${item.damage_type || ''}`.trim()
+      + (Array.isArray(item.extra_damage) ? item.extra_damage.map(row => ` + ${row.dice} ${row.type}`).join('') : ''));
+  }
+  if (item.base_ac) parts.push(`AC ${item.base_ac}${item.magic_ac_bonus ? ` +${item.magic_ac_bonus}` : ''} (${item.armor_category})`);
+  if (item.shield_ac !== undefined) parts.push(`+${Number(item.shield_ac) + (Number(item.magic_ac_bonus) || 0)} AC`);
+  parts.push(...sheetEffectLines(item).slice(0, 2));
+  return parts.filter(Boolean).join(' · ');
+}
+
+/** Is this carried item doing anything right now? */
+export function itemIsActive(item, equipped = {}) {
+  if (!item || typeof item !== 'object') return false;
+  const id = item.id || item.item_id;
+  const inSlot = Object.values(equipped || {}).some(worn => worn && typeof worn === 'object' && (worn === item || (id && (worn.id || worn.item_id) === id)));
+  const needsAttunement = Boolean(item.requires_attunement || item.attunement_required);
+  const attuned = Boolean(item.attuned || item.is_attuned);
+  if (needsAttunement) return attuned;
+  return inSlot || Boolean(item.worn || item.equipped || item.is_equipped);
+}
+
+const unique = values => [...new Set(values.map(v => String(v).toLowerCase()))];
+
+/** Defences from every active item, with the items that give them. */
+export function activeItemDefences(character = {}) {
+  const equipped = character.equipped || {};
+  const pool = [...(Array.isArray(character.inventory) ? character.inventory : []), ...Object.values(equipped)]
+    .filter(item => item && typeof item === 'object');
+  const seen = new Set();
+  const active = pool.filter(item => {
+    const key = item.id || item.item_id || item.name;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return itemIsActive(item, equipped);
+  });
+  const gather = field => unique(active.flatMap(item => list(item[field])));
+  const out = {
+    resistances: gather('damage_resistances'),
+    immunities: gather('damage_immunities'),
+    vulnerabilities: gather('damage_vulnerabilities'),
+    conditionImmunities: gather('condition_immunities'),
+    saveBonus: active.reduce((sum, item) => sum + (Number(item.save_bonus) || 0), 0),
+    sources: active.filter(item => ['damage_resistances', 'damage_immunities', 'damage_vulnerabilities', 'condition_immunities']
+      .some(field => list(item[field]).length) || Number(item.save_bonus)).map(item => item.name),
+  };
+  // Immunity covers resistance to the same type.
+  out.resistances = out.resistances.filter(type => !out.immunities.includes(type));
+  out.any = Boolean(out.resistances.length || out.immunities.length || out.vulnerabilities.length || out.conditionImmunities.length || out.saveBonus);
+  return out;
+}

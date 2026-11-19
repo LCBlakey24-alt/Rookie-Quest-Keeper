@@ -80,3 +80,43 @@ describe('warnings catch combinations that would confuse the sheet', () => {
     expect(itemDraftWarnings(weapon())).toEqual([]);
   });
 });
+
+describe('homebrew items on a character', () => {
+  const { inventoryItemFromHomebrew, activeItemDefences, homebrewItemSummary } = require('./homebrewItemModel');
+  const { slotsForItem } = require('./equipmentLoadout');
+  const ring = { id: 'hb-ring', name: 'Synthetic Ember Ring', sheet_item: toSheetItem({ ...emptyItemDraft('wearable'), name: 'Synthetic Ember Ring', requires_attunement: true, defences: { resistances: ['fire'], immunities: [], vulnerabilities: [], condition_immunities: ['charmed'] }, charges: { max: 3 } }) };
+
+  test('each copy added to a character gets its own id and full charges', () => {
+    const a = inventoryItemFromHomebrew(ring);
+    const b = inventoryItemFromHomebrew(ring);
+    expect(a.id).not.toBe(b.id);
+    expect(a).toMatchObject({ homebrew_id: 'hb-ring', charges: 3, equipped: false, attuned: false });
+  });
+
+  test('defences count only while the item is in use', () => {
+    const item = inventoryItemFromHomebrew(ring);
+    expect(activeItemDefences({ inventory: [item] }).any).toBe(false); // needs attunement
+    const attuned = { ...item, attuned: true };
+    expect(activeItemDefences({ inventory: [attuned] })).toMatchObject({ resistances: ['fire'], conditionImmunities: ['charmed'], sources: ['Synthetic Ember Ring'] });
+  });
+
+  test('a held weapon or worn armour counts; immunity replaces resistance', () => {
+    const coat = { id: 'c1', name: 'Synthetic Coat', homebrew_kind: 'armour', damage_resistances: ['cold', 'poison'] };
+    const amulet = { id: 'a1', name: 'Synthetic Amulet', homebrew_kind: 'wearable', worn: true, damage_immunities: ['poison'] };
+    const out = activeItemDefences({ inventory: [coat, amulet], equipped: { armor: coat } });
+    expect(out.resistances).toEqual(['cold']);
+    expect(out.immunities).toEqual(['poison']);
+  });
+
+  test('homebrew items go in the right slot whatever their name', () => {
+    expect(slotsForItem({ name: 'Ring Blade', homebrew_kind: 'weapon', type: 'Weapon' })).toEqual(expect.arrayContaining(['mainHand']));
+    expect(slotsForItem({ name: 'Moon Plate Cloak', homebrew_kind: 'armour' })).toEqual(['armor']);
+    expect(slotsForItem({ name: 'Door', homebrew_kind: 'shield' })).toEqual(['offHand']);
+  });
+
+  test('picker summary is one readable line', () => {
+    const blade = { sheet_item: toSheetItem(weapon({ weapon: { magic_bonus: 1, extra_damage: [{ dice: '1d6', type: 'fire' }] } })) };
+    expect(homebrewItemSummary(blade)).toBe('1d8+1 slashing + 1d6 fire');
+    expect(homebrewItemSummary(ring)).toContain('Resistant to fire damage');
+  });
+});
