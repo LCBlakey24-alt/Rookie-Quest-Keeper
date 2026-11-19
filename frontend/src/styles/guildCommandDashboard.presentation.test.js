@@ -22,6 +22,8 @@ describe('Approved Guild Command screenshot-to-web implementation', () => {
   });
 
   test('show a campaign-scoped party, not sample names or fake HP', () => {
+    // Real linked sheets first; the hand-typed roster only as a fallback.
+    expect(campaign).toContain('apiClient.get(`/campaigns/${campaignId}/live-party`)');
     expect(campaign).toContain('apiClient.get(`/campaigns/${campaignId}/players`)');
     expect(campaign).toContain('rows.map(normalizeCampaignCharacter)');
     expect(campaign).toContain('if (cancelled) return');

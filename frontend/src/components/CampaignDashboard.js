@@ -54,6 +54,7 @@ import '@/styles/guildTokens.css';
 import '@/styles/campaignGuild.css';
 import HexLoader from '@/components/guild-motif/HexLoader';
 import CampaignDocumentCard from '@/components/campaign/CampaignDocumentCard';
+import CampaignFirstSteps from '@/components/gm/dashboard/CampaignFirstSteps';
 
 const uploadTheme = {
   bg: { black: 'var(--guild-bg)', panel: 'var(--guild-bg)', card: 'var(--guild-bg)', hover: 'var(--guild-bg)' },
@@ -135,6 +136,21 @@ export default function CampaignDashboard() {
       setHomeBootstrap(null);
     } catch (error) {
       if (!stillCurrent()) return;
+      // This is the GM's workspace. A player who follows a shared or old
+      // link here belongs on their own campaign page, not an error.
+      const status = error?.response?.status;
+      if (status === 403 || status === 404) {
+        try {
+          const joined = await apiClient.get('/campaign-invites/joined/list');
+          const list = Array.isArray(joined?.data) ? joined.data : (joined?.data?.campaigns || []);
+          const isPlayerHere = list.some((item) => String(item?.id || item?.campaign_id || item?.campaignId || '') === String(campaignId));
+          if (isPlayerHere && stillCurrent()) {
+            navigate(`/player/campaign/${encodeURIComponent(campaignId)}`, { replace: true });
+            return;
+          }
+        } catch { /* fall through to the error below */ }
+        if (!stillCurrent()) return;
+      }
       setCampaign(null);
       setHomeBootstrap(null);
       setLoadError(error?.response?.data?.detail || 'Campaign could not be loaded.');
@@ -142,7 +158,7 @@ export default function CampaignDashboard() {
     } finally {
       if (stillCurrent()) setLoading(false);
     }
-  }, [campaignId, initialTab]);
+  }, [campaignId, initialTab, navigate]);
 
   useEffect(() => {
     fetchCampaign();
@@ -489,6 +505,8 @@ function chooseStoryFocus(arcs) {
 }
 
 function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOpenTab, onFetchInvite, onRotate, onCopyInvite, onRotateInvite }) {
+  const navigateToLive = useNavigate();
+  const onOpenLive = () => navigateToLive(`/gm-screen/${campaignId}`);
   const [data, setData] = useState(() => normaliseHomeData(initialData));
   const [homeLoading, setHomeLoading] = useState(!initialData);
   const [unavailableSections, setUnavailableSections] = useState([]);
@@ -508,7 +526,15 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
     }));
     if (!campaignId) return () => { cancelled = true; };
 
-    apiClient.get(`/campaigns/${campaignId}/players`).then(response => {
+    // Live party: the sheets players have actually linked (with the older
+    // hand-typed roster as its fallback). /players alone is only that old
+    // roster, so a party of real players used to show as "0 adventurers".
+    apiClient.get(`/campaigns/${campaignId}/live-party`)
+      .catch(error => {
+        if (error?.response?.status === 404) return apiClient.get(`/campaigns/${campaignId}/players`);
+        throw error;
+      })
+      .then(response => {
       if (cancelled) return;
       const rows = Array.isArray(response.data) ? response.data :
         Array.isArray(response.data?.players) ? response.data.players : [];
@@ -676,6 +702,15 @@ function GMHome({ campaignId, campaign, initialData, invite, inviteLoading, onOp
           </button>
         </div>
       </section>
+
+      {!homeLoading && unavailableSections.length === 0 && (
+        <CampaignFirstSteps
+          campaignId={campaignId}
+          counts={{ players: partySnapshot.members.length, quests: data.quests.length, npcs: data.npcs.length }}
+          onOpenTab={onOpenTab}
+          onOpenLive={onOpenLive}
+        />
+      )}
 
       {campaignIsEmpty && documentCard(true)}
 

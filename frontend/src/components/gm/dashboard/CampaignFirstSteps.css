@@ -1,0 +1,26 @@
+/* New-campaign checklist: guild tokens, 44px rows, inner glow only. */
+.rqk-first-steps {
+  display: grid; gap: 10px; padding: 14px; border-radius: 14px;
+  border: 1px solid var(--guild-line-hot, rgba(255,79,163,.55));
+  box-shadow: inset 0 0 28px var(--guild-box-glow-hot, rgba(255,79,163,.18));
+}
+.rqk-first-steps header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.rqk-first-steps header p { margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--guild-line-hot, #ff4fa3); }
+.rqk-first-steps header h2 { margin: 2px 0 0; font-size: 18px; }
+.rqk-first-steps__hide { min-width: 44px; min-height: 44px; display: inline-grid; place-items: center; border-radius: 10px; cursor: pointer; }
+.rqk-first-steps ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.rqk-first-steps li > button {
+  width: 100%; min-height: 56px; display: grid; grid-template-columns: 28px minmax(0, 1fr) 20px; align-items: center; gap: 10px;
+  padding: 8px 12px; border-radius: 10px; text-align: left; cursor: pointer; font: inherit;
+}
+.rqk-first-steps__mark {
+  width: 24px; height: 24px; display: inline-grid; place-items: center; border-radius: 50%;
+  border: 1px solid var(--guild-line, rgba(201,210,230,.4));
+}
+.rqk-first-steps li.is-done .rqk-first-steps__mark { border-color: var(--rq-success, #4ade80); color: var(--rq-success, #4ade80); }
+.rqk-first-steps__text { display: grid; min-width: 0; }
+.rqk-first-steps__text strong { font-size: 15px; }
+.rqk-first-steps__text small { font-size: 13px; opacity: .8; }
+.rqk-first-steps li.is-done .rqk-first-steps__text strong { opacity: .7; }
+.rqk-first-steps__live { margin: 0; font-size: 14px; opacity: .9; }
+.rqk-first-steps__live button { min-height: 44px; padding: 0 10px; margin-left: 2px; border-radius: 8px; cursor: pointer; font: inherit; font-weight: 700; }
