@@ -27,7 +27,7 @@ import {
   TorusGeometry,
 } from 'three';
 
-import { TOWER, TRAY_HALF, towerBoxes } from './diceTowerRig';
+import { FUNNEL, HELIX, TOWER, TOWER_MID_Z, TRAY_HALF, towerBoxes, towerCylinders } from './diceTowerRig';
 import { DEFAULT_TOWER_SKIN_ID, TOWER_SKIN_CATALOG, getTowerSkinInfo } from './towerSkinCatalog';
 import { createTowerLife } from './towerLife';
 
@@ -38,6 +38,9 @@ const DECORATIONS = {
   'midnight-spire': decorateSpire,
   'gilded-reliquary': decorateReliquary,
   'ember-forge': decorateForge,
+  'spiral-glass': decorateSpiral,
+  'funnel-chute': decorateFunnel,
+  'peg-drop': decoratePegs,
 };
 
 /** The catalogue with each design's 3D decoration attached. */
@@ -93,7 +96,10 @@ function buildBase(group, skin) {
     depthWrite: false,
   });
 
-  towerBoxes().forEach(({ part, centre, half, rotationX = 0 }) => {
+  const shape = skin.shape || 'classic';
+  towerBoxes(shape).forEach(({ part, centre, half, rotationX = 0, quaternion }) => {
+    // The spiral's and funnel's round walls are glass; each design draws its own.
+    if (part === 'ring') return;
     if (part === 'tray-back') {
       // Drawn rim-high: the tall collider above it is invisible, like the tray's.
       const geometry = new BoxGeometry(half[0] * 2, TRAY_RIM_HEIGHT, half[2] * 2);
@@ -103,11 +109,22 @@ function buildBase(group, skin) {
       return;
     }
     const geometry = new BoxGeometry(half[0] * 2, half[1] * 2, half[2] * 2);
-    const material = part === 'front' ? glass : (part === 'baffle' || part === 'ramp') ? plank : panel;
+    const material = part === 'front' ? glass : ['baffle', 'ramp', 'helix', 'funnel', 'deflector'].includes(part) ? plank : panel;
     const mesh = solid(material, geometry, centre, rotationX);
+    if (quaternion) mesh.quaternion.set(...quaternion);
     if (part === 'front') mesh.castShadow = false;
     group.add(mesh);
-    group.add(edges(geometry, skin.edge, centre, rotationX, part === 'front' ? 1 : 0.75));
+    // The helix and funnel are many small pieces: a faint edge each, not a bright one.
+    const line = edges(geometry, skin.edge, centre, rotationX, part === 'front' ? 1 : (part === 'helix' || part === 'funnel') ? 0.25 : 0.75);
+    if (quaternion) line.quaternion.set(...quaternion);
+    group.add(line);
+  });
+
+  // Round colliders: the pegs' bars and the spiral's pole.
+  towerCylinders(shape).forEach(({ centre, radius, length, axis }) => {
+    const mesh = solid(plank, new CylinderGeometry(radius, radius, length, 20), centre);
+    if (axis === 'x') mesh.rotation.z = Math.PI / 2;
+    group.add(mesh);
   });
 
   // The tray's own rim: left, right and front.
@@ -122,7 +139,24 @@ function buildBase(group, skin) {
     group.add(edges(geometry, skin.edge, position, 0, 0.7));
   });
 
-  return { panel, plank };
+  return { panel, plank, glass };
+}
+
+/** A glass cylinder round the tube's axis, from y0 to y1, with glowing rings. */
+function glassTube(group, skin, r, y0, y1, glass) {
+  const f = towerFrame();
+  const tubeGlass = glass.clone();
+  tubeGlass.side = 2; // DoubleSide
+  const tube = new Mesh(new CylinderGeometry(r, r, y1 - y0, 48, 1, true), tubeGlass);
+  tube.position.set(0, (y0 + y1) / 2, TOWER_MID_Z);
+  group.add(tube);
+  const ringGlow = glowMaterial(skin.edge, 1.2);
+  [y0 + 0.05, (y0 + y1) / 2, y1 - 0.05].forEach((y) => {
+    const ring = new Mesh(new TorusGeometry(r + 0.04, 0.05, 8, 48), ringGlow);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(0, y, TOWER_MID_Z);
+    group.add(ring);
+  });
 }
 
 /** Useful points around the tube for decorations. */
@@ -198,6 +232,57 @@ function decorateForge(group, skin, { plank }) {
   const cap = new BoxGeometry(f.halfW * 2 + 0.5, 0.35, f.front - f.back + 0.5);
   group.add(solid(plank, cap, [0, f.top + 0.18, f.midZ]));
   group.add(edges(cap, skin.edge, [0, f.top + 0.18, f.midZ], 0, 0.5));
+}
+
+/* Spiral Glass: a glass cylinder, a glowing core and a ringed crown. */
+function decorateSpiral(group, skin, { panel, glass }) {
+  const f = towerFrame();
+  glassTube(group, skin, HELIX.outer + 0.1, HELIX.bottom - 0.4, HELIX.top + 1.2, glass);
+  const core = solid(glowMaterial(skin.accent, 1.1), new CylinderGeometry(HELIX.pole * 0.6, HELIX.pole * 0.6, HELIX.top - HELIX.bottom + 1.6, 16), [0, (HELIX.top + HELIX.bottom) / 2 + 0.4, TOWER_MID_Z]);
+  group.add(core);
+  const pillar = new CylinderGeometry(0.3, 0.36, f.top + 0.4, 8);
+  f.corners.forEach(([x, z]) => group.add(solid(panel, pillar, [x, (f.top + 0.4) / 2, z])));
+  const crown = new CylinderGeometry(f.halfW * 1.2, f.halfW * 1.3, 0.5, 24);
+  group.add(solid(panel, crown, [0, f.top + 0.4, f.midZ]));
+  group.add(edges(crown, skin.edge, [0, f.top + 0.4, f.midZ]));
+}
+
+/* Funnel Chute: a smooth bronze cone with a glowing rim and lip. */
+function decorateFunnel(group, skin, { plank, glass }) {
+  const f = towerFrame();
+  const cone = new Mesh(new CylinderGeometry(FUNNEL.rim, FUNNEL.hole, FUNNEL.rimY - FUNNEL.holeY, 48, 1, true), plank.clone());
+  cone.material.side = 2;
+  cone.position.set(0, (FUNNEL.rimY + FUNNEL.holeY) / 2 + 0.06, TOWER_MID_Z);
+  group.add(cone);
+  glassTube(group, skin, FUNNEL.rim + 0.08, FUNNEL.rimY - 0.1, FUNNEL.rimY + 1.6, glass);
+  const lip = new Mesh(new TorusGeometry(FUNNEL.hole + 0.02, 0.06, 8, 40), glowMaterial(skin.accent, 1.6));
+  lip.rotation.x = Math.PI / 2;
+  lip.position.set(0, FUNNEL.holeY, TOWER_MID_Z);
+  group.add(lip);
+  const bar = new BoxGeometry(0.26, f.top, 0.26);
+  f.corners.forEach(([x, z]) => group.add(solid(plank, bar, [x, f.top / 2, z])));
+}
+
+/* Peg Drop: glowing caps on every bar's ends and a lit frame. */
+function decoratePegs(group, skin, { panel }) {
+  const f = towerFrame();
+  const cap = glowMaterial(skin.accent, 1.8);
+  towerCylinders('pegs').forEach(({ centre, radius, length }) => {
+    [-1, 1].forEach((side) => {
+      const end = new Mesh(new CylinderGeometry(radius * 1.6, radius * 1.6, 0.08, 16), cap);
+      end.rotation.z = Math.PI / 2;
+      end.position.set(centre[0] + side * (length / 2 + 0.02), centre[1], centre[2]);
+      group.add(end);
+    });
+  });
+  const frame = new BoxGeometry(0.3, f.top + 0.4, 0.3);
+  f.corners.forEach(([x, z]) => {
+    group.add(solid(panel, frame, [x, (f.top + 0.4) / 2, z]));
+    group.add(edges(frame, skin.edge, [x, (f.top + 0.4) / 2, z], 0, 0.8));
+  });
+  const capTop = new BoxGeometry(f.halfW * 2 + 0.5, 0.3, f.front - f.back + 0.5);
+  group.add(solid(panel, capTop, [0, f.top + 0.15, f.midZ]));
+  group.add(edges(capTop, skin.edge, [0, f.top + 0.15, f.midZ]));
 }
 
 /**
