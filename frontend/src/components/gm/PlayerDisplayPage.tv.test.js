@@ -42,3 +42,14 @@ test('a slow older reply never replaces a newer scene', async () => {
     jest.useRealTimers();
   }
 });
+
+test('the TV window offers one big fullscreen button, and Not now hides it', async () => {
+  apiClient.get.mockResolvedValue({ data: { state: { campaign_id: 'camp', mode: 'blank', payload: {} }, party: [] } });
+  document.documentElement.requestFullscreen = jest.fn(() => Promise.resolve());
+  render(<MemoryRouter><PlayerDisplayPage tvCode="ABCD2345" /></MemoryRouter>);
+  const go = await screen.findByTestId('present-fullscreen');
+  await act(async () => { go.click(); });
+  expect(document.documentElement.requestFullscreen).toHaveBeenCalled();
+  await act(async () => { screen.getByRole('button', { name: 'Not now' }).click(); });
+  expect(screen.queryByTestId('present-fullscreen')).toBeNull();
+});

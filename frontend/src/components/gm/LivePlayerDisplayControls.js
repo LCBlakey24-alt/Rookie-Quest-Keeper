@@ -8,6 +8,7 @@ import { loadPlayerDisplayResources, playerDisplayResourceWarning } from '@/lib/
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import LiveDisplayLocationExplorer from './LiveDisplayLocationExplorer';
 import TvLinkCard from './TvLinkCard';
+import { openDisplayAndReport } from '@/lib/openDisplayWindow';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
@@ -308,8 +309,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     setDisplayTarget(safeTarget);
     // The URL already specifies TV vs table. Opening a new viewer must not
     // broadcast a blank state and erase the current map, combat or reveal.
-    const opened = window.open(displayUrlFor(safeTarget), '_blank', 'noopener,noreferrer');
-    if (!opened) toast.error('The display tab was blocked. Allow pop-ups, then try again.');
+    // Opens on the TV screen where the browser can (see lib/openDisplayWindow).
+    openDisplayAndReport(displayUrlFor(safeTarget), toast);
   };
 
   const copyDisplayLink = async (targetId = displayTarget) => {
