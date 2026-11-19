@@ -84,7 +84,9 @@ export function deriveWeaponAttack(item, character, proficiencyBonus = 2) {
   const dice = explicitDice || ruleDice || { count: 1, sides: 8 };
 
   const explicitAbility = String(item?.ability || item?.attack_ability || '').toLowerCase();
-  const abilityMod = explicitAbility.includes('dex')
+  const abilityMod = explicitAbility.includes('finesse')
+    ? Math.max(strengthMod, dexterityMod)
+    : explicitAbility.includes('dex')
     ? dexterityMod
     : explicitAbility.includes('str')
       ? strengthMod

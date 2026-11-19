@@ -30,6 +30,16 @@ export function findArmorRule(itemOrName) {
     : itemOrName?.name || itemOrName?.item_name || itemOrName?.label || itemOrName?.title || '';
   const entries = Object.entries(ARMOR_RULES);
   const found = ([key, value]) => ({ key, ...value, name: value.name || key });
+  // Homebrew armour states its own type and AC instead of an SRD name.
+  if (typeof itemOrName === 'object' && itemOrName) {
+    const category = String(itemOrName.armor_category || itemOrName.armorCategory || '').toLowerCase();
+    if (['light', 'medium', 'heavy'].includes(category) && Number(itemOrName.base_ac) > 0) {
+      return { key: 'custom', name: rawName || 'Armour', category, baseAc: Number(itemOrName.base_ac), dex: { light: 'full', medium: 'max2', heavy: 'none' }[category], custom: true };
+    }
+    if (category === 'shield' && itemOrName.shield_ac !== undefined) {
+      return { key: 'custom', name: rawName || 'Shield', category: 'shield', acBonus: Number(itemOrName.shield_ac) || 0, custom: true };
+    }
+  }
   // An explicit identity on the item wins over its display name.
   const explicit = typeof itemOrName === 'object' && itemOrName
     ? normaliseArmorName(itemOrName.armor_key || itemOrName.armorKey || itemOrName.armor_type || itemOrName.armorType || itemOrName.base_armor || itemOrName.baseArmor || '')
@@ -92,7 +102,7 @@ export function calculateArmorAc({ armor, shield, dexMod = 0, unarmoredAc = 10 }
   else if (armorRule?.category === 'medium') ac = armorRule.baseAc + Math.min(2, dexMod);
   else if (armorRule?.category === 'heavy') ac = armorRule.baseAc;
 
-  if (shieldRule?.category === 'shield') ac += shieldRule.acBonus || 2;
+  if (shieldRule?.category === 'shield') ac += shieldRule.custom ? shieldRule.acBonus : (shieldRule.acBonus || 2);
 
   // Add only enhancement/magic bonuses beyond the armour rule itself.
   ac += extraAcBonus(armor, armorRule);
