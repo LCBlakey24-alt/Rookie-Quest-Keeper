@@ -26,7 +26,10 @@
     -webkit-text-fill-color: currentColor !important;
     text-shadow: none !important;
   }
-  :where(#root, [role='dialog'], [role='alertdialog']) :where([style*='linear-gradient('], [style*='radial-gradient('], [class*='bg-gradient-']) {
+  /* Decorative gradients are flattened. Battlefield terrain previews opt out
+     with data-rq-texture: their gradients draw the stone/grass texture the
+     GM is choosing, not decoration. */
+  :where(#root, [role='dialog'], [role='alertdialog']) :where([style*='linear-gradient('], [style*='radial-gradient('], [class*='bg-gradient-']):not([data-rq-texture]) {
     background-image: none !important;
     background-color: var(--rq-bg-panel) !important;
   }

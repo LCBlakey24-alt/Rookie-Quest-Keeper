@@ -209,7 +209,7 @@ for (const size of appSizes) {
     const source = battlefield.getByRole('group', { name: 'Battlefield source' });
     const savedMode = source.getByRole('button', { name: 'Saved battle map' });
     const genericMode = source.getByRole('button', { name: 'Generic textured floor' });
-    const noneMode = source.getByRole('button', { name: 'No selection' });
+    const noneMode = source.getByRole('button', { name: 'Plain stone floor' });
     const reset = launcher.getByRole('button', { name: 'Reset review' });
     await expect(noneMode).toHaveAttribute('aria-pressed', 'true');
     const targets = [choice, savedMode, genericMode, noneMode, reset, launch];
@@ -695,7 +695,7 @@ test('page surfaces are midnight or the stage sky, never the retired craft-paper
   await expect(login).toHaveCSS('background-color', 'rgb(18, 13, 39)');
 });
 
-test('1080p player display keeps a flat midnight frame without wallpaper', async ({ page }) => {
+test('1080p player display shows the turning hexagons behind a clear frame, no wallpaper image', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await avoidThirdPartyRequests(page);
   await page.addInitScript(() => {
@@ -707,8 +707,13 @@ test('1080p player display keeps a flat midnight frame without wallpaper', async
   await expect(screen).toHaveAttribute('data-display-target', 'standing-tv');
   const frame = page.locator('.rqk-player-display__frame');
   await expect(frame).toBeVisible();
+  // The owner asked for the site's slow-turning hexagons behind the TV
+  // display, so the frame is see-through and draws no image of its own.
   await expect(frame).toHaveCSS('background-image', 'none');
-  await expect(frame).toHaveCSS('background-color', 'rgb(18, 13, 39)');
+  await expect(frame).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(screen.locator('> .rq-hex-backdrop')).toHaveCount(1);
+  const screenImage = await screen.evaluate(el => getComputedStyle(el).backgroundImage);
+  expect(screenImage).not.toContain('url(');
 });
 
 

@@ -47,7 +47,7 @@ describe('MapGridOverlay', () => {
     const svg = screen.getByTestId('map-grid-overlay');
     expect(svg).toHaveAttribute('data-grid-type', 'hex_flat');
     expect(svg).toHaveAttribute('viewBox', '0 0 100 75');
-    expect(svg.querySelector('path')).toHaveAttribute('stroke', '#0b0614');
+    expect(svg.querySelector('path').style.stroke).toBe('var(--rq-map-grid-dark, #0b0614)');
   });
 });
 

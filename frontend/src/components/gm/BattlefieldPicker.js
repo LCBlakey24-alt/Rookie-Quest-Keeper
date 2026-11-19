@@ -13,7 +13,7 @@ export function battlefieldModeFor(scenario) {
 const info = {
   saved: 'Use an existing campaign map or an uploaded image.',
   generic: 'Use a ready-to-play textured floor, no map upload required.',
-  none: 'Use textured stone if no specific battlefield is prepared.',
+  none: 'No map prepared: fight on plain stone.',
 };
 // The battleground art is textured; its controls follow the app's flat
 // Neon Coast surfaces, fine borders and restrained inward glow.
@@ -66,7 +66,7 @@ export default function BattlefieldPicker({
         {[
           ['saved','Saved battle map'],
           ['generic','Generic textured floor'],
-          ['none','No selection'],
+          ['none','Plain stone floor'],
         ].map(([value,label]) => (
           <button key={value} type="button" onClick={() => onModeChange?.(value)}
             aria-pressed={selectedMode===value} style={modeStyle(selectedMode===value)}>
@@ -98,7 +98,7 @@ export default function BattlefieldPicker({
       {selectedMode !== 'saved' && (
         <div style={previewStyle({ ...genericCombatBackdropStyle(selectedMode==='none'?'stone':terrain), backgroundSize: '24px 24px, 24px 24px, 96px 96px' })}
           aria-label={'Battlefield preview: '+(selectedMode==='none'?'stone':terrain)}
-          data-testid="battlefield-texture-preview" />
+          data-testid="battlefield-texture-preview" data-rq-texture="" />
       )}
       {selectedMode === 'generic' && (
         <div role="group" aria-label="Generic terrain textures"
@@ -107,7 +107,7 @@ export default function BattlefieldPicker({
             <button key={item.id} type="button" style={tileButton(item.id === terrain)}
               onClick={() => onTerrainChange?.(item.id)} aria-pressed={item.id === terrain}
               aria-label={item.label} data-testid={'terrain-choice-'+item.id}>
-              <span aria-hidden="true" style={previewStyle({ ...genericCombatBackdropStyle(item.id), backgroundSize: '20px 20px, 20px 20px, 80px 80px' })} />
+              <span aria-hidden="true" data-rq-texture="" style={previewStyle({ ...genericCombatBackdropStyle(item.id), backgroundSize: '20px 20px, 20px 20px, 80px 80px' })} />
               <strong style={{ fontSize: 11 }}>{item.label}</strong>
             </button>
           ))}

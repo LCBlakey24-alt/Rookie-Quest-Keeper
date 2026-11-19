@@ -1,6 +1,13 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { terrainPattern } from './terrainTextures';
 import { describeDistance, reachableCells, walkingSpeedFeet, withinReach } from '@/data/battleGrid';
+
+/** A design token's value for canvas drawing (canvas cannot read CSS variables). */
+function mapToken(name, fallback) {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return fallback;
+  const value = window.getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return value || fallback;
+}
 import { getGenericCombatTerrainImage, normaliseCombatTerrain } from '@/data/genericCombatTerrain';
 
 const GRID_SIZE = 40; // pixels per grid square
@@ -251,7 +258,7 @@ function MapCanvas({
       : (measureMode && rulerStart ? { col: rulerStart.gridX, row: rulerStart.gridY } : null);
     const dragSpeed = draggingToken && showMovement ? walkingSpeedFeet(draggingToken.speed) : null;
     if (dragSpeed) {
-      ctx.fillStyle = 'rgba(96, 200, 255, 0.2)';
+      ctx.fillStyle = mapToken('--rq-map-reach-fill', 'rgba(96, 200, 255, 0.2)');
       reachableCells(measureFrom, dragSpeed, map.width, map.height, { feetPerSquare })
         .forEach(({ col, row }) => ctx.fillRect(col * gridSize, row * gridSize, gridSize, gridSize));
     }
@@ -335,7 +342,7 @@ function MapCanvas({
     if (measureFrom && hoveredCell) {
       const to = { col: hoveredCell.gridX, row: hoveredCell.gridY };
       const inReach = dragSpeed ? withinReach(measureFrom, to, dragSpeed, { feetPerSquare }) : true;
-      const colour = inReach ? '#7CF5C0' : '#FF6B8B';
+      const colour = inReach ? mapToken('--rq-map-reach-ok', '#7cf5c0') : mapToken('--rq-map-reach-far', '#ff6b8b');
       const fx = (measureFrom.col + 0.5) * gridSize;
       const fy = (measureFrom.row + 0.5) * gridSize;
       const hx = (to.col + 0.5) * gridSize;

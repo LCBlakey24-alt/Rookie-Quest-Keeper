@@ -352,9 +352,20 @@ async def update_world_map_path(
         update_query['pins.id'] = _path_endpoint_guard(from_pin_id, to_pin_id)
         endpoint_guarded = True
 
-    set_values = {f'paths.$.{key}': value for key, value in changes.items()}
-    set_values['updated_at'] = _now()
-    result = await db.world_maps.update_one(update_query, {'$set': set_values})
+    if endpoint_guarded:
+        # With both arrays (paths and pins) in the filter, the positional
+        # `paths.$` would be ambiguous and could edit the wrong road. Write the
+        # whole road list instead, only if it is unchanged since it was read:
+        # a concurrent edit or a removed end pin gives the 409 below.
+        current_paths = world_map.get('paths', [])
+        next_paths = [{**item, **changes} if item.get('id') == path_id else item for item in current_paths]
+        update_query['paths'] = current_paths
+        update_query.pop('paths.id', None)
+        result = await db.world_maps.update_one(update_query, {'$set': {'paths': next_paths, 'updated_at': _now()}})
+    else:
+        set_values = {f'paths.$.{key}': value for key, value in changes.items()}
+        set_values['updated_at'] = _now()
+        result = await db.world_maps.update_one(update_query, {'$set': set_values})
     if result.matched_count == 0:
         if endpoint_guarded:
             raise HTTPException(

@@ -7,6 +7,7 @@ import { AUTH_TOKEN_KEY } from '@/lib/auth';
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import GroupCheckDisplay from '@/components/gm/GroupCheckDisplay';
 import DisplayHexPortrait from '@/components/gm/DisplayHexPortrait';
+import HexBackdrop from '@/components/guild-motif/HexBackdrop';
 import { getContainedMapRect } from '@/data/containedMapGeometry';
 import { getPlayerDisplayTarget } from '@/data/playerDisplayTarget';
 import { rollActorDisplayName } from '@/lib/rollActorLabels';
@@ -101,21 +102,40 @@ function normaliseCombatToken(token = {}, index = 0) {
 }
 
 function buildCombatRoster(partyMembers = [], tokens = []) {
-  const players = partyMembers.map((member, index) => ({ ...member, id: `player-${member.id || index}`, type: 'player', subtitle: `${member.className || 'Adventurer'}${member.race ? ` · ${member.race}` : ''}` }));
+  const players = partyMembers.map((member, index) => ({ ...member, rawId: String(member.id || index), id: `player-${member.id || index}`, type: 'player', subtitle: `${member.className || 'Adventurer'}${member.race ? ` · ${member.race}` : ''}` }));
   const creatures = tokens.filter(isPlayerVisibleCombatToken);
   return [...players, ...creatures].sort((a, b) => Number(b.initiative || 0) - Number(a.initiative || 0));
 }
 
-export default function PlayerDisplayPage() {
-  const { campaignId } = useParams();
+// Live Play names a player's turn "player-<id>"; the combat page uses the
+// combatant's own id. Either should light up the same card.
+function isActiveCombatant(item, activeId) {
+  if (!activeId) return false;
+  return String(item.id) === activeId || (item.rawId !== undefined && String(item.rawId) === activeId);
+}
+
+const TV_POLL_MS = 2500;
+
+/**
+ * The player display. With `tvCode` it is the TV link: no sign-in, it
+ * reads the campaign's public display by code every few seconds.
+ */
+export default function PlayerDisplayPage({ tvCode = '' }) {
+  const tvMode = Boolean(tvCode);
+  const params = useParams();
+  const [tvCampaignId, setTvCampaignId] = useState('');
+  const campaignId = tvMode ? tvCampaignId : params.campaignId;
   const [searchParams] = useSearchParams();
   const urlTarget = searchParams.get('target');
+  // Opened for the TV (Live Play's Open TV, or the TV link): offer one big
+  // fullscreen button, since browsers only go fullscreen after a tap there.
+  const [presentPrompt, setPresentPrompt] = useState(() => searchParams.get('present') === '1' || Boolean(tvCode));
   // Display content belongs to the signed-in account. It is re-read on every
   // auth change, in this tab or another, and everything below is keyed on it.
   const [accountId, setAccountId] = useState(() => currentDisplayAccount());
   const [state, setState] = useState(() => loadDisplayState(campaignId, accountId));
   // 'checking' | 'synced' | 'offline' | 'denied' | 'signed-out'
-  const [syncStatus, setSyncStatus] = useState(() => (accountId ? 'checking' : 'signed-out'));
+  const [syncStatus, setSyncStatus] = useState(() => (tvMode || accountId ? 'checking' : 'signed-out'));
   const [party, setParty] = useState([]);
   const [partyRefreshFailed, setPartyRefreshFailed] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
@@ -160,7 +180,41 @@ export default function PlayerDisplayPage() {
     };
   }, []);
 
+  // TV link: read the public display by code. Nothing is cached for an
+  // account, and a code that stops working blanks the screen at once.
   useEffect(() => {
+    if (!tvMode) return undefined;
+    let cancelled = false;
+    let latestRequest = 0;
+    const read = async () => {
+      // A slow earlier reply must never replace a newer one.
+      const request = ++latestRequest;
+      try {
+        const response = await apiClient.get(`/tv/${encodeURIComponent(tvCode)}/display-state`);
+        if (cancelled || request !== latestRequest) return;
+        const data = response.data || {};
+        setTvCampaignId(data.state?.campaign_id || '');
+        setState(data.state || { mode: 'blank', payload: {} });
+        setParty((Array.isArray(data.party) ? data.party : []).map(normalisePartyMember).filter(member => member?.name));
+        setSyncStatus('synced');
+      } catch (error) {
+        if (cancelled || request !== latestRequest) return;
+        if (error?.response?.status === 404) {
+          setState({ mode: 'blank', payload: {} });
+          setParty([]);
+          setSyncStatus('denied');
+        } else {
+          setSyncStatus('offline');
+        }
+      }
+    };
+    read();
+    const timer = window.setInterval(read, TV_POLL_MS);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [tvMode, tvCode]);
+
+  useEffect(() => {
+    if (tvMode) return undefined;
     // Switching campaign or account starts from that pair's own last-known
     // state (or blank) -- never from what was on screen a moment ago.
     setState(loadDisplayState(campaignId, accountId));
@@ -172,7 +226,7 @@ export default function PlayerDisplayPage() {
     const unsubscribeLocal = subscribeDisplayState(campaignId, setState, accountId);
     const unsubscribeRemote = subscribeRemoteDisplayState(campaignId, setState, { account: accountId, onStatus: setSyncStatus });
     return () => { unsubscribeLocal(); unsubscribeRemote(); };
-  }, [campaignId, accountId]);
+  }, [campaignId, accountId, tvMode]);
 
   const restricted = syncStatus === 'denied' || syncStatus === 'signed-out';
 
@@ -192,6 +246,8 @@ export default function PlayerDisplayPage() {
   useEffect(() => {
     let cancelled = false;
     let latestRequest = 0;
+    // The TV link brings its own party roster with each read.
+    if (tvMode) return () => { cancelled = true; };
     setParty([]);
     setPartyRefreshFailed(false);
     const fetchParty = async () => {
@@ -213,7 +269,7 @@ export default function PlayerDisplayPage() {
     fetchParty();
     const timer = window.setInterval(fetchParty, 15000);
     return () => { cancelled = true; window.clearInterval(timer); };
-  }, [campaignId, accountId]);
+  }, [campaignId, accountId, tvMode]);
 
   const updatedLabel = useMemo(() => {
     if (!state?.updated_at) return '';
@@ -233,6 +289,17 @@ export default function PlayerDisplayPage() {
 
   return (
     <main className="rqk-player-display" style={pageStyle(target)} data-testid="player-display-page" data-display-target={target} data-display-mode={mode}>
+      {/* The site's slowly turning hexagons, behind the whole display. */}
+      <HexBackdrop />
+      {presentPrompt && !fullscreen && (
+        <div className="rqk-player-display__present" role="dialog" aria-label="Show on this screen">
+          <button type="button" className="rqk-player-display__present-go" onClick={toggleFullscreen} data-testid="present-fullscreen">
+            <Maximize2 size={28} aria-hidden="true" /> Show fullscreen
+          </button>
+          <p>Tap once on the TV screen. Press F any time to switch.</p>
+          <button type="button" className="rqk-player-display__present-skip" onClick={() => setPresentPrompt(false)}>Not now</button>
+        </div>
+      )}
       <button type="button" ref={fullscreenButtonRef} className="rqk-player-display__fullscreen" onClick={toggleFullscreen} style={fullscreenButtonStyle}
         aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
         title={fullscreen ? 'Exit fullscreen (F or Esc)' : 'Enter fullscreen (F)'}>
@@ -250,7 +317,7 @@ export default function PlayerDisplayPage() {
         <div className="rqk-player-display__stage" style={displayGridStyle(target, showPartySidebar)}>
           {showPartySidebar && <PartySidebar members={partyMembers} />}
           {restricted
-            ? <AccessNotice status={syncStatus} />
+            ? <AccessNotice status={syncStatus} tvMode={tvMode} />
             : <DisplayContent state={state} target={target} hasPartySidebar={showPartySidebar} partyMembers={partyMembers} />}
         </div>
         {!restricted && <PlayerBanner banner={payload.banner} target={target} />}
@@ -462,7 +529,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
         <div style={tableMapStyle}>
           <CombatMapArtwork mapUrl={payload.map_url} title={payload.title} target={target} tokens={positionedTokens} />
           <div style={tableMapLabelStyle}><strong>{payload.title || 'Combat'}</strong>{payload.caption && <span>{payload.caption}</span>}{round && <em>Round {round}</em>}</div>
-          <div style={tableCombatRailStyle}>{roster.slice(0, 12).map(item => <CombatRailPill key={item.id || item.name} item={item} active={String(item.id) === activeId} />)}</div>
+          <div style={tableCombatRailStyle}>{roster.slice(0, 12).map(item => <CombatRailPill key={item.id || item.name} item={item} active={isActiveCombatant(item, activeId)} />)}</div>
           {unpositionedTokens.length > 0 && <div style={tableTokenShelfStyle}>{unpositionedTokens.map(token => <VisibleCreatureCard key={token.id || token.name} token={token} compact target={target} />)}</div>}
           {battleIntro}
         </div>
@@ -479,7 +546,7 @@ function CombatDisplay({ payload, target, partyMembers = [] }) {
           {round && <span>Round {round}</span>}
         </div>
         <div style={combatRosterListStyle}>
-          {roster.map(item => <CombatRosterCard key={item.id || item.name} item={item} active={String(item.id) === activeId} />)}
+          {roster.map(item => <CombatRosterCard key={item.id || item.name} item={item} active={isActiveCombatant(item, activeId)} />)}
           {roster.length === 0 && <p style={blankTextStyle(target)}>No combatants sent yet.</p>}
         </div>
       </aside>
@@ -512,7 +579,11 @@ function CombatRosterCard({ item, active }) {
       />
       <div style={{ minWidth: 0 }}>
         <div style={combatNameRowStyle}><strong>{item.name || 'Combatant'}</strong><span>{isPlayer ? 'Player' : item.type === 'npc' ? 'NPC' : 'Enemy'}</span></div>
-        <p style={partySubStyle}>{item.subtitle || (isPlayer ? item.className : 'Visible combatant')}</p>
+        {(() => {
+          const badge = isPlayer ? 'player' : item.type === 'npc' ? 'npc' : 'enemy';
+          const sub = item.subtitle && String(item.subtitle).toLowerCase() !== badge ? item.subtitle : (isPlayer ? item.className : '');
+          return sub ? <p style={partySubStyle}>{sub}</p> : null;
+        })()}
         {isPlayer && <div style={hpBarShellStyle}><span style={hpBarFillStyle(item.hpPercent || 0, item.hpStatus)} /></div>}
         <div style={combatMiniGridStyle}>
           <StatPill icon={<Zap size={12} />} label="INIT" value={item.initiativeLabel || signed(item.initiative)} />
@@ -544,7 +615,7 @@ function renderStatsPage(page, session, allTime, target) {
   return <><h1 style={page.id === 'intro' ? statsTitleStyle(target) : megaNumberStyle(target)}>{page.title}</h1><p style={statsSubtitleStyle(target)}>{page.subtitle}</p>{page.id === 'intro' && <div style={miniStatGridStyle(target)}><StatNumber label="Player Rolls" value={session.playerRolls ?? session.totalRolls ?? 0} hot /><StatNumber label="Dice Rolled" value={session.totalDice || 0} /><StatNumber label="Awards" value={session.awards?.length || 0} /></div>}</>;
 }
 
-function StatNumber({ label, value, hot = false }) { return <article style={statNumberStyle(hot)}><strong>{value}</strong><span>{label}</span></article>; }
+function StatNumber({ label, value, hot = false }) { return <article style={statNumberStyle(hot)}><strong style={{ fontSize: 'clamp(32px, 3.4vw, 60px)', lineHeight: 1, letterSpacing: 0 }}>{value}</strong><span>{label}</span></article>; }
 function AwardCard({ award, actors }) { return <article style={awardCardStyle}><strong>{award.title}</strong><span>{rollActorDisplayName(award, actors)}</span><em>{award.value}</em></article>; }
 function ActorRow({ actor, actors }) { return <div style={actorRowStyle}><strong>{rollActorDisplayName(actor, actors)}</strong><span>{actor.rolls} rolls · {actor.nat20s} Nat 20s · {actor.nat1s} Nat 1s</span></div>; }
 function CombatMapArtwork({ mapUrl, title, target, tokens }) {
@@ -641,8 +712,16 @@ function syncLabelFor(status, updatedLabel, mode) {
   return 'Connecting…';
 }
 
-function AccessNotice({ status }) {
+function AccessNotice({ status, tvMode = false }) {
   const signedOut = status === 'signed-out';
+  if (tvMode) {
+    return (
+      <section role="alert" data-testid="player-display-access" style={accessNoticeStyle}>
+        <strong style={accessTitleStyle}>This TV code is not active</strong>
+        <span style={accessBodyStyle}>Ask your GM for the current TV code, then open it here.</span>
+      </section>
+    );
+  }
   return (
     <section role="alert" data-testid="player-display-access" style={accessNoticeStyle}>
       <strong style={accessTitleStyle}>{signedOut ? 'Sign in to view this display' : 'This display is not available to your account'}</strong>
@@ -723,8 +802,8 @@ const npcCardStyle = (target) => ({ background: theme.card, border: `1px solid $
 const npcImageStyle = (target) => ({ width: '100%', height: '100%', objectFit: 'contain', minHeight: 0, background: '#000' });
 const npcInitialStyle = (target) => ({ display: 'grid', placeItems: 'center', background: theme.panel, color: theme.text, fontFamily: titleFont, fontSize: isTable(target) ? 32 : 48, minHeight: 0 });
 const npcInfoStyle = (target) => ({ padding: isTable(target) ? 4 : 7, display: 'grid', gap: 2 });
-const npcNameStyle = (target) => ({ margin: 0, color: theme.text, fontSize: isTable(target) ? 12 : 'clamp(12px, 1.2vw, 18px)' });
-const npcSubStyle = (target) => ({ margin: 0, color: theme.soft, fontSize: isTable(target) ? 11 : 15 });
+const npcNameStyle = (target) => ({ margin: 0, color: theme.text, fontSize: isTable(target) ? 'clamp(14px, 1.1vw, 20px)' : 'clamp(12px, 1.2vw, 18px)' });
+const npcSubStyle = (target) => ({ margin: 0, color: theme.soft, fontSize: isTable(target) ? 'clamp(12px, 0.9vw, 16px)' : 15 });
 const npcDescriptionStyle = { margin: '5px 0 0', color: theme.muted, fontSize: 13, lineHeight: 1.35, maxHeight: 56, overflow: 'hidden' };
 const combatHudShellStyle = { minHeight: 0, height: '100%', display: 'grid', gridTemplateColumns: 'minmax(270px, 340px) minmax(0, 1fr)', gap: 12, animation: 'rqkDisplayReveal 600ms ease both' };
 const combatRosterPanelStyle = { minHeight: 0, display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', gap: 10, padding: 10, background: 'rgba(0,0,0,0.62)', border: `1px solid ${theme.line}`, borderLeft: `7px solid ${theme.red}`, overflow: 'hidden', boxShadow: '0 28px 90px rgba(0,0,0,0.36)' };
@@ -756,7 +835,7 @@ const statsTitleStyle = (target) => ({ margin: 0, fontFamily: titleFont, fontSiz
 const megaNumberStyle = (target) => ({ margin: 0, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(78px, 15vw, 210px)' : 'clamp(120px, 22vw, 330px)', color: theme.text, lineHeight: 0.82 });
 const statsSubtitleStyle = (target) => ({ margin: 0, color: theme.soft, fontSize: isTable(target) ? 'clamp(15px, 2vw, 28px)' : 'clamp(22px, 3vw, 42px)', lineHeight: 1.2 });
 const miniStatGridStyle = (target) => ({ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: isTable(target) ? 8 : 12, marginTop: 8 });
-const statNumberStyle = (hot) => ({ minHeight: 130, display: 'grid', alignContent: 'center', justifyItems: 'center', gap: 6, background: hot ? theme.red : theme.card, border: `1px solid ${theme.line}`, color: theme.text, textAlign: 'center', fontSize: 14, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' });
+const statNumberStyle = (hot) => ({ minHeight: 130, display: 'grid', alignContent: 'center', justifyItems: 'center', gap: 6, background: theme.card, border: `1px solid ${hot ? 'var(--guild-line-hot, #ff4fa3)' : theme.line}`, boxShadow: hot ? 'inset 0 0 30px var(--guild-box-glow-hot, rgba(255,79,163,0.35))' : 'none', borderRadius: 14, color: theme.text, textAlign: 'center', fontSize: 14, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' });
 const awardGridStyle = (target) => ({ display: 'grid', gridTemplateColumns: isTable(target) ? 'repeat(3, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))', gap: isTable(target) ? 9 : 14 });
 const awardCardStyle = { display: 'grid', gap: 6, background: theme.card, padding: 20, border: `1px solid ${theme.line}`, borderLeft: `8px solid ${theme.red}`, textAlign: 'left', fontSize: 'clamp(18px, 2vw, 28px)' };
 const actorListStyle = { display: 'grid', gap: 10, width: 'min(820px, 100%)', justifySelf: 'center' };

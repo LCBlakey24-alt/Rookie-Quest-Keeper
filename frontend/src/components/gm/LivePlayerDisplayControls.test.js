@@ -206,11 +206,12 @@ test('opening the TV or table does not erase the current player display', () => 
     render(<LivePlayerDisplayControls campaignId="campaign-1" campaignName="Test Campaign" />);
     fireEvent.click(screen.getByRole('button', { name: 'Open TV' }));
     expect(open).toHaveBeenCalledWith(
-      '/campaign/campaign-1/player-display?target=standing-tv', '_blank', 'noopener,noreferrer',
+      // One reusable TV window, opened with the one-tap fullscreen prompt.
+      '/campaign/campaign-1/player-display?target=standing-tv&present=1', 'rqk-player-display', expect.stringContaining('popup'),
     );
     fireEvent.click(screen.getByRole('button', { name: 'Open Table' }));
     expect(open).toHaveBeenCalledWith(
-      '/campaign/campaign-1/player-display?target=virtual-table', '_blank', 'noopener,noreferrer',
+      '/campaign/campaign-1/player-display?target=virtual-table&present=1', 'rqk-player-display', expect.stringContaining('popup'),
     );
     expect(publishCampaignDisplayStateWithStatus).not.toHaveBeenCalled();
     expect(toast.success).not.toHaveBeenCalledWith('Display set for Standing TV');
