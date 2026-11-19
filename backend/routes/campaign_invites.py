@@ -5,7 +5,10 @@ from utils.auth import get_current_user, verify_campaign_ownership
 from utils.character_campaign_link import character_belongs_to_campaign, release_character_from_other_campaigns
 from utils.ws_session import CLOSE_FORBIDDEN, REASON_FORBIDDEN, end_live_sessions
 from models import CampaignInvite, CampaignMember
-from utils.prepared_characters import claim_prepared_character, list_prepared_characters
+from utils.prepared_characters import (
+    claim_prepared_character, complete_pending_claim, list_prepared_characters,
+    release_pending_claim, reserve_prepared_character, undo_claim,
+)
 from typing import Dict, Any
 from datetime import datetime, timezone
 import secrets
@@ -65,6 +68,19 @@ async def get_or_create_invite(campaign_id: str, username: str) -> dict:
     }
 
 
+def ensure_invite_usable(invite: dict) -> None:
+    """Refuse an expired or used-up invite (both join and preview)."""
+    if invite.get('expires_at'):
+        try:
+            expires_at = datetime.fromisoformat(invite['expires_at'])
+        except ValueError:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Invite has expired')
+        if expires_at < datetime.now(timezone.utc):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Invite has expired')
+    if invite.get('max_uses') and invite.get('uses', 0) >= invite['max_uses']:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Invite has reached max uses')
+
+
 @router.post('/campaign-invites/join')
 async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depends(get_current_user)):
     """Join a campaign using a GM join code and link one specific character."""
@@ -85,16 +101,7 @@ async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depen
     if not invite:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Invalid join code')
 
-    if invite.get('expires_at'):
-        try:
-            expires_at = datetime.fromisoformat(invite['expires_at'])
-            if expires_at < datetime.now(timezone.utc):
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Invite has expired')
-        except ValueError:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Invite has expired')
-
-    if invite.get('max_uses') and invite.get('uses', 0) >= invite['max_uses']:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Invite has reached max uses')
+    ensure_invite_usable(invite)
 
     campaign_id = invite.get('campaign_id')
     campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0})
@@ -122,7 +129,11 @@ async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depen
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail='You already have an active or pending character in this campaign. Ask the GM to mark it Dead, Retired, or Removed before linking a new one.'
                 )
-        character = await claim_prepared_character(character_id, campaign, username)
+        if requested_member_state == 'active':
+            character = await claim_prepared_character(character_id, campaign, username, database=db)
+        else:
+            # GM approval: reserve it now, hand it over when the GM approves.
+            character = await reserve_prepared_character(character_id, campaign, username, database=db)
     else:
         character = await db.player_characters.find_one({'id': character_id, 'user_id': username}, {'_id': 0})
     if not character:
@@ -172,6 +183,17 @@ async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depen
         await db.campaign_members.insert_one(member_doc)
         await db.campaign_invites.update_one({'code': code}, {'$inc': {'uses': 1}})
 
+    if claiming and final_member_state == 'active':
+        # Two joins at once can both pass the one-character check. Whichever
+        # character the roster ended up holding wins; any other claim is undone.
+        settled = await db.campaign_members.find_one({'campaign_id': campaign_id, 'user_id': username}, {'_id': 0})
+        if not settled or settled.get('character_id') != character_id:
+            await undo_claim(character_id, campaign, username, database=db)
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail='You already have a character in this campaign.',
+            )
+
     # The character now belongs here: release it from any other campaign's roster.
     await release_character_from_other_campaigns(db, character_id, campaign_id)
     await db.player_characters.update_one(
@@ -180,13 +202,16 @@ async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depen
             'campaign_id': campaign_id,
             'campaign_name': campaign.get('name', 'Untitled Campaign'),
             'campaign_join_status': final_member_state,
+            # Linking a character to play somewhere takes it off any GM offer.
+            'prepared_for_campaign_id': None,
+            'claim_pending_by': None,
             'updated_at': datetime.now(timezone.utc).isoformat(),
         }}
     )
 
     message = 'Character linked to campaign' if final_member_state == 'active' else 'Character submitted for GM approval'
     if claiming:
-        message = 'Character claimed and linked to campaign' if final_member_state == 'active' else 'Character claimed and sent to the GM for approval'
+        message = 'Character claimed and linked to campaign' if final_member_state == 'active' else 'Character held for you until the GM approves'
     return {
         'message': message,
         'status': final_member_state,
@@ -215,6 +240,7 @@ async def preview_campaign_by_code(join_data: Dict[str, Any], username: str = De
     invite = await db.campaign_invites.find_one({'code': code}, {'_id': 0})
     if not invite:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Invalid join code')
+    ensure_invite_usable(invite)
     campaign = await db.campaigns.find_one({'id': invite.get('campaign_id')}, {'_id': 0, 'id': 1, 'name': 1, 'dm_user_id': 1, 'join_mode': 1, 'join_code_enabled': 1})
     if not campaign or campaign.get('join_code_enabled', True) is False:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Invalid join code')
@@ -222,7 +248,7 @@ async def preview_campaign_by_code(join_data: Dict[str, Any], username: str = De
     return {
         'campaign': {'id': campaign['id'], 'name': campaign.get('name', 'Untitled Campaign'), 'join_mode': campaign.get('join_mode', 'gm_approval')},
         'is_gm': is_gm,
-        'prepared_characters': [] if is_gm else await list_prepared_characters(campaign['id'], campaign.get('dm_user_id')),
+        'prepared_characters': [] if is_gm else await list_prepared_characters(campaign['id'], campaign.get('dm_user_id'), database=db),
     }
 
 
@@ -292,6 +318,19 @@ async def update_campaign_member_status(campaign_id: str, member_id: str, status
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Campaign member not found')
 
     member = await db.campaign_members.find_one({'id': member_id, 'campaign_id': campaign_id}, {'_id': 0})
+    if member and member.get('character_id'):
+        # A player who reserved a GM-prepared character: approval hands it
+        # over; turning them away puts it back on offer.
+        campaign = await db.campaigns.find_one({'id': campaign_id}, {'_id': 0}) or {'id': campaign_id, 'dm_user_id': username}
+        if next_state == 'active':
+            if await complete_pending_claim(member, campaign, database=db):
+                await release_character_from_other_campaigns(db, member.get('character_id'), campaign_id)
+        elif next_state != 'pending' and await release_pending_claim(member, campaign, database=db):
+            await db.campaign_members.update_one(
+                {'id': member_id, 'campaign_id': campaign_id},
+                {'$set': {'character_id': None, 'released_character_id': member.get('character_id')}},
+            )
+            member['character_id'] = None
     if member and member.get('character_id'):
         # Only a character that is still in this campaign: a GM cannot change
         # the status of a character that has moved to someone else's campaign.

@@ -2,10 +2,10 @@ import React from 'react';
 
 /** Road styles the GM can pick; any other saved terrain_type draws as a road. */
 export const ROAD_TYPES = [
-  { id: 'road', label: 'Road', colour: '#f4d58d', dash: '' },
-  { id: 'trail', label: 'Trail', colour: '#e8c9a0', dash: '9 6' },
-  { id: 'river', label: 'River route', colour: '#7cc4ff', dash: '' },
-  { id: 'sea', label: 'Sea route', colour: '#9fd8ff', dash: '2 7' },
+  { id: 'road', label: 'Road', colour: 'var(--rq-map-road, #f4d58d)', dash: '' },
+  { id: 'trail', label: 'Trail', colour: 'var(--rq-map-trail, #e8c9a0)', dash: '9 6' },
+  { id: 'river', label: 'River route', colour: 'var(--rq-map-river, #7cc4ff)', dash: '' },
+  { id: 'sea', label: 'Sea route', colour: 'var(--rq-map-sea, #9fd8ff)', dash: '2 7' },
 ];
 
 export const roadType = (id) => ROAD_TYPES.find((type) => type.id === id) || ROAD_TYPES[0];
@@ -66,8 +66,8 @@ export default function WorldRoads({ paths, pins, onSelect, highlightPinId }) {
           const linked = highlightPinId && (from.id === highlightPinId || to.id === highlightPinId);
           return (
             <g key={path.id}>
-              <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke="#120a1f" strokeWidth={linked ? 7 : 6} strokeLinecap="round" vectorEffect="non-scaling-stroke" opacity="0.65" />
-              <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke={type.colour} strokeWidth={linked ? 4 : 3} strokeLinecap="round" vectorEffect="non-scaling-stroke"
+              <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} style={{ stroke: 'var(--rq-map-road-casing, #120a1f)' }} strokeWidth={linked ? 7 : 6} strokeLinecap="round" vectorEffect="non-scaling-stroke" opacity="0.65" />
+              <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} style={{ stroke: type.colour }} strokeWidth={linked ? 4 : 3} strokeLinecap="round" vectorEffect="non-scaling-stroke"
                 strokeDasharray={type.dash || undefined} />
             </g>
           );
@@ -84,12 +84,17 @@ export default function WorldRoads({ paths, pins, onSelect, highlightPinId }) {
             data-testid={`world-road-${path.id}`}
             style={{
               position: 'absolute', left: `${(from.x + to.x) / 2}%`, top: `${(from.y + to.y) / 2}%`, transform: 'translate(-50%, -50%)',
-              zIndex: 2, minHeight: 28, padding: '2px 8px', borderRadius: 999, cursor: 'pointer', whiteSpace: 'nowrap',
-              background: 'var(--guild-bg, #0a0612)', color: 'var(--guild-text, #fff)', fontSize: 11, fontWeight: 800,
-              border: `1px solid ${roadType(path.terrain_type).colour}`,
+              zIndex: 2, minHeight: 44, minWidth: 44, padding: 0, border: 0, background: 'transparent', cursor: 'pointer',
+              display: 'inline-grid', placeItems: 'center',
             }}
           >
-            {label}
+            {/* The pill stays small on the map; the button around it is a full 44px target. */}
+            <span style={{
+              padding: '2px 8px', borderRadius: 999, whiteSpace: 'nowrap', background: 'var(--guild-bg, #0a0612)',
+              color: 'var(--guild-text, #fff)', fontSize: 11, fontWeight: 800, border: `1px solid ${roadType(path.terrain_type).colour}`,
+            }}>
+              {label}
+            </span>
           </button>
         );
       })}

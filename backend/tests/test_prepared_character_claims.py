@@ -192,3 +192,81 @@ def test_the_gm_previewing_their_own_code_sees_no_claim_list(db):
     run(prepared.offer_prepared_character('camp', {'character_id': 'ready'}, username='gm'))
     preview = run(invites.preview_campaign_by_code({'join_code': 'ABC123'}, username='gm'))
     assert preview['is_gm'] is True and preview['prepared_characters'] == []
+
+
+@pytest.fixture
+def approval_db(db, monkeypatch):
+    db.campaigns.docs[0]['join_mode'] = 'gm_approval'
+    async def ok(*_args, **_kwargs):
+        return None
+    monkeypatch.setattr(invites, 'verify_campaign_ownership', ok)
+    monkeypatch.setattr(invites, 'end_live_sessions', ok)
+    return db
+
+
+def character(db, character_id):
+    return next(d for d in db.player_characters.docs if d['id'] == character_id)
+
+
+def test_gm_approval_reserves_the_character_and_approval_hands_it_over(approval_db):
+    db = approval_db
+    run(prepared.offer_prepared_character('camp', {'character_id': 'ready'}, username='gm'))
+    result = run(invites.join_campaign_by_code({'join_code': 'ABC123', 'prepared_character_id': 'ready'}, username='player-a'))
+    assert result['status'] == 'pending'
+    # Nothing changes hands yet, and no one else can take it meanwhile.
+    assert character(db, 'ready')['user_id'] == 'gm'
+    assert character(db, 'ready')['claim_pending_by'] == 'player-a'
+    assert run(invites.preview_campaign_by_code({'join_code': 'ABC123'}, username='player-b'))['prepared_characters'] == []
+    with pytest.raises(HTTPException):
+        run(invites.join_campaign_by_code({'join_code': 'ABC123', 'prepared_character_id': 'ready'}, username='player-b'))
+
+    member = db.campaign_members.docs[0]
+    run(invites.update_campaign_member_status('camp', member['id'], {'status': 'active'}, username='gm'))
+    ready = character(db, 'ready')
+    assert (ready['user_id'], ready['campaign_id'], ready['prepared_for_campaign_id'], ready['claim_pending_by']) == ('player-a', 'camp', None, None)
+
+
+def test_turning_a_reserving_player_away_puts_the_character_back_on_offer(approval_db):
+    db = approval_db
+    run(prepared.offer_prepared_character('camp', {'character_id': 'ready'}, username='gm'))
+    run(invites.join_campaign_by_code({'join_code': 'ABC123', 'prepared_character_id': 'ready'}, username='player-a'))
+    member = db.campaign_members.docs[0]
+    run(invites.update_campaign_member_status('camp', member['id'], {'status': 'removed'}, username='gm'))
+    assert character(db, 'ready')['user_id'] == 'gm'
+    assert character(db, 'ready')['claim_pending_by'] is None
+    assert db.campaign_members.docs[0]['character_id'] is None
+    assert [c['id'] for c in run(invites.preview_campaign_by_code({'join_code': 'ABC123'}, username='player-b'))['prepared_characters']] == ['ready']
+
+
+def test_withdrawing_a_reserved_character_releases_the_waiting_player(approval_db):
+    db = approval_db
+    run(prepared.offer_prepared_character('camp', {'character_id': 'ready'}, username='gm'))
+    run(invites.join_campaign_by_code({'join_code': 'ABC123', 'prepared_character_id': 'ready'}, username='player-a'))
+    run(prepared.withdraw_prepared_character('camp', 'ready', username='gm'))
+    assert character(db, 'ready')['claim_pending_by'] is None
+    assert db.campaign_members.docs[0]['character_id'] is None
+
+
+def test_a_character_the_gm_is_playing_elsewhere_cannot_be_claimed(db):
+    run(prepared.offer_prepared_character('camp', {'character_id': 'ready'}, username='gm'))
+    character(db, 'ready')['campaign_id'] = 'someone-elses-campaign'
+    assert run(invites.preview_campaign_by_code({'join_code': 'ABC123'}, username='player-a'))['prepared_characters'] == []
+    with pytest.raises(HTTPException) as taken:
+        run(invites.join_campaign_by_code({'join_code': 'ABC123', 'prepared_character_id': 'ready'}, username='player-a'))
+    assert taken.value.status_code == 409
+    assert character(db, 'ready')['user_id'] == 'gm'
+
+
+def test_joining_with_an_offered_character_takes_it_off_offer(db):
+    db.campaigns.docs.append({'id': 'other', 'name': 'Other', 'dm_user_id': 'other-gm', 'join_mode': 'auto_accept'})
+    db.campaign_invites.docs.append({'code': 'OTHER1', 'campaign_id': 'other', 'uses': 0, 'expires_at': None})
+    run(prepared.offer_prepared_character('camp', {'character_id': 'ready'}, username='gm'))
+    run(invites.join_campaign_by_code({'join_code': 'OTHER1', 'character_id': 'ready'}, username='gm'))
+    assert character(db, 'ready')['prepared_for_campaign_id'] is None
+
+
+def test_an_expired_code_shows_nothing(db):
+    db.campaign_invites.docs[0]['expires_at'] = '2020-01-01T00:00:00+00:00'
+    with pytest.raises(HTTPException) as expired:
+        run(invites.preview_campaign_by_code({'join_code': 'ABC123'}, username='player-a'))
+    assert expired.value.status_code == 400

@@ -195,7 +195,10 @@ export default function WorldMapTab({ campaignId }) {
     setSaving(true);
     try {
       if (editingRoad) {
-        await apiClient.put(`/campaigns/${campaignId}/world-maps/${mapId}/paths/${editingRoad.id}`, payload);
+        const changes = Object.fromEntries(Object.entries(payload).filter(([key, value]) =>
+          !['from_pin_id', 'to_pin_id'].includes(key) && value !== (editingRoad[key] ?? (key === 'notes' ? '' : undefined))));
+        if (!Object.keys(changes).length) { closeRoad(); setSaving(false); return; }
+        await apiClient.put(`/campaigns/${campaignId}/world-maps/${mapId}/paths/${editingRoad.id}`, changes);
         updateMapPaths(mapId, paths => paths.map(path => (path.id === editingRoad.id ? { ...path, ...payload } : path)));
         toast.success('Road updated');
       } else {

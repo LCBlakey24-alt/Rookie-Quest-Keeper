@@ -88,3 +88,18 @@ test('Road tool: pick two pins, enter a distance, see travel time, save', async 
   await waitFor(() => expect(apiClient.post).toHaveBeenCalledWith('/campaigns/c1/world-maps/world-1/paths', expect.objectContaining({ from_pin_id: 'pin-b', to_pin_id: 'pin-f', distance_value: 48, terrain_type: 'road' })));
   expect(await screen.findByRole('button', { name: /Road from Balderin to Old Fort, 48 mi/ })).toBeInTheDocument();
 });
+
+test('editing a road sends only what changed, never its end pins', async () => {
+  const road = { id: 'road-1', from_pin_id: 'pin-b', to_pin_id: 'pin-f', distance_value: 48, distance_unit: 'miles', terrain_type: 'road', notes: '' };
+  apiClient.get.mockImplementation((url) => {
+    if (url.endsWith('/world-maps')) return Promise.resolve({ data: [{ ...world, paths: [road] }] });
+    if (url.endsWith('/local-maps')) return Promise.resolve({ data: [balderinMap] });
+    return Promise.resolve({ data: [] });
+  });
+  apiClient.put.mockResolvedValue({ data: {} });
+  render(<WorldMapTab campaignId="c1" />);
+  fireEvent.click(await screen.findByRole('button', { name: /Road from Balderin to Old Fort, 48 mi/ }));
+  fireEvent.change(screen.getByTestId('road-distance'), { target: { value: '60' } });
+  fireEvent.click(screen.getByTestId('road-save'));
+  await waitFor(() => expect(apiClient.put).toHaveBeenCalledWith('/campaigns/c1/world-maps/world-1/paths/road-1', { distance_value: 60 }));
+});
