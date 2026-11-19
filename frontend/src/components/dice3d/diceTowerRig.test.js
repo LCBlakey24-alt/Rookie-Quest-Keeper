@@ -126,3 +126,19 @@ describe('the spiral, funnel and peg shapes', () => {
     expect(plan.positions.every(inTray)).toBe(true);
   });
 });
+
+describe('planning a tower throw in slices', () => {
+  const { planThrowSteps } = jest.requireActual('./diceTrayScene');
+  const { towerRigFor } = jest.requireActual('./diceTowerRig');
+
+  test('pauses along the way and ends on exactly the throw planThrow picks', () => {
+    const specs = [spec(20, 14), spec(20, 3)];
+    const rig = towerRigFor('spiral');
+    const planner = planThrowSteps(specs, 2024, rig);
+    let pauses = 0;
+    let step = planner.next();
+    while (!step.done) { pauses += 1; step = planner.next(); }
+    expect(pauses).toBeGreaterThan(10);
+    expect(step.value).toEqual(planThrow(specs, 2024, rig));
+  });
+});

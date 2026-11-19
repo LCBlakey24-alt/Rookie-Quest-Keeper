@@ -219,7 +219,13 @@ export default function DiceTray3DOverlay(props) {
     };
     applySize();
 
-    const thrown = tray.roll(specsRef.current, { seed: seedRef.current, onSettled: handleSettled });
+    // A tower plans while its wide shot plays; if no throw lands every die it
+    // reports back here and this roll uses the ordinary tray instead.
+    const thrown = tray.roll(specsRef.current, {
+      seed: seedRef.current,
+      onSettled: handleSettled,
+      onFailed: () => setTowerFailed(true),
+    });
     if (!thrown) {
       // No seed produced a throw where every die landed flat.
       tray.dispose();

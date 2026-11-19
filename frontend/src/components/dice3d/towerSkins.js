@@ -303,6 +303,8 @@ export function buildTower(skinId) {
     skin,
     group,
     update: life.update,
+    celebrate: life.celebrate,
+    busy: life.busy,
     dispose() {
       life.dispose();
       const seen = new Set();

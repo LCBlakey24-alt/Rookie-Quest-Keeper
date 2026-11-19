@@ -21,7 +21,7 @@ const REVEAL_DELAY = 360;
 const TRAY_REVEAL_CEILING = 13500;
 // The tower's drop is longer: its longest replay (longestReplayMs('tower'),
 // 20 s) plus the camera coming down to the dice and the pause.
-const TOWER_REVEAL_CEILING = 24000; // includes the 1.8 s wide shot before the drop
+const TOWER_REVEAL_CEILING = 28000; // includes the wide shot, which also covers planning the throw
 const REDUCED_MOTION_REVEAL_DELAY = 90;
 const HOLD_AFTER_REVEAL = 6000;
 
