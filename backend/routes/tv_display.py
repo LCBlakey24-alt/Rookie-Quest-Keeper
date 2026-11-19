@@ -87,7 +87,9 @@ async def tv_display_state(code: str):
     for key in PRIVATE_STATE_KEYS:
         state.pop(key, None)
     projection = {'_id': 0, **{field: 1 for field in PARTY_FIELDS}}
-    characters = await db.player_characters.find({'campaign_id': campaign_id}, projection).to_list(50)
+    characters = await db.player_characters.find({'campaign_id': campaign_id}, {**projection, 'campaign_join_status': 1}).to_list(50)
+    # Only the table's actual party: nobody still waiting for the GM, removed or gone.
+    characters = [item for item in characters if str(item.get('campaign_join_status') or 'active').lower() == 'active']
     return {
         'campaign_name': (campaign or {}).get('name') or 'Campaign',
         'state': state,

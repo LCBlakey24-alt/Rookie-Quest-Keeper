@@ -74,6 +74,8 @@ def db(monkeypatch):
         }]),
         player_characters=Collection([
             {'id': 'p1', 'campaign_id': 'camp', 'name': 'Synthetic Ranger', 'character_class': 'Ranger', 'level': 3, 'user_id': 'player-a', 'notes': 'private'},
+            {'id': 'p2', 'campaign_id': 'camp', 'name': 'Waiting Stranger', 'campaign_join_status': 'pending', 'user_id': 'stranger'},
+            {'id': 'p3', 'campaign_id': 'camp', 'name': 'Removed Rogue', 'campaign_join_status': 'removed', 'user_id': 'gone'},
         ]),
     )
     async def owner(campaign_id, username):
@@ -124,3 +126,9 @@ def test_only_the_gm_can_make_or_read_the_code(db):
         with pytest.raises(HTTPException) as denied:
             run(action('camp', username='player-a'))
         assert denied.value.status_code == 403
+
+
+def test_tv_link_lookups_are_rate_limited_by_address():
+    from utils.rate_limit import ANONYMOUS_PREFIXES, match_rule
+    assert match_rule('GET', '/api/tv/ABCD2345/display-state')[1:] == (120, 60)
+    assert '/api/tv/' in ANONYMOUS_PREFIXES

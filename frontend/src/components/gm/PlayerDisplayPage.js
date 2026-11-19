@@ -174,17 +174,20 @@ export default function PlayerDisplayPage({ tvCode = '' }) {
   useEffect(() => {
     if (!tvMode) return undefined;
     let cancelled = false;
+    let latestRequest = 0;
     const read = async () => {
+      // A slow earlier reply must never replace a newer one.
+      const request = ++latestRequest;
       try {
         const response = await apiClient.get(`/tv/${encodeURIComponent(tvCode)}/display-state`);
-        if (cancelled) return;
+        if (cancelled || request !== latestRequest) return;
         const data = response.data || {};
         setTvCampaignId(data.state?.campaign_id || '');
         setState(data.state || { mode: 'blank', payload: {} });
         setParty((Array.isArray(data.party) ? data.party : []).map(normalisePartyMember).filter(member => member?.name));
         setSyncStatus('synced');
       } catch (error) {
-        if (cancelled) return;
+        if (cancelled || request !== latestRequest) return;
         if (error?.response?.status === 404) {
           setState({ mode: 'blank', payload: {} });
           setParty([]);
