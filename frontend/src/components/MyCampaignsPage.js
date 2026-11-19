@@ -420,7 +420,7 @@ export default function MyCampaignsPage() {
                   </div>
                   <p className="campaign-card-primary-line">{campaignMeta(campaign)}</p>
                   <p className="campaign-card-description">{campaignDescription(campaign)}</p>
-                  <p className="campaign-card-meta-line">Updated {formatDate(campaign?.updated_at || campaign?.created_at)}</p>
+                  <p className="campaign-card-meta-line">{(campaign?.updated_at || campaign?.created_at) ? `Updated ${formatDate(campaign?.updated_at || campaign?.created_at)}` : 'Not updated yet'}</p>
                 </div>
 
                 <div className="campaign-card-actions campaign-card-actions--simple">

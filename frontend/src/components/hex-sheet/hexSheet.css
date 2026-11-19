@@ -162,6 +162,7 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .hex-sheet__crumbs { list-style: none; display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; font-size: 0.8rem; color: var(--hex-muted); }
 .hex-sheet__crumbs li + li::before { content: '›'; margin-right: 4px; color: var(--hex-orange); }
 .hex-sheet__crumbs li[aria-current] { color: var(--hex-text); font-weight: 700; }
+.hex-sheet__crumbs.is-root { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
 
 /* Wheel ----------------------------------------------------------------- */
 .hex-sheet__wheel-area {
