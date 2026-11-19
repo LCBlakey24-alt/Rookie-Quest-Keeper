@@ -96,11 +96,24 @@ const signed = n => (n >= 0 ? `+${n}` : `${n}`);
 const list = value => (Array.isArray(value) ? value.filter(Boolean) : []);
 
 /** Fill any missing parts so older saved items still open in the builder. */
+export function inferItemKind(value = {}) {
+  if (ITEM_KINDS.some(k => k.id === value.kind)) return value.kind;
+  const text = `${value.type || ''} ${value.item_type || ''}`.toLowerCase();
+  if (/shield/.test(text)) return 'shield';
+  if (/armou?r/.test(text)) return 'armour';
+  if (/weapon/.test(text)) return 'weapon';
+  if (/potion|scroll|consumable|ammunition/.test(text)) return 'consumable';
+  if (/tool|gear/.test(text)) return 'gear';
+  // Older saved magic items were mostly wondrous items: rings, cloaks...
+  return value.name || value.type ? 'wearable' : 'weapon';
+}
+
 export function normaliseItemDraft(value = {}) {
-  const base = emptyItemDraft(ITEM_KINDS.some(k => k.id === value.kind) ? value.kind : 'weapon');
+  const base = emptyItemDraft(inferItemKind(value));
   return {
     ...base,
     ...value,
+    kind: base.kind,
     weapon: { ...base.weapon, ...(value.weapon || {}) },
     armour: { ...base.armour, ...(value.armour || {}) },
     shield: { ...base.shield, ...(value.shield || {}) },
