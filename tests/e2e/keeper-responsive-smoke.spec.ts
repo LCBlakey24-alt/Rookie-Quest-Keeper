@@ -209,7 +209,7 @@ for (const size of appSizes) {
     const source = battlefield.getByRole('group', { name: 'Battlefield source' });
     const savedMode = source.getByRole('button', { name: 'Saved battle map' });
     const genericMode = source.getByRole('button', { name: 'Generic textured floor' });
-    const noneMode = source.getByRole('button', { name: 'No selection' });
+    const noneMode = source.getByRole('button', { name: 'Plain stone floor' });
     const reset = launcher.getByRole('button', { name: 'Reset review' });
     await expect(noneMode).toHaveAttribute('aria-pressed', 'true');
     const targets = [choice, savedMode, genericMode, noneMode, reset, launch];
