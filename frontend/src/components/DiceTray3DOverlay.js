@@ -6,7 +6,8 @@ import { createDiceTray, expandPercentileDice, specForDie } from '@/components/d
 import { seedFromKey } from '@/components/dice3d/diceFaceReading';
 import { getDye } from '@/components/dice3d/diceDyes';
 import { HEX_CLIP, locateHexWindow } from '@/components/dice3d/hexWindow';
-import { TOWER_MAX_DICE } from '@/components/dice3d/diceTowerRig';
+import { TOWER_MAX_DICE, towerRigFor } from '@/components/dice3d/diceTowerRig';
+import { getTowerSkinInfo } from '@/components/dice3d/towerSkinCatalog';
 import { loadDiceDyeId } from '@/lib/diceDyePreference';
 import './DiceTray3DOverlay.css';
 
@@ -202,7 +203,7 @@ export default function DiceTray3DOverlay(props) {
 
     let tray;
     try {
-      tray = createDiceTray({ canvas, palette, frameScale: isHex ? HEX_FRAME_SCALE : 1, rig: useTower ? 'tower' : 'tray', towerSkin });
+      tray = createDiceTray({ canvas, palette, frameScale: isHex ? HEX_FRAME_SCALE : 1, rig: useTower ? towerRigFor(getTowerSkinInfo(towerSkin).shape) : 'tray', towerSkin });
     } catch (error) {
       canvas.remove();
       setFailed(true);

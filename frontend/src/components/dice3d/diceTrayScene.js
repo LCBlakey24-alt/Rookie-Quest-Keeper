@@ -49,7 +49,7 @@ import { atlasColumns, buildDieGeometry, drawFaceAtlas, faceLayouts } from './di
 import { assignFaceValues, faceConfidence, seededRandom, settledFaceIndex } from './diceFaceReading';
 import { PERCENTILE_UNITS_VALUES, faceNormals, shapeForSides } from './diceShapes';
 import { createStudioScene } from './studioEnvironment';
-import { TOWER, TOWER_LIMITS, addTowerColliders, inTray, towerStart } from './diceTowerRig';
+import { TOWER, TOWER_LIMITS, addTowerColliders, inTray, isTowerRig, towerShapeOf, towerStart } from './diceTowerRig';
 import { buildTower } from './towerSkins';
 
 const TRAY_HALF = 3.5;
@@ -117,7 +117,7 @@ export function longestReplayMs(rig = 'tray') {
 
 /** Step limits for a rig: the tower's drop takes longer than a throw. */
 export function limitsFor(rig = 'tray') {
-  return rig === 'tower' ? TOWER_LIMITS : { maxSteps: MAX_STEPS, quickSteps: QUICK_STEPS };
+  return isTowerRig(rig) ? TOWER_LIMITS : { maxSteps: MAX_STEPS, quickSteps: QUICK_STEPS };
 }
 const COCKED_THRESHOLD = 0.86;
 /**
@@ -158,7 +158,7 @@ function trayWorld(rig = 'tray') {
     return body;
   };
 
-  const tower = rig === 'tower';
+  const tower = isTowerRig(rig);
   addPlane([0, 0, 0], [-Math.PI / 2, 0, 0]);                    // floor
   // The tower is taller than the tray's lid, so its lid sits above the tube.
   addPlane([0, tower ? TOWER.top + 14 : WALL_HEIGHT, 0], [Math.PI / 2, 0, 0]); // ceiling
@@ -166,7 +166,7 @@ function trayWorld(rig = 'tray') {
   addPlane([TRAY_HALF, 0, 0], [0, -Math.PI / 2, 0]);            // right
   // An endless back plane would seal the tower's mouth; the tower brings
   // its own back wall either side of the opening.
-  if (tower) world.towerDiceMaterial = addTowerColliders(world);
+  if (tower) world.towerDiceMaterial = addTowerColliders(world, towerShapeOf(rig));
   else addPlane([0, 0, -TRAY_HALF], [0, 0, 0]);                 // back
   addPlane([0, 0, TRAY_HALF], [0, Math.PI, 0]);                 // front
 
@@ -190,7 +190,7 @@ function throwBodies(world, specs, random, rig = 'tray') {
     const solid = spec.solid;
     const bulk = DIE_BULK[spec.sides] || 1;
     const scale = (DIE_RADIUS * bulk) / Math.max(...solid.vertices.map((v) => Math.hypot(...v)));
-    if (rig === 'tower') {
+    if (isTowerRig(rig)) {
       // Dropped into the top of the tube; the baffles do the tumbling.
       //
       // Inside the tube a die collides as a ball. cannon-es box-versus-
@@ -201,7 +201,7 @@ function throwBodies(world, specs, random, rig = 'tray') {
       // tumbles: it follows the ball's spin.
       const hull = hullFor(solid, scale);
       const body = new CANNON.Body({ mass: 1, shape: new CANNON.Sphere(DIE_RADIUS * bulk * TOWER_BALL) });
-      const start = towerStart(index, random);
+      const start = towerStart(index, random, towerShapeOf(rig));
       body.material = world.towerDiceMaterial || null;
       body.position.set(...start.position);
       body.quaternion.setFromEuler(random() * Math.PI * 2, random() * Math.PI * 2, random() * Math.PI * 2);
@@ -297,7 +297,7 @@ export function simulateThrow(specs, seed, rig = 'tray') {
   while (steps < maxSteps && still < REST_HOLD_STEPS) {
     world.step(STEP);
     steps += 1;
-    if (rig === 'tower') enterTray(entries);
+    if (isTowerRig(rig)) enterTray(entries);
     still = atRest(entries) ? still + 1 : 0;
   }
 
@@ -354,7 +354,7 @@ export function planThrow(specs, baseSeed, rig = 'tray') {
     const outcome = simulateThrow(specs, seed, rig);
     if (!outcome) continue;
     // A die still in the tube (resting on a baffle) cannot be shown.
-    if (rig === 'tower' && !outcome.positions.every(inTray)) continue;
+    if (isTowerRig(rig) && !outcome.positions.every(inTray)) continue;
 
     if (landedCentrally(outcome.positions) && outcome.steps <= quickSteps) return build(seed, outcome.faces, outcome.positions);
     if (!reserve) reserve = build(seed, outcome.faces, outcome.positions);
@@ -548,7 +548,7 @@ export const TOWER_CAMERA_MS = 950;
 const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2);
 
 export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = true, rig = 'tray', towerSkin = null }) {
-  const tower = rig === 'tower';
+  const tower = isTowerRig(rig);
   const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setClearColor(0x000000, 0);
   renderer.shadowMap.enabled = true;
