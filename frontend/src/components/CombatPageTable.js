@@ -26,6 +26,7 @@ import { isPlayerVisibleCombatToken } from '@/data/playerDisplayCombatTokens';
 import { createGenericCombatMap, GENERIC_COMBAT_TERRAINS, normaliseCombatTerrain } from '@/data/genericCombatTerrain';
 import { combatantSide, startingSquares } from '@/data/encounterPlacement';
 import { createDisplayState, publishCampaignDisplayState, publishDisplayState } from '@/lib/liveDisplayBus';
+import { campaignCreationRoute } from '@/components/gm/dashboard/campaignModeNavigation';
 import {
   combatStateSnapshot,
   queueOfflineCombatClose,
@@ -86,6 +87,12 @@ function inventoryPayload(item = {}, round = 1) {
     properties: safeArray(item.properties),
     equip_slot: item.equip_slot || '',
   };
+}
+
+// A fight returns to where it was started: Live Play, or the Creation
+// Mode encounter tools (not the mode chooser, which costs an extra click).
+export function endOfCombatRoute(source, campaignId) {
+  return source === 'live-play' ? `/gm-screen/${campaignId}` : campaignCreationRoute(campaignId, 'combat');
 }
 
 function initialiseCombatant(source, index) {
@@ -841,7 +848,7 @@ export default function CombatPageTable() {
     toast.success(details.length
       ? `Combat ended offline · ${details.join(' + ')} queued for sync`
       : 'Combat ended offline · reconnect cleanup queued');
-    navigate(source === 'live-play' ? `/gm-screen/${campaignId}` : `/campaign/${campaignId}`, { replace: true });
+    navigate(endOfCombatRoute(source, campaignId), { replace: true });
     return true;
   };
 
@@ -893,7 +900,7 @@ export default function CombatPageTable() {
       toast.success(cleanupQueued
         ? 'Combat ended and player state saved · display cleanup will retry automatically'
         : 'Combat ended and player state saved');
-      navigate(source === 'live-play' ? `/gm-screen/${campaignId}` : `/campaign/${campaignId}`, { replace: true });
+      navigate(endOfCombatRoute(source, campaignId), { replace: true });
     } catch (error) {
       toast.error(error?.response?.data?.detail || error?.message || 'Could not safely end combat. The fight is still open so you can retry.');
     }
@@ -1403,6 +1410,12 @@ const combatCss = `
   .combat-collect-loot, .combat-loot-save { border-color: ${rq.pink}; background: rgba(var(--guild-h3-rgb),.10); color: ${rq.text}; }
   .combat-order-tools { display: grid; grid-template-columns: minmax(80px,1fr) auto auto auto; gap: 4px; align-items: end; }
   .combat-order-tools button { min-height: 34px; border: 1px solid ${rq.line}; background: ${rq.panel}; color: ${rq.soft}; padding: 0 7px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 9px; font-weight: 900; }
+  /* Fingers mid-fight: 44px targets on touch screens; desktop stays compact. */
+  @media (pointer: coarse) {
+    .combat-condition-grid button, .combat-order-tools button, .combat-order-tools input,
+    .combat-quick-hp button, .combat-quick-hp input, .combat-initiative-tools button { min-height: 44px; }
+    .combat-condition-grid button { font-size: 11px; }
+  }
   .combat-order-tools .remove { color: #fca5a5; }
   .combat-map-toolbar { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
   .combat-map-toolbar select { flex: 1 1 160px; min-height: 44px; min-width: 0; background: ${rq.panel}; border: 1px solid ${rq.line}; color: ${rq.text}; padding: 0 7px; }
