@@ -89,9 +89,9 @@ export const TOWER_MID_Z = (INNER_FRONT + TOWER.back) / 2;
 const MID_Z = TOWER_MID_Z;
 
 /** Spiral: a helix ramp round a pole, inside a ring wall. Angles run so the helix ends at the front. */
-const HELIX_TURNS = 1.3;
+const HELIX_TURNS = 1.0;
 export const HELIX = Object.freeze({
-  top: 12.0, bottom: 5.0, turns: HELIX_TURNS, segments: 36, inner: 0.2, outer: 1.8, pole: 0.15,
+  top: 12.0, bottom: 5.0, turns: HELIX_TURNS, segments: 44, inner: 0.2, outer: 1.8, pole: 0.15,
   start: Math.PI / 2 - HELIX_TURNS * Math.PI * 2,
 });
 
@@ -199,18 +199,16 @@ function pegDeflectors() {
 }
 
 /**
- * Round colliders: the pegs' bars (across the tube, along x) and the
- * spiral's pole (upright). { centre, radius, length, axis: 'x' | 'y' }.
+ * Round colliders: the pegs' bars, across the tube along x.
+ * { centre, radius, length, axis: 'x' | 'y' }.
  */
 export function towerCylinders(shape = 'classic') {
   if (shape === 'pegs') {
     return PEG_ROWS.filter((row) => row.kind === 'bar').map((row) => ({ part: 'peg', centre: [0, row.y, MID_Z], radius: PEG_RADIUS, length: TOWER.width, axis: 'x' }));
   }
-  if (shape === 'spiral') {
-    const y0 = HELIX.bottom - 0.4;
-    const y1 = HELIX.top + 1.2;
-    return [{ part: 'pole', centre: [0, (y0 + y1) / 2, MID_Z], radius: HELIX.pole, length: y1 - y0, axis: 'y' }];
-  }
+  // The spiral's glowing core is drawn but is not a collider: a d4 (the
+  // biggest die) only just fits between a pole and the wall and could wedge.
+  // The gap in the helix's middle is far narrower than any die.
   return [];
 }
 

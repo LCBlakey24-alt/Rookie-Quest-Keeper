@@ -76,3 +76,53 @@ describe('tower designs', () => {
     });
   });
 });
+
+describe('the spiral, funnel and peg shapes', () => {
+  const { FUNNEL, HELIX, PEG_RADIUS, PEG_ROWS, TOWER_MID_Z, towerRigFor, towerShapeOf, isTowerRig } = jest.requireActual('./diceTowerRig');
+  const BIGGEST_BALL = 0.9 * 1.06 * 0.82 * 2; // a d4's ball inside the tube
+  const innerFront = TOWER.front - TOWER.wall;
+
+  test('name a rig the scene understands, and round-trip', () => {
+    ['classic', 'spiral', 'funnel', 'pegs'].forEach((shape) => {
+      expect(isTowerRig(towerRigFor(shape))).toBe(true);
+      expect(towerShapeOf(towerRigFor(shape))).toBe(shape);
+    });
+    expect(towerRigFor('classic')).toBe('tower');
+    expect(isTowerRig('tray')).toBe(false);
+    expect(towerShapeOf('tower:nonsense')).toBe('classic');
+  });
+
+  test('stay inside the tube, clear of the glass', () => {
+    expect(TOWER_MID_Z + HELIX.outer).toBeLessThanOrEqual(innerFront + 1e-9);
+    expect(TOWER_MID_Z + FUNNEL.rim).toBeLessThanOrEqual(innerFront + 1e-9);
+    expect(TOWER_MID_Z - HELIX.outer).toBeGreaterThanOrEqual(TOWER.back - 1e-9);
+  });
+
+  test('leave room for the biggest die: helix width, funnel hole and peg gaps', () => {
+    expect(HELIX.outer - HELIX.inner).toBeGreaterThan(BIGGEST_BALL);
+    expect(FUNNEL.hole * 2).toBeGreaterThan(BIGGEST_BALL);
+    const barToGlass = innerFront - TOWER_MID_Z - PEG_RADIUS;
+    const barToBack = TOWER_MID_Z - TOWER.back - PEG_RADIUS;
+    expect(Math.min(barToGlass, barToBack)).toBeGreaterThan(BIGGEST_BALL);
+    expect(PEG_ROWS.length).toBeGreaterThan(2);
+  });
+
+  test('every shape adds its own colliders above the shared base', () => {
+    expect(towerBoxes('spiral').some((box) => box.part === 'helix')).toBe(true);
+    expect(towerBoxes('funnel').some((box) => box.part === 'funnel')).toBe(true);
+    expect(towerBoxes('pegs').some((box) => box.part === 'deflector')).toBe(true);
+    ['spiral', 'funnel', 'pegs'].forEach((shape) => {
+      expect(towerBoxes(shape).map((box) => box.part)).toEqual(expect.arrayContaining(['front', 'side', 'back', 'ramp', 'tray-back']));
+    });
+  });
+
+  test.each([
+    ['spiral', [20]], ['spiral', [4]], ['spiral', [20, 20]],
+    ['funnel', [20]], ['funnel', [4]], ['funnel', [6, 6, 6]],
+    ['pegs', [20]], ['pegs', [4]], ['pegs', [6, 6, 6]],
+  ])('%s: %p finds a throw that lands every die in the tray', (shape, sides) => {
+    const plan = planThrow(sides.map((s) => spec(s)), 4242, towerRigFor(shape));
+    expect(plan).not.toBeNull();
+    expect(plan.positions.every(inTray)).toBe(true);
+  });
+});
