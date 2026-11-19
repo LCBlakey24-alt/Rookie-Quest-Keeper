@@ -16,6 +16,8 @@ import {
   BufferAttribute,
   BufferGeometry,
   CanvasTexture,
+  Color,
+  CylinderGeometry,
   Group,
   Mesh,
   MeshBasicMaterial,
@@ -24,7 +26,7 @@ import {
   TorusGeometry,
 } from 'three';
 
-import { TOWER } from './diceTowerRig';
+import { TOWER, towerCylinders } from './diceTowerRig';
 
 /** Heights of the light bands across the glass front, top to bottom. */
 export const BAND_HEIGHTS = [13.2, 11.2, 9.2, 7.2, 5.2];
@@ -36,6 +38,14 @@ export const BAND_HEIGHTS = [13.2, 11.2, 9.2, 7.2, 5.2];
 export function bandGlow(bandY, diceYs) {
   return Math.min(1, diceYs.reduce((sum, y) => sum + Math.exp(-((y - bandY) ** 2) / 1.6), 0));
 }
+
+/** Is a die (ball radius about 0.75) touching a bar across the tube at (y, z)? */
+export function touchesBar(position, bar, reach = 0.95) {
+  return Math.hypot(position[1] - bar.centre[1], position[2] - bar.centre[2]) < bar.radius + reach;
+}
+
+/** Colours the tower flares with when a natural 20 or a natural 1 lands. */
+export const CELEBRATION = { crit: '#FFD27A', fumble: '#FF5A5A' };
 
 /** Which dice have just left the tube since the last frame (by index). */
 export function newlyExited(previous, current) {
@@ -131,6 +141,20 @@ export function createTowerLife(skin, random = Math.random) {
   const moteMaterial = pointsMaterial(0.16, 0.45);
   group.add(new Points(moteGeometry, moteMaterial));
 
+  // Peg Drop: every bar gets a glow sleeve that flashes when a die hits it.
+  const bars = towerCylinders(skin.shape || 'classic').filter((bar) => bar.axis === 'x').map((bar) => {
+    const material = additive(0);
+    const sleeve = new Mesh(keep(new CylinderGeometry(bar.radius * 1.9, bar.radius * 1.9, bar.length * 0.98, 16)), material);
+    sleeve.rotation.z = Math.PI / 2;
+    sleeve.position.set(...bar.centre);
+    group.add(sleeve);
+    return { bar, material, flash: 0, touching: false };
+  });
+
+  const baseColour = new Color(skin.accent);
+  let celebration = 0;
+  let celebrationColour = null;
+
   let time = 0;
   let flare = 1; // the sigil starts lit for the wide shot
   let mouthFlash = 0;
@@ -158,10 +182,22 @@ export function createTowerLife(skin, random = Math.random) {
     time += dt;
 
     const tubeYs = dice.filter((die) => die.inTube && dropping).map((die) => die.position[1]);
-    bands.forEach((band) => {
+    celebration = Math.max(0, celebration - dt / 2.2);
+    bands.forEach((band, index) => {
       const target = bandGlow(band.y, tubeYs);
       band.level += (target - band.level) * Math.min(1, dt * 10);
-      band.material.opacity = 0.12 + band.level * 0.85;
+      // A natural 20 or 1 sends a ripple of its colour up the tower.
+      const ripple = celebration > 0 ? Math.max(0, Math.sin((1 - celebration) * Math.PI * 3 - index * 0.6)) * celebration : 0;
+      band.material.opacity = 0.12 + Math.max(band.level * 0.85, ripple);
+      band.material.color.copy(celebration > 0.02 && celebrationColour ? celebrationColour : baseColour);
+    });
+
+    bars.forEach((entry) => {
+      const touching = dice.some((die) => die.inTube && touchesBar(die.position, entry.bar));
+      if (touching && !entry.touching) entry.flash = 1;
+      entry.touching = touching;
+      entry.flash = Math.max(0, entry.flash - dt * 3);
+      entry.material.opacity = entry.flash * 0.9;
     });
 
     const inTube = dice.map((die) => Boolean(die.inTube));
@@ -176,7 +212,9 @@ export function createTowerLife(skin, random = Math.random) {
     flare = Math.max(0, flare - dt * 0.7);
     sigil.rotation.y = time * 0.5;
     sigil.scale.setScalar(1 + flare * 0.25);
+    if (celebration > 0) flare = Math.max(flare, celebration);
     sigilMaterial.opacity = 0.45 + flare * 0.55 + Math.sin(time * 2.2) * 0.06;
+    sigilMaterial.color.copy(celebration > 0.02 && celebrationColour ? celebrationColour : baseColour);
 
     mouthFlash = Math.max(0, mouthFlash - dt * 2.2);
     mouthMaterial.opacity = 0.35 + mouthFlash * 0.65;
@@ -205,9 +243,24 @@ export function createTowerLife(skin, random = Math.random) {
     moteGeometry.attributes.position.needsUpdate = true;
   }
 
+  /** The roll's result has landed: 'crit' (natural 20) or 'fumble' (natural 1). */
+  function celebrate(tone) {
+    if (!CELEBRATION[tone]) return;
+    celebrationColour = new Color(CELEBRATION[tone]);
+    celebration = 1;
+    flare = 1;
+  }
+
+  /** True while something is still animating that the scene should keep drawing. */
+  function busy() {
+    return celebration > 0.01 || sparks.some((spark) => spark.life > 0);
+  }
+
   return {
     group,
     update,
+    celebrate,
+    busy,
     dispose() {
       disposables.forEach((thing) => thing.dispose());
       dot?.dispose();

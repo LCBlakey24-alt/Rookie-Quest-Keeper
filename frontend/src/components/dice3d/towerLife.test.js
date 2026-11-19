@@ -33,3 +33,35 @@ describe('createTowerLife', () => {
     expect(() => life.dispose()).not.toThrow();
   });
 });
+
+describe('peg flashes and the crit celebration', () => {
+  const { touchesBar, CELEBRATION } = jest.requireActual('./towerLife');
+
+  test('a die touching a bar is noticed; one clear of it is not', () => {
+    const bar = { centre: [0, 8, -5.65], radius: 0.15, length: 4.2, axis: 'x' };
+    expect(touchesBar([1, 8.9, -5.65], bar)).toBe(true);
+    expect(touchesBar([1, 10.5, -5.65], bar)).toBe(false);
+  });
+
+  test('celebrates a natural 20 or 1, stays busy while it plays, then rests', () => {
+    expect(Object.keys(CELEBRATION)).toEqual(['crit', 'fumble']);
+    const life = createTowerLife({ accent: '#ff1976', shape: 'pegs' }, () => 0.5);
+    life.update(1 / 60, { dropping: false, dice: [] });
+    for (let i = 0; i < 60; i += 1) life.update(1 / 60, { dropping: true, dice: [] });
+    expect(life.busy()).toBe(false);
+    life.celebrate('crit');
+    expect(life.busy()).toBe(true);
+    for (let i = 0; i < 200; i += 1) life.update(1 / 60, { dropping: true, dice: [] });
+    expect(life.busy()).toBe(false);
+    life.celebrate('nonsense');
+    expect(life.busy()).toBe(false);
+    life.dispose();
+  });
+
+  test('the peg drop gets a glow sleeve on every bar', () => {
+    const plain = createTowerLife({ accent: '#ff1976', shape: 'classic' }, () => 0.5);
+    const pegs = createTowerLife({ accent: '#ff1976', shape: 'pegs' }, () => 0.5);
+    expect(pegs.group.children.length).toBeGreaterThan(plain.group.children.length);
+    plain.dispose(); pegs.dispose();
+  });
+});

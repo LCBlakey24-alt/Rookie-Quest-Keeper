@@ -294,20 +294,24 @@ export function addTowerColliders(world, shape = 'classic') {
     friction: TOWER_FRICTION,
     restitution: TOWER_RESTITUTION,
   }));
+  // The whole tower is one static body made of many shapes. As separate
+  // bodies the spiral's 60-odd pieces made every physics step check every
+  // pair of them; as one compound body only the dice are paired with it.
+  // The contacts are the same, so throws are unchanged in kind.
+  const tower = new CANNON.Body({ mass: 0, material: towerMaterial });
   towerBoxes(shape).forEach(({ centre, half, rotationX = 0, quaternion }) => {
-    const body = new CANNON.Body({ mass: 0, material: towerMaterial, shape: new CANNON.Box(new CANNON.Vec3(...half)) });
-    body.position.set(...centre);
-    if (quaternion) body.quaternion.set(...quaternion);
-    else if (rotationX) body.quaternion.setFromEuler(rotationX, 0, 0);
-    world.addBody(body);
+    const orientation = new CANNON.Quaternion();
+    if (quaternion) orientation.set(...quaternion);
+    else if (rotationX) orientation.setFromEuler(rotationX, 0, 0);
+    tower.addShape(new CANNON.Box(new CANNON.Vec3(...half)), new CANNON.Vec3(...centre), orientation);
   });
   towerCylinders(shape).forEach(({ centre, radius, length, axis }) => {
     // cannon-es cylinders stand along y; a bar across the tube is turned onto x.
-    const body = new CANNON.Body({ mass: 0, material: towerMaterial, shape: new CANNON.Cylinder(radius, radius, length, 16) });
-    body.position.set(...centre);
-    if (axis === 'x') body.quaternion.setFromEuler(0, 0, Math.PI / 2);
-    world.addBody(body);
+    const orientation = new CANNON.Quaternion();
+    if (axis === 'x') orientation.setFromEuler(0, 0, Math.PI / 2);
+    tower.addShape(new CANNON.Cylinder(radius, radius, length, 16), new CANNON.Vec3(...centre), orientation);
   });
+  world.addBody(tower);
   return diceMaterial;
 }
 

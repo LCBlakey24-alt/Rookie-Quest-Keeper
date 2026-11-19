@@ -120,6 +120,12 @@ export function limitsFor(rig = 'tray') {
   return isTowerRig(rig) ? TOWER_LIMITS : { maxSteps: MAX_STEPS, quickSteps: QUICK_STEPS };
 }
 const COCKED_THRESHOLD = 0.86;
+/** Tower planning limits: see planThrow and simulateThrow. */
+export const TOWER_MAX_ATTEMPTS = 6;
+const TOWER_CENTRE_TRIES = 3;
+const TOWER_STUCK_STEPS = 600;
+/** Milliseconds of each frame a tower may spend planning its throw. */
+const PLAN_BUDGET_MS = 8;
 /**
  * How far from the middle a die may finish, and how many throws to try.
  *
@@ -287,7 +293,26 @@ function atRest(entries) {
  * Returns null when a die ends up cocked, so the caller can try another
  * seed rather than read a die balanced on an edge.
  */
+/** Run a step-by-step generator to the end and return its result. */
+function drain(generator) {
+  let result = generator.next();
+  while (!result.done) result = generator.next();
+  return result.value;
+}
+
+/** How many physics steps a resumable rehearsal runs between pauses. */
+const STEPS_PER_SLICE = 6;
+
 export function simulateThrow(specs, seed, rig = 'tray') {
+  return drain(simulateThrowSteps(specs, seed, rig));
+}
+
+/**
+ * simulateThrow, resumable: it pauses (yields) every few physics steps so
+ * a tower's long rehearsal can be spread across animation frames instead
+ * of freezing the page. Same steps, same result.
+ */
+export function* simulateThrowSteps(specs, seed, rig = 'tray') {
   const world = trayWorld(rig);
   const entries = throwBodies(world, specs, seededRandom(seed), rig);
   const { maxSteps } = limitsFor(rig);
@@ -297,8 +322,14 @@ export function simulateThrow(specs, seed, rig = 'tray') {
   while (steps < maxSteps && still < REST_HOLD_STEPS) {
     world.step(STEP);
     steps += 1;
-    if (isTowerRig(rig)) enterTray(entries);
+    if (isTowerRig(rig)) {
+      enterTray(entries);
+      // A die still in the tube this late is stuck; stop rather than run
+      // the full limit, so the planner can try another seed sooner.
+      if (steps >= TOWER_STUCK_STEPS && entries.some((entry) => entry.hull)) return null;
+    }
     still = atRest(entries) ? still + 1 : 0;
+    if (steps % STEPS_PER_SLICE === 0) yield;
   }
 
   const faces = [];
@@ -324,6 +355,11 @@ function landedCentrally(positions) {
  * number layout each die needs so the settled face shows its result.
  */
 export function planThrow(specs, baseSeed, rig = 'tray') {
+  return drain(planThrowSteps(specs, baseSeed, rig));
+}
+
+/** planThrow, resumable: see simulateThrowSteps. */
+export function* planThrowSteps(specs, baseSeed, rig = 'tray') {
   const build = (seed, faces, positions) => {
     const random = seededRandom(seed + 104729);
     return {
@@ -346,18 +382,23 @@ export function planThrow(specs, baseSeed, rig = 'tray') {
   // readable is kept as a reserve, so an awkward pool still gets a real
   // throw instead of dropping to the flat card.
   let reserve = null;
-  const attempts = throwAttemptsFor(specs.length);
+  const tower = isTowerRig(rig);
+  // Each tower attempt is a long simulation run on the main thread, so a
+  // tower tries fewer seeds and settles for a valid throw sooner: the camera
+  // frames wherever its dice land anyway.
+  const attempts = tower ? Math.min(TOWER_MAX_ATTEMPTS, throwAttemptsFor(specs.length)) : throwAttemptsFor(specs.length);
 
   const { quickSteps } = limitsFor(rig);
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     const seed = baseSeed + attempt * 7919;
-    const outcome = simulateThrow(specs, seed, rig);
+    const outcome = yield* simulateThrowSteps(specs, seed, rig);
     if (!outcome) continue;
     // A die still in the tube (resting on a baffle) cannot be shown.
     if (isTowerRig(rig) && !outcome.positions.every(inTray)) continue;
 
     if (landedCentrally(outcome.positions) && outcome.steps <= quickSteps) return build(seed, outcome.faces, outcome.positions);
     if (!reserve) reserve = build(seed, outcome.faces, outcome.positions);
+    if (tower && attempt >= TOWER_CENTRE_TRIES - 1) return reserve;
   }
 
   return reserve;
@@ -672,12 +713,54 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
    * throw could be found in which every die lands flat, so the caller can
    * fall back rather than show a cocked die.
    */
-  function roll(specs, { seed, onSettled } = {}) {
+  /*
+   * Roll the dice. The tray plans its throw at once (it is quick). The
+   * tower opens its wide shot straight away and plans while it plays, a few
+   * milliseconds each frame, so a long rehearsal never freezes the page;
+   * the drop starts once both the shot and the plan are done. If no throw
+   * lands every die, a tower roll calls onFailed (the caller then uses the
+   * tray) and returns true; a tray roll returns false.
+   */
+  function roll(specs, { seed, onSettled, onFailed } = {}) {
     if (disposed || !specs.length) return false;
+    if (!tower) {
+      const plan = planThrow(specs, seed, rig);
+      if (!plan) return false;
+      begin(specs, plan, { onSettled, introStartedAt: null });
+      return true;
+    }
 
-    const plan = planThrow(specs, seed, rig);
-    if (!plan) return false;
+    clearDice();
+    if (frame) cancelAnimationFrame(frame);
+    const wide = towerWideShot(FOV, camera.aspect);
+    logo.position.set(...floorLogoPlacement({ target: [0, 0, 0] }).position);
+    const planner = planThrowSteps(specs, seed, rig);
+    let introStartedAt = null;
+    let lastTime = null;
+    const waiting = (now) => {
+      if (disposed) return;
+      if (introStartedAt === null) introStartedAt = now;
+      const frameSeconds = lastTime === null ? 1 / 60 : Math.min(0.1, Math.max(0, (now - lastTime) / 1000));
+      lastTime = now;
+      // Plan within a small budget, leaving the rest of the frame to draw.
+      const until = (typeof performance !== 'undefined' ? performance.now() : Date.now()) + PLAN_BUDGET_MS;
+      let step = planner.next();
+      while (!step.done && (typeof performance !== 'undefined' ? performance.now() : Date.now()) < until) step = planner.next();
+      const shot = towerIntroShot(wide, Math.min(1, (now - introStartedAt) / TOWER_INTRO_MS));
+      camera.position.set(...shot.position);
+      camera.lookAt(...shot.target);
+      towerModel?.update?.(frameSeconds, { dice: [], dropping: false });
+      renderer.render(scene, camera);
+      if (!step.done) { frame = requestAnimationFrame(waiting); return; }
+      frame = null;
+      if (!step.value) { onFailed?.(); return; }
+      begin(specs, step.value, { onSettled, introStartedAt });
+    };
+    frame = requestAnimationFrame(waiting);
+    return true;
+  }
 
+  function begin(specs, plan, { onSettled, introStartedAt }) {
     clearDice();
     if (frame) cancelAnimationFrame(frame);
 
@@ -749,6 +832,12 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
     });
 
     const revealOutcomes = () => {
+      // The tower itself reacts to a natural 20 or natural 1.
+      const tones = active.map((entry) => entry.spec.accent).filter(Boolean);
+      if (towerModel?.celebrate) {
+        if (tones.includes('crit')) towerModel.celebrate('crit');
+        else if (tones.includes('fumble')) towerModel.celebrate('fumble');
+      }
       active.forEach((entry) => {
         const accent = settledAccentFor(entry.spec, palette);
         if (!accent) return;
@@ -789,7 +878,8 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
     let sweptToTray = !tower;
     // The wide shot: the dice are hidden and the physics waits while the
     // camera pushes slowly in on the whole tower.
-    let introStart = null;
+    // The wide shot carries on from where the planning frames left it.
+    let introStart = introStartedAt;
     let introDone = !tower;
     if (tower) active.forEach((entry) => { entry.mesh.visible = false; });
 
@@ -874,7 +964,8 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
 
       // A few frames after the dice stop the picture is final, so the loop
       // ends rather than burning a rAF every frame for the panel's lifetime.
-      if (announced && !cameraMove) settleFrames += 1;
+      // Keep drawing while the tower is still celebrating or throwing sparks.
+      if (announced && !cameraMove && !towerModel?.busy?.()) settleFrames += 1;
       if (settleFrames < SETTLE_HOLD_FRAMES) {
         frame = requestAnimationFrame(tick);
       } else {
