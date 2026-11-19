@@ -330,3 +330,7 @@
     display: grid;
   }
 }
+
+/* The floating dice button sits at the bottom-left over the desktop rail:
+   leave room so the last tools can scroll clear of it. */
+.rqk-tool-rail--desktop .rqk-tool-rail__groups { padding-bottom: 72px; }
