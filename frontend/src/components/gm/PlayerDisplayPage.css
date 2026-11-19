@@ -388,12 +388,12 @@
 }
 
 /* Shop: a centred price board. */
-.rqk-player-display[data-display-target='standing-tv'] .rqk-player-display__shop-head,
-.rqk-player-display[data-display-target='standing-tv'] .rqk-player-display__shop-board {
+.rqk-player-display .rqk-player-display__shop-head,
+.rqk-player-display .rqk-player-display__shop-board {
   width: min(1100px, 100%);
   justify-self: center;
 }
-.rqk-player-display[data-display-target='standing-tv'] .rqk-player-display__shop-board {
+.rqk-player-display .rqk-player-display__shop-board {
   padding: clamp(14px, 1.6vw, 28px) clamp(18px, 2vw, 36px);
   border: 1px solid rgba(var(--guild-c1-rgb), .30);
   border-radius: 14px;
