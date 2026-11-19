@@ -29,6 +29,7 @@ import {
 
 import { TOWER, TRAY_HALF, towerBoxes } from './diceTowerRig';
 import { DEFAULT_TOWER_SKIN_ID, TOWER_SKIN_CATALOG, getTowerSkinInfo } from './towerSkinCatalog';
+import { createTowerLife } from './towerLife';
 
 /** How tall the tray's rim is drawn (its physics walls are taller, unseen). */
 export const TRAY_RIM_HEIGHT = 0.9;
@@ -209,11 +210,16 @@ export function buildTower(skinId) {
   group.name = `dice-tower:${skin.id}`;
   const materials = buildBase(group, skin);
   skin.decorate(group, skin, materials);
+  // The moving details: light bands, sigil, mouth sparks and motes.
+  const life = createTowerLife(skin);
+  group.add(life.group);
 
   return {
     skin,
     group,
+    update: life.update,
     dispose() {
+      life.dispose();
       const seen = new Set();
       group.traverse((node) => {
         if (node.geometry && !seen.has(node.geometry)) { seen.add(node.geometry); node.geometry.dispose(); }
