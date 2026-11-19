@@ -483,6 +483,47 @@ export function cameraFraming(positions, fovDegrees, { aspect = 1, scale = 1 } =
  * 3D view too, and the tray's edge is the panel's own hairline border.
  */
 /**
+ * The tower's wide shot: the whole tower and its tray, from the front and a
+ * little to the right. Each tower roll opens on it for a moment before the
+ * dice drop in. Distance is fitted to the canvas so a phone in portrait (or
+ * the hexagon window) still shows the crown and the tray.
+ */
+export function towerWideShot(fovDegrees, aspect = 1) {
+  const target = [0, TOWER.top * 0.47, -1.8];
+  // Tube plus the tallest design's crown, with a little air above it.
+  const height = TOWER.top + 7.5;
+  const width = TRAY_HALF * 2 + 2;
+  const tanHalf = Math.tan((fovDegrees / 2) * (Math.PI / 180));
+  const fit = Math.max((height / 2) / tanHalf, (width / 2) / (tanHalf * Math.max(0.35, aspect || 1)));
+  const distance = fit * 1.08;
+  const direction = [0.3, 0.38, 1];
+  const length = Math.hypot(...direction);
+  return {
+    position: direction.map((value, index) => target[index] + (value / length) * distance),
+    target,
+  };
+}
+
+/** How long the wide shot lasts, sweeping round and pushing in, before the dice drop. */
+export const TOWER_INTRO_MS = 1800;
+
+/**
+ * The camera during the wide shot, t from 0 to 1: it swings a little way
+ * round the tower (about 16 degrees) while pushing in, so the tower is
+ * shown off from more than one angle before the drop.
+ */
+export function towerIntroShot(wide, t) {
+  const eased = easeInOut(Math.min(1, Math.max(0, t)));
+  const angle = (1 - eased) * 0.28;
+  const push = 1 - eased * 0.14;
+  const [ox, oy, oz] = wide.position.map((value, index) => value - wide.target[index]);
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  const offset = [(ox * cos + oz * sin) * push, oy * push, (-ox * sin + oz * cos) * push];
+  return { position: offset.map((value, index) => wide.target[index] + value), target: wide.target };
+}
+
+/**
  * The tower's close shot: a window onto the tube at height y, so the camera
  * can ride the dice down past the baffles. About eight units of tower are
  * in view, fitted to the canvas's shape (the hexagon window is a little
@@ -641,9 +682,9 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
     if (frame) cancelAnimationFrame(frame);
 
     const framing = cameraFraming(plan.positions, FOV, { aspect: camera.aspect, scale: frameScale });
-    // The tower opens on the whole tower; the tray goes straight to the dice.
-    // The tower opens close on its top, where the dice drop in.
-    const opening = tower ? towerFollowShot(TOWER.top + 1, FOV, camera.aspect) : framing;
+    // The tower opens on a wide shot of the whole tower, then the camera
+    // closes in on the top as the dice drop; the tray goes straight to the dice.
+    const opening = tower ? towerWideShot(FOV, camera.aspect) : framing;
     camera.position.set(...opening.position);
     camera.lookAt(...opening.target);
     logo.position.set(...floorLogoPlacement(tower ? { target: [0, 0, 0] } : framing).position);
@@ -746,9 +787,26 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
     // result are the rehearsed throw either way.
     let shot = opening;
     let sweptToTray = !tower;
+    // The wide shot: the dice are hidden and the physics waits while the
+    // camera pushes slowly in on the whole tower.
+    let introStart = null;
+    let introDone = !tower;
+    if (tower) active.forEach((entry) => { entry.mesh.visible = false; });
 
     const tick = (now) => {
       if (disposed) return;
+      if (!introDone) {
+        if (introStart === null) introStart = now;
+        const t = Math.min(1, (now - introStart) / TOWER_INTRO_MS);
+        shot = towerIntroShot(opening, t);
+        camera.position.set(...shot.position);
+        camera.lookAt(...shot.target);
+        renderer.render(scene, camera);
+        lastTime = now;
+        if (t < 1) { frame = requestAnimationFrame(tick); return; }
+        introDone = true;
+        active.forEach((entry) => { entry.mesh.visible = true; });
+      }
       const frameSeconds = lastTime === null ? 1 / 60 : Math.min(0.1, Math.max(0, (now - lastTime) / 1000));
       // Advance the physics by the time that has passed (scaled), in whole
       // steps, until the dice have been still long enough. Then stop
