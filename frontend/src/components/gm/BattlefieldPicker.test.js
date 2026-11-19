@@ -37,3 +37,25 @@ describe('shared encounter battlefield selection', () => {
     expect(screen.getByTestId('battlefield-texture-preview')).toHaveAttribute('aria-label', 'Battlefield preview: stone');
   });
 });
+
+describe('terrain previews keep their texture', () => {
+  // The site flattens decorative inline gradients. Terrain previews are drawn
+  // with gradients, so they opt out, or the GM sees blank boxes.
+  test('the preview and every terrain tile opt out of gradient flattening', () => {
+    const { container } = render(<BattlefieldPicker mode="generic" terrainType="grass" />);
+    expect(container.querySelector('[data-testid="battlefield-texture-preview"]').hasAttribute('data-rq-texture')).toBe(true);
+    const tiles = container.querySelectorAll('[data-testid^="terrain-choice-"] span[aria-hidden="true"]');
+    expect(tiles.length).toBeGreaterThan(0);
+    tiles.forEach(tile => expect(tile.hasAttribute('data-rq-texture')).toBe(true));
+  });
+
+  test('the flattening rule honours the opt-out', () => {
+    const css = require('fs').readFileSync(require('path').join(__dirname, '../../styles/threeModeMinimalist.css'), 'utf8');
+    expect(css).toMatch(/\[class\*='bg-gradient-'\]\):not\(\[data-rq-texture\]\)/);
+  });
+
+  test('the no-map choice says what it does', () => {
+    const { getByRole } = render(<BattlefieldPicker mode="none" />);
+    expect(getByRole('button', { name: 'Plain stone floor' })).toBeInTheDocument();
+  });
+});

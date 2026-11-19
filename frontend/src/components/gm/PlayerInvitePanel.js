@@ -3,6 +3,7 @@ import { AlertTriangle, RefreshCw, ShieldCheck, UserPlus, Users } from 'lucide-r
 import { toast } from 'sonner';
 import apiClient from '@/lib/apiClient';
 import CampaignJoinCodeCard from '@/components/gm/CampaignJoinCodeCard';
+import PreparedCharactersPanel from '@/components/gm/PreparedCharactersPanel';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const theme = {
@@ -154,6 +155,7 @@ export default function PlayerInvitePanel({ campaignId, players: suppliedPlayers
         onCopy={copyCode}
         onRotate={rotateCode}
       />
+      <PreparedCharactersPanel campaignId={campaignId} />
     </section>
   );
 }

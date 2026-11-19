@@ -28,6 +28,9 @@ import {
 import ImageUploadPanel from '@/components/ImageUploadPanel';
 import '@/styles/guildTokens.css';
 import '@/styles/homebrewGuild.css';
+import HomebrewSharingOptions from './homebrew/HomebrewSharingOptions';
+import HomebrewItemBuilder from './homebrew/HomebrewItemBuilder';
+import { emptyItemDraft, normaliseItemDraft, toSheetItem } from '@/data/homebrewItemModel';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = fontStack;
@@ -40,7 +43,7 @@ const TYPES = [
   { key: 'spell', label: 'Spell', icon: ScrollText, help: 'Create spells with level, school, components, damage, scaling, and class lists.' },
   { key: 'race', label: 'Race / Species', icon: Shield, help: 'Create species traits, speed, size, languages, bonuses, and sheet passives.' },
   { key: 'background', label: 'Background', icon: FileText, help: 'Create skills, tools, equipment, languages, and feature text.' },
-  { key: 'magic_item', label: 'Magic Item', icon: Gem, help: 'Create magic items, cursed items, equipment, attunement items, charges, and rewards.' },
+  { key: 'magic_item', label: 'Items & Equipment', icon: Gem, help: 'Weapons, armour, shields, rings, potions and gear. See how it looks on a character sheet as you build it.' },
   { key: 'monster', label: 'Monster / Creature', icon: Skull, help: 'Build full stat blocks and let Rook fill missing attacks, traits, saves, senses, and combat role.' },
   { key: 'npc', label: 'NPC Maker', icon: UserCircle, help: 'Create NPCs with personality, secrets, hooks, factions, voice, and optional combat role.' },
   { key: 'custom_rule', label: 'Custom Rules', icon: Brain, help: 'Create exploding dice rules, chaos tokens, custom skills, futuristic checks, magic rules, and table rules.' },
@@ -52,7 +55,7 @@ const EMPTY_DRAFTS = {
   monster: { name: '', image_url: '', creature_type: '', size: 'Medium', alignment: '', challenge_rating: '', armor_class: '', hit_points: '', speed: '30 ft.', abilities: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }, traits: [], actions: [], bonus_actions: [], reactions: [], legendary_actions: [], lair_actions: [], role: '', description: '', ...ADVANCED },
   npc: { name: '', image_url: '', ancestry: '', role: '', faction: '', location: '', appearance: '', personality: '', voice: '', mannerisms: [], ideal: '', bond: '', flaw: '', secret: '', wants: '', fears: '', quest_hooks: [], combat_role: 'noncombatant', stat_hint: '', description: '', ...ADVANCED },
   custom_rule: { name: '', image_url: '', category: 'other', summary: '', enabled_by_default: true, rule_text: '', trigger: '', resolution: '', examples: [], settings: {}, player_visible: true, gm_notes: '', ...ADVANCED },
-  magic_item: { name: '', image_url: '', type: 'Wondrous Item', rarity: '', requires_attunement: false, attunement_requirement: '', description: '', effects: [], charges: {}, ...ADVANCED },
+  magic_item: emptyItemDraft('weapon'),
   race: { name: '', image_url: '', description: '', size: 'Medium', speed: 30, ability_bonuses: {}, traits: [], languages: [], subraces: [], ...ADVANCED },
   class: { name: '', image_url: '', description: '', hit_die: 'd8', primary_ability: '', saving_throw_proficiencies: [], armor_proficiencies: [], weapon_proficiencies: [], tool_proficiencies: [], skill_choices: {}, equipment: [], subclass_unlock_levels: [], spellcasting: null, features: [], ...ADVANCED },
   subclass: { name: '', image_url: '', parent_class: '', description: '', subclass_level: 3, features: [], ...ADVANCED },
@@ -80,6 +83,7 @@ function safeJson(value, fallback) { try { return JSON.parse(value); } catch { r
 function typeMeta(type) { return TYPES.find(item => item.key === type) || TYPES[0]; }
 function emptyDraft(type) { return JSON.parse(JSON.stringify(EMPTY_DRAFTS[type] || {})); }
 function normaliseDraft(type, value = {}) {
+  if (type === 'magic_item') return { ...normaliseItemDraft(value || {}), image_url: value?.image_url || value?.image || '' };
   const draft = { ...emptyDraft(type), ...(value || {}), image_url: value?.image_url || value?.image || value?.portrait_url || value?.avatar_url || '' };
   if (type === 'feat' && !draft.category) draft.category = 'general';
   return draft;
@@ -98,6 +102,12 @@ function normaliseLibraryPayload(data) {
   }
 
   return Object.fromEntries(entries.map(([key, value]) => [key, value]));
+}
+// Items keep the builder fields (to edit again) and the sheet-ready item.
+function itemSavePayload(draft) {
+  const clean = normaliseItemDraft(draft);
+  const sheetItem = toSheetItem(clean);
+  return { ...clean, type: sheetItem.type, sheet_item: sheetItem };
 }
 function formatType(type) { return typeMeta(type).label; }
 function formatLibraryChip(value = '') { return String(value || '').replace(/[_-]+/g, ' ').replace(/\b\w/g, char => char.toUpperCase()); }
@@ -223,15 +233,7 @@ function DraftEditor({ contentType, draft, missing, onChange }) {
   }
 
   if (contentType === 'magic_item') {
-    return <div style={formStackStyle}>{art}
-      <FormGrid><FieldRow label="Name" value={draft.name} onChange={v => upd('name', v)} missing={miss('name')} /><FieldRow label="Type" value={draft.type} onChange={v => upd('type', v)} /><FieldRow label="Rarity" value={draft.rarity} onChange={v => upd('rarity', v)} missing={miss('rarity')} /></FormGrid>
-      <CheckRow label="Requires attunement" checked={draft.requires_attunement} onChange={v => upd('requires_attunement', v)} />
-      <FieldRow label="Attunement Requirement" value={draft.attunement_requirement} onChange={v => upd('attunement_requirement', v)} />
-      <FieldRow label="Description" value={draft.description} onChange={v => upd('description', v)} multiline />
-      <FieldRow label="Effects" value={toLines(draft.effects)} onChange={v => upd('effects', fromLines(v))} multiline />
-      <JsonField label="Charges JSON" value={draft.charges || {}} onChange={v => upd('charges', v)} />
-      {advanced}
-    </div>;
+    return <div style={formStackStyle}>{art}<HomebrewItemBuilder draft={draft} onChange={onChange} /></div>;
   }
 
   if (contentType === 'race') {
@@ -346,6 +348,7 @@ export default function HomebrewWorkshop() {
   const [edition, setEdition] = useState('2014');
   const [visibility, setVisibility] = useState('private');
   const [campaignId, setCampaignId] = useState('');
+  const [contentSource, setContentSource] = useState('original');
   const [pasteText, setPasteText] = useState('');
   const [draft, setDraft] = useState(emptyDraft('subclass'));
   const [missing, setMissing] = useState(findMissing('subclass', emptyDraft('subclass')));
@@ -396,6 +399,7 @@ export default function HomebrewWorkshop() {
     setMissing(findMissing(nextType, empty));
     setEditingId(null);
     setPasteText('');
+    setContentSource('original');
   };
 
   const switchType = (nextType) => {
@@ -487,12 +491,12 @@ export default function HomebrewWorkshop() {
       return;
     }
     if (visibility === 'campaign' && !campaignId.trim()) {
-      toast.error('Campaign visibility needs a campaign ID');
+      toast.error('Choose which of your campaigns can use this');
       return;
     }
     setSaving(true);
     try {
-      await apiClient.post('/homebrew/save', { content_type: type, edition, visibility, campaign_id: campaignId || undefined, data: draft, homebrew_id: editingId || undefined });
+      await apiClient.post('/homebrew/save', { content_type: type, edition, visibility, campaign_id: campaignId || undefined, content_source: contentSource, data: type === 'magic_item' ? itemSavePayload(draft) : draft, homebrew_id: editingId || undefined });
       toast.success(editingId ? 'Homebrew updated' : 'Saved to your library');
       reset(type);
       fetchLibrary();
@@ -506,6 +510,7 @@ export default function HomebrewWorkshop() {
     setEditingId(item.id);
     setVisibility(item.visibility || 'private');
     setCampaignId(item.campaign_id || item.campaignId || '');
+    setContentSource(item.content_source || 'original');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -529,7 +534,7 @@ export default function HomebrewWorkshop() {
 
       <section className="hb-types" style={typeGridStyle}>{TYPES.map(item => { const Icon = item.icon; const active = type === item.key; return <button key={item.key} type="button" onClick={() => switchType(item.key)} className={`hb-type${active ? ' is-active' : ''}`} aria-pressed={active} style={typeCardStyle(active)} data-testid={`hb-type-${item.key}`}><Icon size={18} /><strong>{item.label}</strong><span>{item.help}</span></button>; })}</section>
 
-      <section style={builderGridStyle}>
+      <section style={type === 'magic_item' ? itemBuilderGridStyle : builderGridStyle}>
         <aside className="hb-panel" style={panelStyle}>
           <h2 style={sectionTitleStyle}><Wand2 size={17} /> Source / Rook input</h2>
           <p style={helpStyle}>Start with a template, upload a file, paste rough notes, or type directly into the draft. Rook can parse or complete the missing parts. Artwork is added inside the draft panel.</p>
@@ -540,12 +545,15 @@ export default function HomebrewWorkshop() {
           <div style={tipStyle}><strong>Power tip:</strong> write formulas like “Scarab Charges = Warlock level” or “Greed Tokens = proficiency bonus, GM adjustable”. Rook will try to preserve those as sheet resources.</div>
         </aside>
 
-        <section className="hb-panel" style={panelStyle}>
+        <section className="hb-panel" style={type === 'magic_item' ? { ...panelStyle, order: -1 } : panelStyle}>
           <div style={draftHeaderStyle}><div><h2 style={sectionTitleStyle}>{editingId ? 'Editing' : 'Draft'} · {currentMeta.label}</h2><p style={helpStyle}>{currentMeta.help}</p></div>{shownMissing.length > 0 && <span style={missingPillStyle}><AlertTriangle size={14} /> {shownMissing.length} missing</span>}</div>
           <DraftEditor contentType={type} draft={draft} missing={shownMissing} onChange={setDraft} />
           <section style={saveOptionsStyle}>
-            <SelectRow label="Visibility" value={visibility} onChange={setVisibility} options={['private', 'campaign', 'shared_copy', 'public']} />
-            {visibility === 'campaign' && <FieldRow label="Campaign ID" value={campaignId} onChange={setCampaignId} placeholder="Paste the campaign ID to share with that campaign" />}
+            <HomebrewSharingOptions
+              source={contentSource} onSourceChange={setContentSource}
+              visibility={visibility} onVisibilityChange={setVisibility}
+              campaignId={campaignId} onCampaignChange={setCampaignId}
+            />
           </section>
           <div style={footerActionsStyle}><button type="button" onClick={() => reset(type)} style={secondaryButtonStyle}><RefreshCw size={15} /> Clear</button><button type="button" onClick={handleCompleteDraft} disabled={completing} style={secondaryButtonStyle}><Sparkles size={15} /> Fill Missing</button><button type="button" onClick={handleSave} disabled={saving || !draft.name} style={primaryButtonStyle} data-testid="hb-save-btn">{saving ? <Loader2 size={15} className="rq-spin" /> : <Save size={15} />} {editingId ? 'Update' : 'Save to Library'}</button></div>
         </section>
@@ -584,6 +592,9 @@ const titleStyle = { margin: 0, color: rq.text, fontFamily: titleFont, fontSize:
 const subtitleStyle = { margin: '8px 0 0', color: rq.soft, lineHeight: 1.45, maxWidth: 900 };
 const typeGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 8 };
 const typeCardStyle = (active) => ({ display: 'grid', gap: 6, minHeight: 104, textAlign: 'left', background: active ? 'rgba(var(--guild-h3-rgb),0.10)' : rq.card, color: rq.text, border: `1px solid ${active ? rq.pink : rq.line}`, padding: 12, cursor: 'pointer', fontFamily: fontStack });
+// Items need the full width for the form and its live sheet preview;
+// the Rook import panel moves below.
+const itemBuilderGridStyle = { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 12 };
 const builderGridStyle = { display: 'grid', gridTemplateColumns: 'minmax(min(360px, 100%), 0.82fr) minmax(min(420px, 100%), 1.18fr)', gap: 12 };
 const panelStyle = { background: rq.panel, border: `1px solid ${rq.line}`, padding: 14, minWidth: 0 };
 const sectionTitleStyle = { margin: 0, color: rq.text, fontSize: 16, fontWeight: 950, display: 'flex', gap: 8, alignItems: 'center' };
@@ -598,7 +609,7 @@ const actionRowStyle = { display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 1
 const primaryButtonStyle = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 38, border: `1px solid ${rq.pink}`, background: rq.card, color: rq.text, padding: '0 12px', fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const secondaryButtonStyle = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 38, border: `1px solid ${rq.line}`, background: rq.card, color: rq.text, padding: '0 12px', fontWeight: 900, cursor: 'pointer', fontFamily: fontStack };
 const downloadButtonStyle = { ...secondaryButtonStyle, width: '100%', marginTop: 12 };
-const selectButtonStyle = { ...secondaryButtonStyle, minWidth: 132 };
+const selectButtonStyle = { ...secondaryButtonStyle, minWidth: 132, width: 'auto', maxWidth: 220, flex: '0 0 auto' };
 const tipStyle = { marginTop: 10, color: rq.soft, background: rq.bg, border: `1px solid ${rq.line}`, padding: 10, fontSize: 12, lineHeight: 1.45 };
 const advancedStyle = { display: 'grid', gap: 10, padding: 12, background: rq.bg, border: `1px solid ${rq.line}` };
 const advancedHeaderStyle = { display: 'flex', alignItems: 'center', gap: 8, color: rq.text, fontWeight: 950 };

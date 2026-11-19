@@ -37,7 +37,7 @@ describe('Character Creator presentation ownership', () => {
     expect(css).not.toContain('--rqk-creator-pink');
     expect(css).not.toMatch(/255\s*,\s*45\s*,\s*170|#FF2DAA/i);
     expect(component).toContain('Draft saves automatically on this device.');
-    expect(component).toContain("const stateLabel = isCurrent ? 'Current' : isComplete ? 'Done' : 'To do';");
+    expect(component).toContain("const stateLabel = isCurrent ? 'Current' : !isComplete ? 'To do' : seen || item.id === 'review' ? 'Done' : 'Default';");
     expect(component).toContain("aria-current={isCurrent ? 'step' : undefined}");
     expect(flow).toContain('.full-creator-step-state');
   });

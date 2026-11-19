@@ -248,3 +248,13 @@ describe('offline ending is queued once, with its loot', () => {
     expect(kept.initialPlayerStates['char-1'].current_hit_points).toBe(54);
   });
 });
+
+describe('a fight returns to where it was started', () => {
+  test('Live Play fights go back to Live Play; prep fights go back to the Encounters tool', () => {
+    const { endOfCombatRoute } = require('./CombatPageTable');
+    expect(endOfCombatRoute('live-play', 'camp-1')).toBe('/gm-screen/camp-1');
+    // Not the bare mode chooser: the GM lands back in Creation Mode's Encounters.
+    expect(endOfCombatRoute('campaign-prep', 'camp-1')).toBe('/campaign/camp-1?mode=creation#tab-combat');
+    expect(endOfCombatRoute(undefined, 'camp-1')).toBe('/campaign/camp-1?mode=creation#tab-combat');
+  });
+});

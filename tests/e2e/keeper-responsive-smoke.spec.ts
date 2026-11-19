@@ -43,7 +43,7 @@ function rectanglesOverlap(left: { x: number; y: number; width: number; height: 
     && left.y + left.height > right.y;
 }
 
-test('Player Display fixed controls never cover its security and sync status', async ({ page }) => {
+test('Player Display shows no app buttons, and Fullscreen never covers its security and sync status', async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 768 });
   await page.addInitScript(token => {
     localStorage.setItem('dm_token', token);
@@ -73,16 +73,14 @@ test('Player Display fixed controls never cover its security and sync status', a
   const dice = page.locator('.rq-floating-dice');
   await expect(syncStatus).toContainText('No access');
   await expect(warning).toBeVisible();
-  await expect(feedback).toBeVisible();
-  await expect(dice).toBeVisible();
+  await expect(footerContext).toBeVisible();
+  // The TV is for the whole table: Rook, dice and Feedback stay off it.
+  await expect(feedback).toHaveCount(0);
+  await expect(dice).toHaveCount(0);
 
-  const [fullscreenBox, warningBox, feedbackBox, syncBox, diceBox, contextBox] = await Promise.all([
-    fullscreen.boundingBox(), warning.boundingBox(), feedback.boundingBox(), syncStatus.boundingBox(), dice.boundingBox(), footerContext.boundingBox(),
-  ]);
+  const [fullscreenBox, warningBox] = await Promise.all([fullscreen.boundingBox(), warning.boundingBox()]);
   expect(await fullscreen.evaluate(element => element.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
   expect(rectanglesOverlap(fullscreenBox, warningBox), 'Fullscreen covered the party-sync warning').toBe(false);
-  expect(rectanglesOverlap(feedbackBox, syncBox), 'Feedback covered the access/sync status').toBe(false);
-  expect(rectanglesOverlap(diceBox, contextBox), 'Dice covered the display context footer').toBe(false);
   await assertFitsViewport(page, 1024);
 });
 
@@ -211,7 +209,7 @@ for (const size of appSizes) {
     const source = battlefield.getByRole('group', { name: 'Battlefield source' });
     const savedMode = source.getByRole('button', { name: 'Saved battle map' });
     const genericMode = source.getByRole('button', { name: 'Generic textured floor' });
-    const noneMode = source.getByRole('button', { name: 'No selection' });
+    const noneMode = source.getByRole('button', { name: 'Plain stone floor' });
     const reset = launcher.getByRole('button', { name: 'Reset review' });
     await expect(noneMode).toHaveAttribute('aria-pressed', 'true');
     const targets = [choice, savedMode, genericMode, noneMode, reset, launch];
@@ -697,7 +695,7 @@ test('page surfaces are midnight or the stage sky, never the retired craft-paper
   await expect(login).toHaveCSS('background-color', 'rgb(18, 13, 39)');
 });
 
-test('1080p player display keeps a flat midnight frame without wallpaper', async ({ page }) => {
+test('1080p player display shows the turning hexagons behind a clear frame, no wallpaper image', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await avoidThirdPartyRequests(page);
   await page.addInitScript(() => {
@@ -709,8 +707,13 @@ test('1080p player display keeps a flat midnight frame without wallpaper', async
   await expect(screen).toHaveAttribute('data-display-target', 'standing-tv');
   const frame = page.locator('.rqk-player-display__frame');
   await expect(frame).toBeVisible();
+  // The owner asked for the site's slow-turning hexagons behind the TV
+  // display, so the frame is see-through and draws no image of its own.
   await expect(frame).toHaveCSS('background-image', 'none');
-  await expect(frame).toHaveCSS('background-color', 'rgb(18, 13, 39)');
+  await expect(frame).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(screen.locator('> .rq-hex-backdrop')).toHaveCount(1);
+  const screenImage = await screen.evaluate(el => getComputedStyle(el).backgroundImage);
+  expect(screenImage).not.toContain('url(');
 });
 
 

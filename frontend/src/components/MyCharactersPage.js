@@ -300,7 +300,7 @@ export default function MyCharactersPage() {
                   {subclass && <p className="character-card-subclass-line">{subclass}</p>}
 
                   <p className="character-card-meta-line">
-                    {characterRules(character)} • Updated {formatDate(character?.updated_at || character?.created_at)}
+                    {characterRules(character)} • {(character?.updated_at || character?.created_at) ? `Updated ${formatDate(character?.updated_at || character?.created_at)}` : 'Not updated yet'}
                   </p>
                 </div>
 

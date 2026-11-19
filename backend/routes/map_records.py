@@ -128,6 +128,7 @@ async def create_local_map_record(
         image_data=map_data.image_data,
         image_url=getattr(map_data, 'image_url', None),
         notes=map_data.notes,
+        grid=getattr(map_data, 'grid', None),
     )
     doc = local_map.model_dump()
     await db.local_maps.insert_one(doc)

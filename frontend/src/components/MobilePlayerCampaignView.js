@@ -237,7 +237,8 @@ export default function MobilePlayerCampaignView() {
 
         <section style={panelStyle}>
           <div style={mobileActionGridStyle}>
-            <Button onClick={() => navigate('/characters/new')} style={redActionStyle}><Plus size={15} /> New Character</Button>
+            {/* From a campaign, the builder includes that campaign's homebrew. */}
+            <Button onClick={() => navigate(isDashboardMode ? '/characters/new' : `/characters/new?campaign_id=${encodeURIComponent(campaignId)}`)} style={redActionStyle}><Plus size={15} /> New Character</Button>
             <Button onClick={() => navigate('/player')} style={rowButtonStyle}><Link2 size={15} /> Join / Player Tools</Button>
           </div>
         </section>

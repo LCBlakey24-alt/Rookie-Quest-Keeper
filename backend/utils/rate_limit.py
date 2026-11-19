@@ -84,6 +84,13 @@ RATE_LIMITS = [
     ("/api/account/change-password", 8, 60 * 60),
     ("/api/account/update", 10, 60 * 60),
     ("/api/account", 3, 60 * 60),
+    # Join codes are short: limit tries so codes (and the characters a GM has
+    # prepared) cannot be found by guessing.
+    ("/api/campaign-invites/preview", 30, 15 * 60),
+    ("/api/campaign-invites/join", 30, 15 * 60),
+    # The TV link is read without signing in: limit lookups so codes cannot
+    # be guessed. A TV polls every 2.5s (24 a minute), well under this.
+    ("/api/tv/", 120, 60),
     # AI and expensive parsing routes.
     ("/api/ai", 60, 60 * 60),
     ("/api/rook", 60, 60 * 60),
@@ -109,6 +116,7 @@ ANONYMOUS_PREFIXES = (
     "/api/auth/register",
     "/api/auth/forgot-password",
     "/api/auth/reset-password",
+    "/api/tv/",
 )
 
 

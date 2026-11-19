@@ -18,7 +18,11 @@ describe('Guild Command citrus site-wide design contract', () => {
     expect(css).toContain('--rq-citrus-navy: var(--guild-bg);');
     expect(css).toContain('--rq-citrus-panel: var(--guild-bg);');
     expect(css).toContain('background-image: none !important;');
-    expect(css).toContain('.rqk-player-display__frame');
+    // The player display paints its own dusk sky with the site's turning
+    // hexagons (owner request, 19 Nov 2026), so it is left out of the flat base.
+    expect(css).not.toMatch(/\.rqk-player-display(__frame)?\s*,/);
+    const displayCss = read('../components/gm/PlayerDisplayPage.css');
+    expect(displayCss).toContain('.rqk-player-display > .rq-hex-backdrop');
     expect(css).toContain('.keeper-product-site');
     expect(css).toContain('.rqk-auth-page');
     expect(css).toContain('.character-page-v2');

@@ -89,4 +89,4 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run focused backend tests
-        run: pytest tests/test_character_homebrew_payloads.py tests/test_homebrew_route_normalisation.py tests/test_epic_level_spell_slots.py
+        run: pytest tests/test_character_homebrew_payloads.py tests/test_homebrew_route_normalisation.py tests/test_homebrew_sharing_rules.py tests/test_epic_level_spell_slots.py

@@ -14,6 +14,8 @@ import {
   updateInventoryItemState,
 } from '@/data/characterInventoryState';
 import { rollDiceNotation } from '@/data/diceRoller';
+import usePlayerRulesOptions from '@/hooks/usePlayerRulesOptions';
+import { activeItemDefences, homebrewItemSummary, inventoryItemFromHomebrew } from '@/data/homebrewItemModel';
 import GlowPolygon, { GlowFilter, useSvgId } from './GlowPolygon';
 import {
   ATTUNEMENT_LIMIT,
@@ -63,6 +65,11 @@ export default function HexEquipment({ character, proficiencyBonus, onRoll, onPr
   const [choosing, setChoosing] = useState(false);
   const [coins, setCoins] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [addingHomebrew, setAddingHomebrew] = useState(false);
+  const [homebrewSearch, setHomebrewSearch] = useState('');
+  // Homebrew items: the player's own, plus the GM's shared with this campaign.
+  // Loaded only when the picker opens.
+  const homebrew = usePlayerRulesOptions({ campaignId: character?.campaign_id || undefined, enabled: addingHomebrew });
 
   const equipped = useMemo(() => character?.equipped || {}, [character]);
   const inventory = useMemo(() => (Array.isArray(character?.inventory) ? character.inventory : []), [character]);
@@ -146,16 +153,34 @@ export default function HexEquipment({ character, proficiencyBonus, onRoll, onPr
     return getEquippedWeaponAttack(character, slot, strengthMod, dexterityMod, Math.max(strengthMod, dexterityMod), proficiencyBonus);
   };
 
-  const rollDamage = (attack) => {
-    const { count, sides, modifier = 0, label } = attack.damage || {};
+  // Rolls the weapon's damage plus any extra damage (e.g. +1d6 fire) as one result.
+  const rollDamage = (attack, damage = attack.damage) => {
+    const { count, sides, modifier = 0, label } = damage || {};
     if (!count || !sides || sides < 2) {
       toast.info(`${attack.title}: ${attack.damageText}`);
       return;
     }
     const result = rollDiceNotation(`${count}d${sides}${modifier ? signed(modifier) : ''}`);
     if (!result.valid) return;
-    onPresent({ label: label || `${attack.title} Damage`, rolls: result.rolls, modifier: result.modifier, total: result.total, sides });
+    const extras = (attack.extraDamage || []).map((row) => ({ row, roll: rollDiceNotation(row.dice) })).filter(({ roll }) => roll.valid);
+    const extraText = extras.map(({ row, roll }) => ` + ${roll.total} ${row.type}`).join('');
+    onPresent({
+      label: `${label || `${attack.title} Damage`}${extras.length ? ` (${result.total} ${damage.damageType || ''}${extraText})` : ''}`,
+      rolls: [...result.rolls, ...extras.flatMap(({ roll }) => roll.rolls)],
+      modifier: result.modifier,
+      total: result.total + extras.reduce((sum, { roll }) => sum + roll.total, 0),
+      sides,
+    });
   };
+
+  const addHomebrewItem = async (doc) => {
+    const added = inventoryItemFromHomebrew(doc);
+    const ok = await save({ inventory: [...inventory, added], equipped }, `${nameOf(added)} added to your equipment`);
+    if (ok) { setAddingHomebrew(false); setHomebrewSearch(''); }
+  };
+  const homebrewItems = (Array.isArray(homebrew.options?.items) ? homebrew.options.items : [])
+    .filter((doc) => !homebrewSearch.trim() || String(doc.name || '').toLowerCase().includes(homebrewSearch.trim().toLowerCase()));
+  const defences = activeItemDefences(character || {});
 
   const saveCoins = async () => {
     let working = { ...character };
@@ -222,6 +247,11 @@ export default function HexEquipment({ character, proficiencyBonus, onRoll, onPr
               <>
                 <button type="button" className="is-primary" onClick={() => onRoll(attack.attackLabel, attack.attackMod)} data-testid="hex-slot-attack">Attack {signed(attack.attackMod)}</button>
                 <button type="button" onClick={() => rollDamage(attack)} data-testid="hex-slot-damage">Damage {attack.damageText}</button>
+                {attack.versatileDamage && selected === 'mainHand' && !equipped.offHand && (
+                  <button type="button" onClick={() => rollDamage(attack, attack.versatileDamage)} data-testid="hex-slot-damage-two-hands">
+                    Two hands {attack.versatileDamage.count}d{attack.versatileDamage.sides}{attack.versatileDamage.modifier ? signed(attack.versatileDamage.modifier) : ''}
+                  </button>
+                )}
               </>
             )}
             {item && Number(item.charges_max) > 0 && (
@@ -251,6 +281,20 @@ export default function HexEquipment({ character, proficiencyBonus, onRoll, onPr
               )) : <li className="hex-equip__empty">Nothing in your equipment fits here.</li>}
             </ul>
           )}
+        </section>
+      )}
+
+      {defences.any && (
+        <section className="hex-equip__card hex-equip__defences" aria-label="Defences from items" data-testid="hex-defences">
+          <header><h3>Defences</h3><span>from your items</span></header>
+          <ul>
+            {defences.resistances.length > 0 && <li><strong>Resistant</strong> {defences.resistances.join(', ')} <small>half damage</small></li>}
+            {defences.immunities.length > 0 && <li><strong>Immune</strong> {defences.immunities.join(', ')} <small>no damage</small></li>}
+            {defences.vulnerabilities.length > 0 && <li><strong>Vulnerable</strong> {defences.vulnerabilities.join(', ')} <small>double damage</small></li>}
+            {defences.conditionImmunities.length > 0 && <li><strong>Can&apos;t be</strong> {defences.conditionImmunities.join(', ')}</li>}
+            {defences.saveBonus !== 0 && <li><strong>Saving throws</strong> {signed(defences.saveBonus)} to all</li>}
+          </ul>
+          <p>From {defences.sources.join(', ')}.</p>
         </section>
       )}
 
@@ -288,7 +332,31 @@ export default function HexEquipment({ character, proficiencyBonus, onRoll, onPr
         <header>
           <h3>Equipment</h3>
           <span>{backpack.length} item{backpack.length === 1 ? '' : 's'} · attuned {attunedCount}/{ATTUNEMENT_LIMIT}</span>
+          <button type="button" onClick={() => setAddingHomebrew((open) => !open)} aria-expanded={addingHomebrew} disabled={busy} data-testid="hex-add-homebrew">
+            {addingHomebrew ? 'Close' : 'Add homebrew item'}
+          </button>
         </header>
+        {addingHomebrew && (
+          <div className="hex-equip__homebrew" data-testid="hex-homebrew-picker">
+            <input type="search" value={homebrewSearch} onChange={(event) => setHomebrewSearch(event.target.value)} placeholder="Search your homebrew items" aria-label="Search homebrew items" />
+            {homebrew.loading ? <p>Loading your homebrew…</p>
+              : homebrew.error ? <p>Could not load homebrew items. <button type="button" onClick={homebrew.refresh}>Try again</button></p>
+                : homebrewItems.length === 0 ? <p>No homebrew items yet. Make one in the Homebrew Workshop under Items &amp; Equipment{character?.campaign_id ? ', or ask your GM to share one with this campaign' : ''}.</p>
+                  : (
+                    <ul>
+                      {homebrewItems.map((doc) => (
+                        <li key={doc.id}>
+                          <div>
+                            <strong>{doc.name}</strong>
+                            <span>{[doc.is_campaign_content ? 'From your GM' : 'Yours', homebrewItemSummary(doc)].filter(Boolean).join(' · ')}</span>
+                          </div>
+                          <button type="button" onClick={() => addHomebrewItem(doc)} disabled={busy} data-testid={`hex-homebrew-add-${doc.name}`}>Add</button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+          </div>
+        )}
         <ul className="hex-equip__pack">
           {backpack.length ? backpack.map((packed, index) => {
             const slots = slotsForItem(packed);
@@ -302,6 +370,9 @@ export default function HexEquipment({ character, proficiencyBonus, onRoll, onPr
                 </div>
                 <div className="hex-equip__pack-actions">
                   {requiresAttunement(packed) && <button type="button" onClick={() => toggleAttunement(packed)} disabled={busy}>{isAttuned(packed) ? 'End' : 'Attune'}</button>}
+                  {packed.homebrew_kind === 'wearable' && !requiresAttunement(packed) && !slots.length && (
+                    <button type="button" onClick={() => updateItem(packed, { worn: !packed.worn }, packed.worn ? `${nameOf(packed)} taken off` : `Wearing ${nameOf(packed)}`)} disabled={busy} aria-pressed={Boolean(packed.worn)}>{packed.worn ? 'Take off' : 'Wear'}</button>
+                  )}
                   {free && !oldSlot && <button type="button" onClick={() => equip(packed, free)} disabled={busy} data-testid={`hex-pack-equip-${nameOf(packed)}`}>Equip · {slotLabel(free)}</button>}
                 </div>
               </li>
