@@ -12,7 +12,7 @@ export default function MapGridOverlay({ grid, aspect }) {
   const tile = gridTile(settings);
   if (!tile || !(aspect > 0)) return null;
   const height = 100 * aspect;
-  const stroke = settings.colour === 'dark' ? '#0b0614' : '#ffffff';
+  const stroke = settings.colour === 'dark' ? 'var(--rq-map-grid-dark, #0b0614)' : 'var(--rq-map-grid-light, #ffffff)';
   return (
     <svg
       className="rq-map-grid-overlay"
@@ -31,7 +31,7 @@ export default function MapGridOverlay({ grid, aspect }) {
           height={tile.height}
           patternTransform={`translate(${tile.dx} ${tile.dy})`}
         >
-          <path d={tile.path} fill="none" stroke={stroke} strokeWidth="1" vectorEffect="non-scaling-stroke" />
+          <path d={tile.path} fill="none" style={{ stroke }} strokeWidth="1" vectorEffect="non-scaling-stroke" />
         </pattern>
       </defs>
       <rect x="0" y="0" width="100" height={height} fill={`url(#grid-${id})`} opacity={settings.opacity} />
