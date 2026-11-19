@@ -1,0 +1,12 @@
+/* Touch screens: table tools a GM or player taps mid-session are at least
+   44px. Mouse/desktop layouts keep their compact sizes. Scoped to the pages
+   a phone sweep found under 44px; checkboxes and radios keep their own
+   label-sized targets. */
+@media (pointer: coarse) {
+  #root :is(.rqk-live-page, .campaign-home-simple, .player-campaign-page, .player-now-playing)
+    :is(button, select, input:not([type='checkbox']):not([type='radio']):not([type='range'])) {
+    /* Some of these set an inline min-height of 34px; touch wins here. */
+    min-height: 44px !important;
+  }
+  #root .player-now-playing button { min-width: 44px !important; }
+}
