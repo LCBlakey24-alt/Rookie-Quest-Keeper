@@ -7,6 +7,7 @@ import { AUTH_TOKEN_KEY } from '@/lib/auth';
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import GroupCheckDisplay from '@/components/gm/GroupCheckDisplay';
 import DisplayHexPortrait from '@/components/gm/DisplayHexPortrait';
+import HexBackdrop from '@/components/guild-motif/HexBackdrop';
 import { getContainedMapRect } from '@/data/containedMapGeometry';
 import { getPlayerDisplayTarget } from '@/data/playerDisplayTarget';
 import { rollActorDisplayName } from '@/lib/rollActorLabels';
@@ -278,6 +279,8 @@ export default function PlayerDisplayPage({ tvCode = '' }) {
 
   return (
     <main className="rqk-player-display" style={pageStyle(target)} data-testid="player-display-page" data-display-target={target} data-display-mode={mode}>
+      {/* The site's slowly turning hexagons, behind the whole display. */}
+      <HexBackdrop />
       <button type="button" ref={fullscreenButtonRef} className="rqk-player-display__fullscreen" onClick={toggleFullscreen} style={fullscreenButtonStyle}
         aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
         title={fullscreen ? 'Exit fullscreen (F or Esc)' : 'Enter fullscreen (F)'}>
