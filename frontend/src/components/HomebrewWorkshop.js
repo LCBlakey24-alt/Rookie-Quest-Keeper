@@ -28,6 +28,7 @@ import {
 import ImageUploadPanel from '@/components/ImageUploadPanel';
 import '@/styles/guildTokens.css';
 import '@/styles/homebrewGuild.css';
+import HomebrewSharingOptions from './homebrew/HomebrewSharingOptions';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = fontStack;
@@ -346,6 +347,7 @@ export default function HomebrewWorkshop() {
   const [edition, setEdition] = useState('2014');
   const [visibility, setVisibility] = useState('private');
   const [campaignId, setCampaignId] = useState('');
+  const [contentSource, setContentSource] = useState('original');
   const [pasteText, setPasteText] = useState('');
   const [draft, setDraft] = useState(emptyDraft('subclass'));
   const [missing, setMissing] = useState(findMissing('subclass', emptyDraft('subclass')));
@@ -396,6 +398,7 @@ export default function HomebrewWorkshop() {
     setMissing(findMissing(nextType, empty));
     setEditingId(null);
     setPasteText('');
+    setContentSource('original');
   };
 
   const switchType = (nextType) => {
@@ -487,12 +490,12 @@ export default function HomebrewWorkshop() {
       return;
     }
     if (visibility === 'campaign' && !campaignId.trim()) {
-      toast.error('Campaign visibility needs a campaign ID');
+      toast.error('Choose which of your campaigns can use this');
       return;
     }
     setSaving(true);
     try {
-      await apiClient.post('/homebrew/save', { content_type: type, edition, visibility, campaign_id: campaignId || undefined, data: draft, homebrew_id: editingId || undefined });
+      await apiClient.post('/homebrew/save', { content_type: type, edition, visibility, campaign_id: campaignId || undefined, content_source: contentSource, data: draft, homebrew_id: editingId || undefined });
       toast.success(editingId ? 'Homebrew updated' : 'Saved to your library');
       reset(type);
       fetchLibrary();
@@ -506,6 +509,7 @@ export default function HomebrewWorkshop() {
     setEditingId(item.id);
     setVisibility(item.visibility || 'private');
     setCampaignId(item.campaign_id || item.campaignId || '');
+    setContentSource(item.content_source || 'original');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -544,8 +548,11 @@ export default function HomebrewWorkshop() {
           <div style={draftHeaderStyle}><div><h2 style={sectionTitleStyle}>{editingId ? 'Editing' : 'Draft'} · {currentMeta.label}</h2><p style={helpStyle}>{currentMeta.help}</p></div>{shownMissing.length > 0 && <span style={missingPillStyle}><AlertTriangle size={14} /> {shownMissing.length} missing</span>}</div>
           <DraftEditor contentType={type} draft={draft} missing={shownMissing} onChange={setDraft} />
           <section style={saveOptionsStyle}>
-            <SelectRow label="Visibility" value={visibility} onChange={setVisibility} options={['private', 'campaign', 'shared_copy', 'public']} />
-            {visibility === 'campaign' && <FieldRow label="Campaign ID" value={campaignId} onChange={setCampaignId} placeholder="Paste the campaign ID to share with that campaign" />}
+            <HomebrewSharingOptions
+              source={contentSource} onSourceChange={setContentSource}
+              visibility={visibility} onVisibilityChange={setVisibility}
+              campaignId={campaignId} onCampaignChange={setCampaignId}
+            />
           </section>
           <div style={footerActionsStyle}><button type="button" onClick={() => reset(type)} style={secondaryButtonStyle}><RefreshCw size={15} /> Clear</button><button type="button" onClick={handleCompleteDraft} disabled={completing} style={secondaryButtonStyle}><Sparkles size={15} /> Fill Missing</button><button type="button" onClick={handleSave} disabled={saving || !draft.name} style={primaryButtonStyle} data-testid="hb-save-btn">{saving ? <Loader2 size={15} className="rq-spin" /> : <Save size={15} />} {editingId ? 'Update' : 'Save to Library'}</button></div>
         </section>
