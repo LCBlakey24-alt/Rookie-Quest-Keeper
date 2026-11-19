@@ -49,6 +49,8 @@ import { atlasColumns, buildDieGeometry, drawFaceAtlas, faceLayouts } from './di
 import { assignFaceValues, faceConfidence, seededRandom, settledFaceIndex } from './diceFaceReading';
 import { PERCENTILE_UNITS_VALUES, faceNormals, shapeForSides } from './diceShapes';
 import { createStudioScene } from './studioEnvironment';
+import { TOWER, TOWER_LIMITS, addTowerColliders, inTray, towerStart } from './diceTowerRig';
+import { buildTower } from './towerSkins';
 
 const TRAY_HALF = 3.5;
 
@@ -109,8 +111,13 @@ export const QUICK_STEPS = 270;
  * TIME_SCALE. The overlay's reveal backstop waits at least this long so a
  * slow (reserve) throw is never cut short by the parent's timers.
  */
-export function longestReplayMs() {
-  return Math.ceil((MAX_STEPS * STEP * 1000) / TIME_SCALE);
+export function longestReplayMs(rig = 'tray') {
+  return Math.ceil((limitsFor(rig).maxSteps * STEP * 1000) / TIME_SCALE);
+}
+
+/** Step limits for a rig: the tower's drop takes longer than a throw. */
+export function limitsFor(rig = 'tray') {
+  return rig === 'tower' ? TOWER_LIMITS : { maxSteps: MAX_STEPS, quickSteps: QUICK_STEPS };
 }
 const COCKED_THRESHOLD = 0.86;
 /**
@@ -136,7 +143,7 @@ export function throwAttemptsFor(count) {
 }
 const SETTLE_HOLD_FRAMES = 20;
 
-function trayWorld() {
+function trayWorld(rig = 'tray') {
   const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -38, 0) });
   world.allowSleep = true;
   world.defaultContactMaterial.friction = 0.38;
@@ -151,11 +158,16 @@ function trayWorld() {
     return body;
   };
 
+  const tower = rig === 'tower';
   addPlane([0, 0, 0], [-Math.PI / 2, 0, 0]);                    // floor
-  addPlane([0, WALL_HEIGHT, 0], [Math.PI / 2, 0, 0]);           // ceiling
+  // The tower is taller than the tray's lid, so its lid sits above the tube.
+  addPlane([0, tower ? TOWER.top + 14 : WALL_HEIGHT, 0], [Math.PI / 2, 0, 0]); // ceiling
   addPlane([-TRAY_HALF, 0, 0], [0, Math.PI / 2, 0]);            // left
   addPlane([TRAY_HALF, 0, 0], [0, -Math.PI / 2, 0]);            // right
-  addPlane([0, 0, -TRAY_HALF], [0, 0, 0]);                      // back
+  // An endless back plane would seal the tower's mouth; the tower brings
+  // its own back wall either side of the opening.
+  if (tower) world.towerDiceMaterial = addTowerColliders(world);
+  else addPlane([0, 0, -TRAY_HALF], [0, 0, 0]);                 // back
   addPlane([0, 0, TRAY_HALF], [0, Math.PI, 0]);                 // front
 
   return world;
@@ -173,11 +185,40 @@ function hullFor(solid, scale) {
  * the tray, spinning. Reading the generator in a fixed order is what lets
  * the replay reproduce the rehearsal.
  */
-function throwBodies(world, specs, random) {
+function throwBodies(world, specs, random, rig = 'tray') {
   return specs.map((spec, index) => {
     const solid = spec.solid;
     const bulk = DIE_BULK[spec.sides] || 1;
     const scale = (DIE_RADIUS * bulk) / Math.max(...solid.vertices.map((v) => Math.hypot(...v)));
+    if (rig === 'tower') {
+      // Dropped into the top of the tube; the baffles do the tumbling.
+      //
+      // Inside the tube a die collides as a ball. cannon-es box-versus-
+      // polyhedron contact can lock a die onto a slope (a d4 stuck fast on
+      // the ramp), so the true shape is only swapped in as the die leaves
+      // the tube (enterTray). Its face is decided entirely in the tray, by
+      // the same die-on-floor physics as an ordinary throw. The mesh still
+      // tumbles: it follows the ball's spin.
+      const hull = hullFor(solid, scale);
+      const body = new CANNON.Body({ mass: 1, shape: new CANNON.Sphere(DIE_RADIUS * bulk * TOWER_BALL) });
+      const start = towerStart(index, random);
+      body.material = world.towerDiceMaterial || null;
+      body.position.set(...start.position);
+      body.quaternion.setFromEuler(random() * Math.PI * 2, random() * Math.PI * 2, random() * Math.PI * 2);
+      body.velocity.set(...start.velocity);
+      body.angularVelocity.set(...start.spin);
+      // A die resting a moment on a slope must not be put to sleep inside
+      // the tube; sleep is only switched on once it reaches the tray
+      // (see wakeTowerDice).
+      body.allowSleep = false;
+      body.sleepSpeedLimit = SETTLED_SPEED;
+      body.sleepTimeLimit = 0.25;
+      body.linearDamping = 0.16;
+      body.angularDamping = 0.14;
+      world.addBody(body);
+      return { body, scale, spec, hull };
+    }
+
     const body = new CANNON.Body({ mass: 1, shape: hullFor(solid, scale) });
 
     // Dice are thrown in from the back edge and aimed at the middle of the
@@ -213,6 +254,26 @@ function throwBodies(world, specs, random) {
   });
 }
 
+/** A tower die's ball is this share of the die's own radius. */
+const TOWER_BALL = 0.82;
+
+/**
+ * As each tower die clears the mouth, give it back its real shape and let
+ * it sleep. Called after every step in the rehearsal and the replay alike,
+ * so both swap on the same step.
+ */
+function enterTray(entries) {
+  entries.forEach((entry) => {
+    const { body } = entry;
+    if (!entry.hull || body.position.z <= TOWER.front + 0.6) return;
+    body.removeShape(body.shapes[0]);
+    body.addShape(entry.hull);
+    body.updateMassProperties();
+    body.allowSleep = true;
+    entry.hull = null;
+  });
+}
+
 function atRest(entries) {
   return entries.every(({ body }) =>
     body.sleepState === CANNON.Body.SLEEPING
@@ -226,15 +287,17 @@ function atRest(entries) {
  * Returns null when a die ends up cocked, so the caller can try another
  * seed rather than read a die balanced on an edge.
  */
-export function simulateThrow(specs, seed) {
-  const world = trayWorld();
-  const entries = throwBodies(world, specs, seededRandom(seed));
+export function simulateThrow(specs, seed, rig = 'tray') {
+  const world = trayWorld(rig);
+  const entries = throwBodies(world, specs, seededRandom(seed), rig);
+  const { maxSteps } = limitsFor(rig);
 
   let steps = 0;
   let still = 0;
-  while (steps < MAX_STEPS && still < REST_HOLD_STEPS) {
+  while (steps < maxSteps && still < REST_HOLD_STEPS) {
     world.step(STEP);
     steps += 1;
+    if (rig === 'tower') enterTray(entries);
     still = atRest(entries) ? still + 1 : 0;
   }
 
@@ -260,7 +323,7 @@ function landedCentrally(positions) {
  * Prepare a throw: find a seed whose dice all land flat, and work out the
  * number layout each die needs so the settled face shows its result.
  */
-export function planThrow(specs, baseSeed) {
+export function planThrow(specs, baseSeed, rig = 'tray') {
   const build = (seed, faces, positions) => {
     const random = seededRandom(seed + 104729);
     return {
@@ -285,12 +348,15 @@ export function planThrow(specs, baseSeed) {
   let reserve = null;
   const attempts = throwAttemptsFor(specs.length);
 
+  const { quickSteps } = limitsFor(rig);
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     const seed = baseSeed + attempt * 7919;
-    const outcome = simulateThrow(specs, seed);
+    const outcome = simulateThrow(specs, seed, rig);
     if (!outcome) continue;
+    // A die still in the tube (resting on a baffle) cannot be shown.
+    if (rig === 'tower' && !outcome.positions.every(inTray)) continue;
 
-    if (landedCentrally(outcome.positions) && outcome.steps <= QUICK_STEPS) return build(seed, outcome.faces, outcome.positions);
+    if (landedCentrally(outcome.positions) && outcome.steps <= quickSteps) return build(seed, outcome.faces, outcome.positions);
     if (!reserve) reserve = build(seed, outcome.faces, outcome.positions);
   }
 
@@ -416,7 +482,32 @@ export function cameraFraming(positions, fovDegrees, { aspect = 1, scale = 1 } =
  * inside a second coloured box -- the flat-surface direction applies to the
  * 3D view too, and the tray's edge is the panel's own hairline border.
  */
-export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = true }) {
+/**
+ * The tower's close shot: a window onto the tube at height y, so the camera
+ * can ride the dice down past the baffles. About eight units of tower are
+ * in view, fitted to the canvas's shape (the hexagon window is a little
+ * taller than wide).
+ */
+export function towerFollowShot(y, fovDegrees, aspect = 1) {
+  const target = [0, y - 0.6, TOWER.front - TOWER.depth / 2 + 1.2];
+  const span = 8.5;
+  const tanHalf = Math.tan((fovDegrees / 2) * (Math.PI / 180));
+  const distance = Math.max((span / 2) / tanHalf, (span * 0.75 / 2) / (tanHalf * Math.max(0.35, aspect || 1)));
+  const direction = [0.35, 0.3, 1];
+  const length = Math.hypot(...direction);
+  return {
+    position: direction.map((value, index) => target[index] + (value / length) * distance),
+    target,
+  };
+}
+
+/** How long the camera takes to come down from the tower to the dice. */
+export const TOWER_CAMERA_MS = 950;
+
+const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2);
+
+export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = true, rig = 'tray', towerSkin = null }) {
+  const tower = rig === 'tower';
   const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setClearColor(0x000000, 0);
   renderer.shadowMap.enabled = true;
@@ -458,10 +549,13 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
   key.shadow.mapSize.set(2048, 2048);
   key.shadow.radius = 4;
   key.shadow.bias = -0.0015;
-  key.shadow.camera.left = -TRAY_HALF * 1.6;
-  key.shadow.camera.right = TRAY_HALF * 1.6;
-  key.shadow.camera.top = TRAY_HALF * 1.6;
-  key.shadow.camera.bottom = -TRAY_HALF * 1.6;
+  // The tower casts a long shadow behind the tray, so its shadow box is larger.
+  const shadowReach = TRAY_HALF * (tower ? 3.4 : 1.6);
+  key.shadow.camera.left = -shadowReach;
+  key.shadow.camera.right = shadowReach;
+  key.shadow.camera.top = shadowReach;
+  key.shadow.camera.bottom = -shadowReach;
+  if (tower) key.shadow.camera.far = 60;
   scene.add(key);
 
   const fill = new DirectionalLight(palette.support, 0.6);
@@ -490,6 +584,10 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
   logo.renderOrder = -1;
   logo.visible = false;
   scene.add(logo);
+
+  // The tower itself, in the chosen design. Every design shares the colliders.
+  const towerModel = tower ? buildTower(towerSkin) : null;
+  if (towerModel) scene.add(towerModel.group);
 
   let active = [];
   let outcomeLights = [];
@@ -536,19 +634,24 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
   function roll(specs, { seed, onSettled } = {}) {
     if (disposed || !specs.length) return false;
 
-    const plan = planThrow(specs, seed);
+    const plan = planThrow(specs, seed, rig);
     if (!plan) return false;
 
     clearDice();
     if (frame) cancelAnimationFrame(frame);
 
     const framing = cameraFraming(plan.positions, FOV, { aspect: camera.aspect, scale: frameScale });
-    camera.position.set(...framing.position);
-    camera.lookAt(...framing.target);
-    logo.position.set(...floorLogoPlacement(framing).position);
+    // The tower opens on the whole tower; the tray goes straight to the dice.
+    // The tower opens close on its top, where the dice drop in.
+    const opening = tower ? towerFollowShot(TOWER.top + 1, FOV, camera.aspect) : framing;
+    camera.position.set(...opening.position);
+    camera.lookAt(...opening.target);
+    logo.position.set(...floorLogoPlacement(tower ? { target: [0, 0, 0] } : framing).position);
 
-    world = trayWorld();
-    const entries = throwBodies(world, specs, seededRandom(plan.seed));
+    world = trayWorld(rig);
+    const entries = throwBodies(world, specs, seededRandom(plan.seed), rig);
+    const { maxSteps } = limitsFor(rig);
+    let cameraMove = null;
 
     active = entries.map((entry, index) => {
       const columns = atlasColumns(entry.spec.solid.faces.length);
@@ -638,8 +741,15 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
       });
     };
 
+    // Tower: the camera rides the dice down the tube, then sweeps to the tray
+    // as the last die leaves the mouth. Purely visual: the physics and the
+    // result are the rehearsed throw either way.
+    let shot = opening;
+    let sweptToTray = !tower;
+
     const tick = (now) => {
       if (disposed) return;
+      const frameSeconds = lastTime === null ? 1 / 60 : Math.min(0.1, Math.max(0, (now - lastTime) / 1000));
       // Advance the physics by the time that has passed (scaled), in whole
       // steps, until the dice have been still long enough. Then stop
       // stepping: the dice stay exactly where the rehearsal read them.
@@ -650,23 +760,55 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
           owed -= STEP;
           world.step(STEP);
           steps += 1;
+          if (tower) enterTray(active);
           still = atRest(active) ? still + 1 : 0;
-          if (still >= REST_HOLD_STEPS || steps >= MAX_STEPS) announced = true;
+          if (still >= REST_HOLD_STEPS || steps >= maxSteps) announced = true;
         }
         place();
         if (announced && !settledDelivered) {
           settledDelivered = true;
           revealOutcomes();
-          onSettled?.();
+          if (tower) {
+            // Finish coming down to the dice before the total shows.
+            if (!sweptToTray) { sweptToTray = true; cameraMove = { from: shot, to: framing, start: now }; }
+            const left = cameraMove ? Math.max(0, TOWER_CAMERA_MS - (now - cameraMove.start)) : 0;
+            window.setTimeout(() => { if (!disposed) onSettled?.(); }, left);
+          } else {
+            onSettled?.();
+          }
         }
       }
       lastTime = now;
+
+      if (!sweptToTray && !cameraMove) {
+        const inTube = active.filter((entry) => entry.hull);
+        if (inTube.length) {
+          const y = inTube.reduce((sum, entry) => sum + entry.body.position.y, 0) / inTube.length;
+          const goal = towerFollowShot(Math.max(TOWER.mouth + 1.5, Math.min(TOWER.top + 1, y)), FOV, camera.aspect);
+          const k = 1 - Math.exp(-5 * frameSeconds);
+          const ease = (a, b) => a.map((value, index) => value + (b[index] - value) * k);
+          shot = { position: ease(shot.position, goal.position), target: ease(shot.target, goal.target) };
+          camera.position.set(...shot.position);
+          camera.lookAt(...shot.target);
+        } else {
+          sweptToTray = true;
+          cameraMove = { from: shot, to: framing, start: now };
+        }
+      }
+
+      if (cameraMove) {
+        const t = easeInOut(Math.min(1, (now - cameraMove.start) / TOWER_CAMERA_MS));
+        const mix = (a, b) => a.map((value, index) => value + (b[index] - value) * t);
+        camera.position.set(...mix(cameraMove.from.position, cameraMove.to.position));
+        camera.lookAt(...mix(cameraMove.from.target, cameraMove.to.target));
+        if (t >= 1) cameraMove = null;
+      }
 
       renderer.render(scene, camera);
 
       // A few frames after the dice stop the picture is final, so the loop
       // ends rather than burning a rAF every frame for the panel's lifetime.
-      if (announced) settleFrames += 1;
+      if (announced && !cameraMove) settleFrames += 1;
       if (settleFrames < SETTLE_HOLD_FRAMES) {
         frame = requestAnimationFrame(tick);
       } else {
@@ -682,6 +824,7 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
     disposed = true;
     if (frame) cancelAnimationFrame(frame);
     clearDice();
+    towerModel?.dispose();
     floor.geometry.dispose();
     floor.material.dispose();
     logo.geometry.dispose();
