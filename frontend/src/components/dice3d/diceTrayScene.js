@@ -795,19 +795,20 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
 
     const tick = (now) => {
       if (disposed) return;
+      const frameSeconds = lastTime === null ? 1 / 60 : Math.min(0.1, Math.max(0, (now - lastTime) / 1000));
       if (!introDone) {
         if (introStart === null) introStart = now;
         const t = Math.min(1, (now - introStart) / TOWER_INTRO_MS);
         shot = towerIntroShot(opening, t);
         camera.position.set(...shot.position);
         camera.lookAt(...shot.target);
+        towerModel?.update?.(frameSeconds, { dice: [], dropping: false });
         renderer.render(scene, camera);
         lastTime = now;
         if (t < 1) { frame = requestAnimationFrame(tick); return; }
         introDone = true;
         active.forEach((entry) => { entry.mesh.visible = true; });
       }
-      const frameSeconds = lastTime === null ? 1 / 60 : Math.min(0.1, Math.max(0, (now - lastTime) / 1000));
       // Advance the physics by the time that has passed (scaled), in whole
       // steps, until the dice have been still long enough. Then stop
       // stepping: the dice stay exactly where the rehearsal read them.
@@ -860,6 +861,13 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
         camera.position.set(...mix(cameraMove.from.position, cameraMove.to.position));
         camera.lookAt(...mix(cameraMove.from.target, cameraMove.to.target));
         if (t >= 1) cameraMove = null;
+      }
+
+      if (towerModel?.update) {
+        towerModel.update(frameSeconds, {
+          dropping: true,
+          dice: active.map((entry) => ({ position: [entry.body.position.x, entry.body.position.y, entry.body.position.z], inTube: Boolean(entry.hull) })),
+        });
       }
 
       renderer.render(scene, camera);
