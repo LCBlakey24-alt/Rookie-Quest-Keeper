@@ -189,7 +189,7 @@
     color: var(--rq-citrus-cream) !important;
     border-radius: 5px !important;
     padding: 8px 10px !important;
-    min-height: 36px !important;
+    min-height: 44px !important;
     font-size: .74rem !important;
     white-space: nowrap !important;
     transition: background-size var(--rq-citrus-sweep) !important;
