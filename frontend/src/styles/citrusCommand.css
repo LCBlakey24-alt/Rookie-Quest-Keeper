@@ -34,9 +34,11 @@
   /* A solid base, even on public/auth, long GM pages and full-screen TVs.
    * Only outer page surfaces are reset: maps, stat blocks, artwork and
    * content panels keep their own backgrounds and remain legible. */
+  /* The player display is not listed: it paints its own dusk sky with the
+   * turning hexagons over it (PlayerDisplayPage.css), and a layered
+   * !important here would cover them. */
   html, body, #root,
   #root :is(.App, .rqk-app-shell, .keeper-product-site, .rqk-auth-page,
-            .rqk-player-display, .rqk-player-display__frame,
             .rqk-live-grid, .character-page-v2, .clean-sheet-page) {
     background-color: var(--rq-citrus-navy) !important;
     background-image: none !important;
