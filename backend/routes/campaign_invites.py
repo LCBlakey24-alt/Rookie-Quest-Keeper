@@ -5,6 +5,7 @@ from utils.auth import get_current_user, verify_campaign_ownership
 from utils.character_campaign_link import character_belongs_to_campaign, release_character_from_other_campaigns
 from utils.ws_session import CLOSE_FORBIDDEN, REASON_FORBIDDEN, end_live_sessions
 from models import CampaignInvite, CampaignMember
+from utils.prepared_characters import claim_prepared_character, list_prepared_characters
 from typing import Dict, Any
 from datetime import datetime, timezone
 import secrets
@@ -69,6 +70,11 @@ async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depen
     """Join a campaign using a GM join code and link one specific character."""
     code = normalize_join_code(join_data.get('join_code') or join_data.get('invite_code') or join_data.get('code'))
     character_id = str(join_data.get('character_id') or '').strip()
+    # A character the GM prepared, which this player is claiming as theirs.
+    prepared_character_id = str(join_data.get('prepared_character_id') or '').strip()
+    if prepared_character_id and not character_id:
+        character_id = prepared_character_id
+    claiming = bool(prepared_character_id) and character_id == prepared_character_id
 
     if len(code) != 6:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Join code must be 6 characters')
@@ -101,14 +107,26 @@ async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depen
     if campaign.get('dm_user_id') == username:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You are already the GM of this campaign')
 
-    character = await db.player_characters.find_one({'id': character_id, 'user_id': username}, {'_id': 0})
-    if not character:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Character not found')
-
     join_mode = campaign.get('join_mode', 'gm_approval')
     requested_member_state = 'active' if join_mode == 'auto_accept' else 'pending'
     final_member_state = requested_member_state
     existing_member = await db.campaign_members.find_one({'campaign_id': campaign_id, 'user_id': username}, {'_id': 0})
+
+    if claiming:
+        # Same rule as linking your own character: one live character each.
+        if existing_member:
+            existing_state = str(existing_member.get('status') or 'active').lower()
+            existing_character_id = existing_member.get('character_id')
+            if existing_state in ACTIVE_JOIN_STATES and existing_character_id and existing_character_id != character_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail='You already have an active or pending character in this campaign. Ask the GM to mark it Dead, Retired, or Removed before linking a new one.'
+                )
+        character = await claim_prepared_character(character_id, campaign, username)
+    else:
+        character = await db.player_characters.find_one({'id': character_id, 'user_id': username}, {'_id': 0})
+    if not character:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Character not found')
 
     if existing_member:
         existing_state = str(existing_member.get('status') or 'active').lower()
@@ -167,6 +185,8 @@ async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depen
     )
 
     message = 'Character linked to campaign' if final_member_state == 'active' else 'Character submitted for GM approval'
+    if claiming:
+        message = 'Character claimed and linked to campaign' if final_member_state == 'active' else 'Character claimed and sent to the GM for approval'
     return {
         'message': message,
         'status': final_member_state,
@@ -182,6 +202,27 @@ async def join_campaign_by_code(join_data: Dict[str, Any], username: str = Depen
             'id': character_id,
             'name': character.get('name') or character.get('character_name') or '',
         },
+    }
+
+
+@router.post('/campaign-invites/preview')
+async def preview_campaign_by_code(join_data: Dict[str, Any], username: str = Depends(get_current_user)):
+    """What a joining player sees before choosing: the campaign and the
+    characters its GM has prepared for players to claim."""
+    code = normalize_join_code(join_data.get('join_code') or join_data.get('code'))
+    if len(code) != 6:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Join code must be 6 characters')
+    invite = await db.campaign_invites.find_one({'code': code}, {'_id': 0})
+    if not invite:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Invalid join code')
+    campaign = await db.campaigns.find_one({'id': invite.get('campaign_id')}, {'_id': 0, 'id': 1, 'name': 1, 'dm_user_id': 1, 'join_mode': 1, 'join_code_enabled': 1})
+    if not campaign or campaign.get('join_code_enabled', True) is False:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Invalid join code')
+    is_gm = campaign.get('dm_user_id') == username
+    return {
+        'campaign': {'id': campaign['id'], 'name': campaign.get('name', 'Untitled Campaign'), 'join_mode': campaign.get('join_mode', 'gm_approval')},
+        'is_gm': is_gm,
+        'prepared_characters': [] if is_gm else await list_prepared_characters(campaign['id'], campaign.get('dm_user_id')),
     }
 
 
