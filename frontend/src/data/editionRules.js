@@ -486,18 +486,23 @@ export const SRD_RACES_2024 = [
   { name: 'Goliath', bonus: 'Choose +2/+1 or +1/+1/+1', source: 'SRD 2024', traits: ['Giant Ancestry', 'Large Form', 'Powerful Build'] },
   { name: 'Orc', bonus: 'Choose +2/+1 or +1/+1/+1', source: 'SRD 2024', traits: ['Adrenaline Rush', 'Darkvision', 'Relentless Endurance'] },
   { name: 'Tiefling', bonus: 'Choose +2/+1 or +1/+1/+1', source: 'SRD 2024', traits: ['Darkvision', 'Fiendish Legacy', 'Otherworldly Presence'] },
-  { name: 'Aasimar', bonus: 'Choose +2/+1 or +1/+1/+1', source: 'SRD 2024', traits: ['Celestial Resistance', 'Darkvision', 'Healing Hands', 'Light Bearer'] },
 ];
+// Aasimar is not in SRD 5.2.1 (see docs/licensing/CONTENT_INVENTORY.md), so it is not listed as SRD.
 
-// SRD Backgrounds (simplified - both editions have similar backgrounds)
-export const SRD_BACKGROUNDS = [
-  { name: 'Acolyte', skills: ['Insight', 'Religion'], feature: 'Shelter of the Faithful' },
-  { name: 'Criminal', skills: ['Deception', 'Stealth'], feature: 'Criminal Contact' },
-  { name: 'Folk Hero', skills: ['Animal Handling', 'Survival'], feature: 'Rustic Hospitality' },
-  { name: 'Noble', skills: ['History', 'Persuasion'], feature: 'Position of Privilege' },
-  { name: 'Sage', skills: ['Arcana', 'History'], feature: 'Researcher' },
-  { name: 'Soldier', skills: ['Athletics', 'Intimidation'], feature: 'Military Rank' },
+// SRD backgrounds, per edition. SRD 5.1 licenses only Acolyte; SRD 5.2.1
+// licenses Acolyte, Criminal, Sage and Soldier. Other familiar backgrounds
+// (Folk Hero, Noble, ...) are Player's Handbook content, not SRD. See
+// docs/licensing/CONTENT_INVENTORY.md.
+export const SRD_BACKGROUNDS_2014 = [
+  { name: 'Acolyte', skills: ['Insight', 'Religion'], feature: 'Shelter of the Faithful', source: 'SRD 5.1' },
 ];
+export const SRD_BACKGROUNDS_2024 = [
+  { name: 'Acolyte', skills: ['Insight', 'Religion'], source: 'SRD 5.2.1' },
+  { name: 'Criminal', skills: ['Sleight of Hand', 'Stealth'], source: 'SRD 5.2.1' },
+  { name: 'Sage', skills: ['Arcana', 'History'], source: 'SRD 5.2.1' },
+  { name: 'Soldier', skills: ['Athletics', 'Intimidation'], source: 'SRD 5.2.1' },
+];
+export const SRD_BACKGROUNDS = [...SRD_BACKGROUNDS_2014, ...SRD_BACKGROUNDS_2024.filter((b) => b.name !== 'Acolyte')];
 
 export default {
   EDITIONS,
@@ -523,5 +528,7 @@ export default {
   JSON_UPLOAD_SCHEMAS,
   SRD_RACES_2014,
   SRD_RACES_2024,
-  SRD_BACKGROUNDS
+  SRD_BACKGROUNDS,
+  SRD_BACKGROUNDS_2014,
+  SRD_BACKGROUNDS_2024,
 };
