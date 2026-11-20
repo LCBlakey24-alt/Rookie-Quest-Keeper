@@ -2,6 +2,10 @@ import { NON_SRD_BUILTIN_SUBCLASSES, isNonSrdBuiltInSubclass, offerableSubclasse
 import { getCharacterBuilderClassOptions } from '../characterBuilderClassOptions';
 import { getClassSelectionState } from '../../components/builder/classSelectionState';
 import { CLASSES } from '../characterRules5e';
+import * as policy from './builtInContentPolicy';
+import { getFighterBuilderOptions } from '../fighterBuilderOptions';
+import { SPELL_DATABASE, getSpellsForClass } from '../spellDatabase';
+import { ITEMS_DATABASE } from '../itemsDatabase';
 
 // The SRD subclass for each class (SRD 5.1 name / SRD 5.2.1 name).
 const SRD_SUBCLASSES = {
@@ -76,5 +80,48 @@ describe('species and backgrounds, per edition', () => {
   test('homebrew origins are never hidden', () => {
     expect(offerableSpecies(['Human', 'Moonborn'], '2014')).toEqual(['Human', 'Moonborn']);
     expect(offerableBackgrounds(['Acolyte', 'Lamplighter'], '2014')).toEqual(['Acolyte', 'Lamplighter']);
+  });
+});
+
+describe('fighting styles, spells and magic items', () => {
+  test('only SRD fighting styles are offered, in both editions', () => {
+    expect(getFighterBuilderOptions(1, '2014').fightingStyles.map((s) => s.name)).toEqual(
+      ['Archery', 'Defense', 'Dueling', 'Great Weapon Fighting', 'Protection', 'Two-Weapon Fighting'],
+    );
+    const styles2024 = getFighterBuilderOptions(1, '2024').fightingStyles.map((s) => s.name);
+    policy.NON_SRD_FIGHTING_STYLES.forEach((name) => expect(styles2024).not.toContain(name));
+    expect(styles2024).toEqual(expect.arrayContaining(['Archery', 'Defense', 'Great Weapon Fighting', 'Two-Weapon Fighting']));
+  });
+
+  test("a character's current fighting style is kept", () => {
+    expect(getFighterBuilderOptions(1, '2024', 'Blind Fighting').fightingStyles.map((s) => s.name)).toContain('Blind Fighting');
+    expect(policy.offerableFightingStyles(['Archery', 'Interception'], ['Interception'])).toEqual(['Archery', 'Interception']);
+  });
+
+  test('every listed non-SRD spell exists in the built-in data, so the list stays accurate', () => {
+    const names = new Set(Object.values(SPELL_DATABASE).flat().map((spell) => spell.name));
+    policy.NON_SRD_BUILTIN_SPELLS.forEach((name) => expect(names).toContain(name));
+  });
+
+  test('class spell pickers no longer offer the non-SRD spells', () => {
+    ['Wizard', 'Sorcerer', 'Warlock', 'Cleric', 'Druid', 'Bard', 'Paladin', 'Ranger'].forEach((className) => {
+      const offered = Object.values(policy.offerableSpellLists(getSpellsForClass(className))).flat().map((spell) => spell.name);
+      offered.forEach((name) => expect(policy.isNonSrdBuiltInSpell(name)).toBe(false));
+    });
+    const wizard = Object.values(policy.offerableSpellLists(getSpellsForClass('Wizard'))).flat().map((spell) => spell.name);
+    expect(wizard).toContain('Hideous Laughter');
+    expect(wizard).toContain('Magic Missile');
+  });
+
+  test('spells a character already has stay offered', () => {
+    const character = { spells_known: [{ name: 'Witch Bolt' }], cantrips_known: ['Toll the Dead'] };
+    const current = policy.characterSpellNames(character);
+    expect(current).toEqual(['Toll the Dead', 'Witch Bolt']);
+    const offered = Object.values(policy.offerableSpellLists(getSpellsForClass('Warlock'), current)).flat().map((spell) => spell.name);
+    expect(offered).toEqual(expect.arrayContaining(['Witch Bolt', 'Toll the Dead']));
+  });
+
+  test('Potion of Fire Breath is not a built-in item', () => {
+    expect(ITEMS_DATABASE.map((item) => item.name)).not.toContain('Potion of Fire Breath');
   });
 });

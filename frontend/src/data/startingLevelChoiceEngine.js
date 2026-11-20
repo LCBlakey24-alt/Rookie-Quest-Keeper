@@ -10,6 +10,7 @@ import {
 } from './spellPreparationRules';
 import { getWarlockBuilderOptions } from './warlockBuilderOptions';
 import { getWarlockMysticArcanumLevels } from './warlockProgression';
+import { offerableSpellLists } from './licensing/builtInContentPolicy';
 
 export const ABILITY_OPTIONS = [
   ['strength', 'STR'],
@@ -338,7 +339,7 @@ export function getSpellChoicePlan({ className, level = 1, edition = '2014', abi
   const maxSpellLevel = hasSpellcasting
     ? getEditionMaxSpellLevel(rulesCharacter, className, numericLevel)
     : 0;
-  const spellLists = getSpellsForClass(className) || {};
+  const spellLists = offerableSpellLists(getSpellsForClass(className) || {});
   const classInfo = SPELLCASTING_CLASSES[className] || null;
   const selectionMode = hasSpellcasting ? getSpellSelectionMode({ className, edition }) : 'none';
   const cantripTarget = hasSpellcasting ? targetFromTable(CANTRIPS_KNOWN[className] || {}, numericLevel) : 0;

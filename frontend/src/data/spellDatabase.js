@@ -326,6 +326,7 @@ export const SPELL_DATABASE = {
     // Bard Specific
     { name: 'Dissonant Whispers', school: 'Enchantment', classes: ['Bard'], damage: '3d6', damageType: 'psychic', description: 'WIS save, must use reaction to move away' },
     { name: 'Heroism', school: 'Enchantment', classes: ['Bard', 'Paladin'], description: 'Immune to frightened, temp HP each turn' },
+    { name: 'Hideous Laughter', school: 'Enchantment', classes: ['Bard', 'Wizard'], description: 'WIS save or incapacitated laughing' },
     { name: 'Tasha\'s Hideous Laughter', school: 'Enchantment', classes: ['Bard', 'Wizard'], description: 'WIS save or incapacitated laughing' },
     
     // Warlock Specific
