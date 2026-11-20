@@ -300,7 +300,7 @@ export default function HexCharacterSheet() {
       setRecovering(false);
     }
   };
-  const spendHitDie = async () => {
+  const spendHitDie = async (chosenSides) => {
     if (!character || recovering) return;
     const state = recoveryState(character);
     const blocker = hitDieBlocker(state);
@@ -308,9 +308,14 @@ export default function HexCharacterSheet() {
       toast.error(blocker);
       return;
     }
-    const die = rollOneDie(state.hitDieSides);
-    const spend = hitDieUpdates(state, die);
-    present({ label: `Hit Die d${state.hitDieSides}`, rolls: [{ sides: state.hitDieSides, result: die }], modifier: state.conMod, total: spend.total, d20: null, sides: state.hitDieSides });
+    // The die from the chosen pool (multiclass), else the largest left.
+    const pool = state.pools.find((entry) => entry.sides === Number(chosenSides) && entry.remaining > 0)
+      || state.pools.find((entry) => entry.remaining > 0);
+    if (!pool) { toast.error('No Hit Dice of that size left.'); return; }
+    const sides = pool.sides;
+    const die = rollOneDie(sides);
+    const spend = hitDieUpdates(state, die, sides);
+    present({ label: `Hit Die d${sides}`, rolls: [{ sides, result: die }], modifier: state.conMod, total: spend.total, d20: null, sides });
     setRecovering(true);
     await queueRef.current.patch(spend.updates, { success: `Recovered ${spend.healed} HP`, error: 'Could not spend the Hit Die' });
     setRecovering(false);

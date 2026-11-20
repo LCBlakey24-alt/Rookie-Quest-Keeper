@@ -134,3 +134,42 @@ def test_gm_account_deletion_keeps_players_campaign_linked_content():
     assert db['quests'].docs == []  # campaign-owned records are still removed
     assert db['campaigns'].docs == []
     assert [doc['username'] for doc in db['users'].docs] == ['pat']
+
+
+def test_deleting_a_player_removes_their_private_character_journals_only():
+    """Review finding 16: character journals live in journal_entries, which
+    account deletion did not list, so a deleted player's journals remained."""
+    auth = _auth_module()
+    db = _Db()
+    db['users'].docs = [{'_id': 'm1', 'username': 'pat'}, {'_id': 'm2', 'username': 'sam'}]
+    db['journal_entries'].docs = [
+        {'id': 'pat-entry', 'user_id': 'pat', 'character_id': 'c-pat', 'campaign_id': 'camp-x'},
+        {'id': 'sam-entry', 'user_id': 'sam', 'character_id': 'c-sam', 'campaign_id': 'camp-x'},
+    ]
+    with patch.object(auth, 'db', db):
+        asyncio.run(auth.cleanup_user_account('pat'))
+    assert [doc['id'] for doc in db['journal_entries'].docs] == ['sam-entry']
+
+
+def test_deleting_a_gm_keeps_players_character_journals_and_unlinks_them():
+    auth = _auth_module()
+    db = _Db()
+    db['users'].docs = [{'_id': 'm1', 'username': 'gm'}, {'_id': 'm2', 'username': 'pat'}]
+    db['campaigns'].docs = [{'id': 'camp-1', 'dm_user_id': 'gm'}]
+    db['journal_entries'].docs = [{'id': 'pat-entry', 'user_id': 'pat', 'character_id': 'c-pat', 'campaign_id': 'camp-1'}]
+    with patch.object(auth, 'db', db):
+        asyncio.run(auth.cleanup_user_account('gm'))
+    assert [doc['id'] for doc in db['journal_entries'].docs] == ['pat-entry']
+    assert db['journal_entries'].docs[0]['campaign_id'] is None
+
+
+def test_deleting_a_campaign_keeps_players_character_journals_and_unlinks_them():
+    from routes import campaigns
+    db = _Db()
+    db['quests'].docs = [{'id': 'q1', 'campaign_id': 'camp-1'}]
+    db['journal_entries'].docs = [{'id': 'pat-entry', 'user_id': 'pat', 'character_id': 'c-pat', 'campaign_id': 'camp-1'}]
+    with patch.object(campaigns, 'db', db):
+        asyncio.run(campaigns.cleanup_campaign_data('camp-1'))
+    assert db['quests'].docs == []
+    assert [doc['id'] for doc in db['journal_entries'].docs] == ['pat-entry']
+    assert db['journal_entries'].docs[0]['campaign_id'] is None

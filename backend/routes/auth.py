@@ -8,7 +8,7 @@ from utils.account_profile import public_account_profile
 from utils.admin_identity import USERNAME_UNAVAILABLE, username_is_available
 from utils.site_settings import require_signups_enabled
 from utils.auth import (
-    get_current_user, hash_password, verify_password, create_token, session_version,
+    get_current_user, hash_password, verify_password, create_token, create_user_token, session_version,
     get_ai_consent_status,
 )
 from models import (
@@ -25,6 +25,7 @@ import resend
 from utils.ws_session import end_live_sessions
 from utils.campaign_cleanup_scope import (
     CAMPAIGN_SWEEP_EXCLUSIONS,
+    PERSONAL_CAMPAIGN_REFERENCES,
     USER_HOMEBREW_CAMPAIGN_REFERENCES,
     USER_PLAYTEST_CAMPAIGN_REFERENCES,
 )
@@ -83,6 +84,8 @@ async def update_rook_ai_consent(
 USER_OWNED_COLLECTIONS = [
     'player_characters',
     'player_journal',
+    # Character journals are written here (routes/characters.py), not to player_journal.
+    'journal_entries',
     'player_notes',
     'player_handouts',
     'session_recaps',
@@ -218,7 +221,7 @@ async def cleanup_user_account(username: str) -> dict:
         # Personal player notes and journals remain personal; only their live
         # campaign link is removed so they cannot point at a deleted campaign id.
         now = datetime.now(timezone.utc).isoformat()
-        for collection_name in ('player_notes', 'player_journal'):
+        for collection_name in PERSONAL_CAMPAIGN_REFERENCES:
             await db[collection_name].update_many(
                 {'campaign_id': {'$in': campaign_ids}},
                 {'$set': {'campaign_id': None, 'updated_at': now}}
@@ -317,7 +320,7 @@ async def login(user_data: UserLogin):
     if not user or not verify_password(user_data.password, user['password_hash']):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     
-    token = create_token(user['username'], session_version(user))
+    token = create_user_token(user)
     return TokenResponse(token=token, username=user['username'], email=user.get('email'))
 
 
@@ -492,7 +495,7 @@ async def change_password(request: ChangePasswordRequest, current_username: str 
 
     return {
         "message": "Password changed successfully",
-        "token": create_token(current_username, new_version),
+        "token": create_user_token(user, new_version),
     }
 
 

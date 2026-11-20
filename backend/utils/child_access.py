@@ -38,6 +38,9 @@ ADULT_ACCOUNT_TYPE = 'adult'
 
 # Claim name kept short because it rides on every request.
 ACCOUNT_TYPE_CLAIM = 'typ'
+# Where a user record stores its account type (absent means adult). Every
+# sign-in copies it into the token through utils.auth.create_user_token.
+ACCOUNT_TYPE_FIELD = 'account_type'
 
 READ = ('GET', 'HEAD', 'OPTIONS')
 WRITE = ('POST', 'PUT', 'PATCH')

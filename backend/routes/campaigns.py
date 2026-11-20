@@ -28,6 +28,7 @@ router = APIRouter()
 
 from utils.campaign_cleanup_scope import (  # noqa: E402
     CAMPAIGN_SWEEP_EXCLUSIONS,
+    PERSONAL_CAMPAIGN_REFERENCES,
     USER_HOMEBREW_CAMPAIGN_REFERENCES,
     USER_PLAYTEST_CAMPAIGN_REFERENCES,
 )
@@ -92,7 +93,7 @@ async def cleanup_campaign_data(campaign_id: str) -> Dict[str, Any]:
         if getattr(offered, 'modified_count', 0):
             detached['prepared_characters'] = offered.modified_count
 
-    for collection_name in ('player_notes', 'player_journal'):
+    for collection_name in PERSONAL_CAMPAIGN_REFERENCES:
         collection = _db_collection(collection_name)
         if collection is None or not hasattr(collection, 'update_many'):
             continue

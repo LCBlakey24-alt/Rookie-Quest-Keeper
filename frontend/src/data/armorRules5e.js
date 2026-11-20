@@ -102,11 +102,16 @@ export function calculateArmorAc({ armor, shield, dexMod = 0, unarmoredAc = 10 }
   else if (armorRule?.category === 'medium') ac = armorRule.baseAc + Math.min(2, dexMod);
   else if (armorRule?.category === 'heavy') ac = armorRule.baseAc;
 
-  if (shieldRule?.category === 'shield') ac += shieldRule.custom ? shieldRule.acBonus : (shieldRule.acBonus || 2);
-
   // Add only enhancement/magic bonuses beyond the armour rule itself.
   ac += extraAcBonus(armor, armorRule);
-  ac += extraAcBonus(shield, shieldRule);
+  if (shieldRule?.category === 'shield') {
+    // A homebrew shield gives exactly its own bonus; a standard one +2.
+    ac += (shieldRule.custom ? shieldRule.acBonus : (shieldRule.acBonus || 2)) + extraAcBonus(shield, shieldRule);
+  } else if (shield) {
+    // A shield known by its slot or type but not by name ("Aegis"): its
+    // inherent +2, or its own stored total if higher -- the same as with no armour.
+    ac += Math.max(Number(shield?.ac_bonus ?? shield?.acBonus ?? 0) || 0, 2);
+  }
 
   return ac;
 }

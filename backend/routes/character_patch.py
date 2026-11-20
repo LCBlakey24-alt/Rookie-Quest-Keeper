@@ -42,7 +42,7 @@ ALLOWED_CHARACTER_PATCH_FIELDS = {
     "personality_trait", "personality_traits", "ideal", "ideals", "bond", "bonds", "flaw", "flaws", "backstory", "appearance", "notes",
     "level", "experience_points", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma",
     "armor_class", "initiative_bonus", "speed", "max_hit_points", "current_hit_points", "temporary_hit_points", "temp_hp",
-    "hit_dice", "hit_dice_remaining", "death_saves_successes", "death_saves_failures",
+    "hit_dice", "hit_dice_remaining", "hit_dice_remaining_by_die", "death_saves_successes", "death_saves_failures",
     "proficiency_bonus", "conditions", "exhaustion_level", "inspiration", "has_inspiration",
     "concentrating_on", "concentration",
     "saving_throw_proficiencies", "skill_proficiencies", "weapon_proficiencies", "armor_proficiencies",
@@ -294,6 +294,13 @@ def _clean_patch(payload: Dict[str, Any]) -> Dict[str, Any]:
             value = _int(value, 0)
         elif key in LIST_FIELDS:
             value = _list(value)
+        elif key == "hit_dice_remaining_by_die":
+            # Die size -> dice left, e.g. {"10": 1, "6": 0}. Anything else is dropped.
+            value = {
+                str(int(sides)): max(0, _int(count, 0))
+                for sides, count in _dict(value).items()
+                if str(sides).isdigit() and 2 <= int(sides) <= 20
+            }
         elif key in DICT_FIELDS:
             value = _dict(value)
         update[key] = value

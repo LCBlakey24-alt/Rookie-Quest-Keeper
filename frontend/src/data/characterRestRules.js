@@ -1,4 +1,5 @@
 import { mergeCharacterClassResources } from './characterClassResources';
+import { longRestHitDice } from './hitDicePools';
 import { getEditionMulticlassSpellSlots } from './editionSpellSlotRules';
 import {
   buildPactMagicResource,
@@ -212,7 +213,8 @@ export function buildLongRestUpdates(character = {}) {
     ...(mirrorPactSlots ? { spell_slots: spellSlots } : {}),
     spell_slots_remaining: spellSlots,
     used_spell_slots: {},
-    hit_dice_remaining: getLongRestHitDiceRemaining(character),
+    // Per die size, so a multiclass character regains real dice (finding 10).
+    ...longRestHitDice(character, getCharacterEdition(character)),
     exhaustion_level: Math.max(0, toNumber(character.exhaustion_level, 0) - 1),
     resources,
     last_rest_type: 'long-rest',
