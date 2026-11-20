@@ -28,6 +28,7 @@ import {
 } from '@/data/levelUpPreviewRules';
 import usePlayerRulesOptions from '@/hooks/usePlayerRulesOptions';
 import { CLASS_FEATURES } from '@/data/classFeatures';
+import { subclassBlurb } from '@/data/subclassBlurbs';
 import {
   CANTRIPS_KNOWN,
   SPELLCASTING_CLASSES,
@@ -133,9 +134,11 @@ function localSubclassOptions(className) {
 function normaliseSubclassOptions(preflight, className) {
   const remote = preflight?.subclass_options || [];
   if (remote.length) {
+    // The server sends names; fill in a one-line summary from local data so
+    // a new player can tell the options apart.
     return remote.map((option) => typeof option === 'object'
-      ? { id: option.id || option.name, name: option.name || option.id, description: option.description || '' }
-      : { id: String(option), name: String(option), description: '' });
+      ? { id: option.id || option.name, name: option.name || option.id, description: option.description || subclassBlurb(className, option.name || option.id) }
+      : { id: String(option), name: String(option), description: subclassBlurb(className, String(option)) });
   }
   return localSubclassOptions(className);
 }
@@ -222,6 +225,8 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   });
 
   const isMulticlass = mode === 'new';
+  // Already more than one class? (Changes only the wording on the class step.)
+  const isMulticlassCharacter = Object.values(classLevels || {}).filter((value) => Number(value) > 0).length > 1;
   const characterClass = displayClass(isMulticlass ? (newClass || multiclassOptions[0] || '') : existingClass);
   const classLevelBefore = isMulticlass ? 0 : Number(classLevels[characterClass] || 0);
   const classLevelAfter = classLevelBefore + 1;
@@ -634,7 +639,9 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
           {activeStep === 'class' && (
             <section style={styles.section}>
               <h3 style={styles.sectionTitle}>Choose where this level goes</h3>
-              <p style={styles.copy}>A multiclass character can continue any class it already owns, or add a completely new class if the ability requirements are met.</p>
+              <p style={styles.copy}>{isMulticlassCharacter
+                ? 'Continue any class you already have, or add a new class if your ability scores meet its requirement.'
+                : `Keep levelling ${displayClass(existingClass) || 'your class'}, or add a second class if your ability scores meet its requirement.`}</p>
 
               <div style={styles.choiceGrid}>
                 {currentClasses.map((className) => {
@@ -884,7 +891,23 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
               {choiceType === 'feat' && (
                 <div style={styles.list}>
                   {featOptions.map((feat) => (
-                    <button key={feat.name} type="button" onClick={() => setSelectedFeat(feat)} style={styles.wideChoice(selectedFeat?.name === feat.name)} aria-pressed={selectedFeat?.name === feat.name}>
+                    <button
+                      key={feat.name}
+                      type="button"
+                      onClick={() => {
+                        // The "Ability Score Improvement" feat is the ASI itself: send the
+                        // player to the ASI picker so the scores really change.
+                        if (/^ability score improvement$/i.test(String(feat.name || '').trim())) {
+                          setSelectedFeat(null);
+                          setChoiceType('asi');
+                          toast.info('Ability Score Improvement: pick your two increases.');
+                          return;
+                        }
+                        setSelectedFeat(feat);
+                      }}
+                      style={styles.wideChoice(selectedFeat?.name === feat.name)}
+                      aria-pressed={selectedFeat?.name === feat.name}
+                    >
                       <strong>{feat.name}</strong><span>{feat.description || feat.prereq || 'Available feat.'}</span>
                     </button>
                   ))}
@@ -1009,7 +1032,9 @@ const styles = {
   copy: { margin: 0, lineHeight: 1.5, fontSize: 13, color: theme.text },
   choiceGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(210px,1fr))', gap: 8 },
   choiceCard: (active, disabled = false) => ({ minHeight: 92, display: 'grid', alignContent: 'start', gap: 6, textAlign: 'left', padding: 12, background: active ? theme.accentSoft : theme.card, color: theme.text, border: `1px solid ${active ? theme.accent : theme.line}`, opacity: disabled ? .45 : 1, cursor: disabled ? 'not-allowed' : 'pointer', fontFamily: fontStack }),
-  list: { display: 'grid', gap: 7, maxHeight: 350, overflowY: 'auto' },
+  // Rows take their content's height and the list scrolls; without this the
+  // 350px cap squeezed every option to the same height and cut off text.
+  list: { display: 'grid', gap: 7, maxHeight: 350, overflowY: 'auto', gridAutoRows: 'max-content', alignContent: 'start' },
   wideChoice: (active) => ({ display: 'grid', gap: 5, textAlign: 'left', padding: 11, background: active ? theme.accentSoft : theme.card, color: theme.text, border: `1px solid ${active ? theme.accent : theme.line}`, cursor: 'pointer', fontFamily: fontStack }),
   summaryGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(145px,1fr))', gap: 8 },
   summary: { display: 'grid', gap: 5, padding: 11, background: theme.card, border: `1px solid ${theme.line}` },

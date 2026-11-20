@@ -50,7 +50,7 @@
 }
 
 .rqk-live-page__utility > summary::marker {
-  color: var(--rq-secondary, #79bce8);
+  color: var(--rq-secondary, var(--guild-h3));
 }
 
 .rqk-live-page__utility > summary span:last-child {
@@ -68,11 +68,17 @@
 }
 
 .rqk-live-page__utility > summary:focus-visible {
-  outline: 3px solid var(--rq-secondary, #79bce8);
+  outline: 3px solid var(--rq-secondary, var(--guild-h3));
   outline-offset: 2px;
 }
 
 @media (max-width: 719px) {
+  /* Room at the end so the last control scrolls above the floating dice
+     button that sits over the bottom-left corner on phones. */
+  .rqk-live-page {
+    padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
   .rqk-live-page__header {
     align-items: stretch !important;
     padding: 9px !important;

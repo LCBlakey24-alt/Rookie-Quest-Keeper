@@ -29,6 +29,8 @@ SUBTITLES = {
     "NPC": "Characters, allies, villains and everyone in between.",
     "LOCATION": "Where adventures unfold.",
     "GOD": "Deities, powers and faiths within the setting.",
+    "LOOT": "Treasure, magic items and rewards the party can find.",
+    "HANDOUT": "Letters, maps described in words, clues: what players get to read.",
     "QUEST": "Hooks, objectives and secrets.",
     "STORY ARC": "The larger narrative connecting your sessions.",
     "CALENDAR": "The rules for time in your world.",
@@ -202,7 +204,12 @@ def build_design_template(fields, format_label):
         elif section_name == "CALENDAR":
             hints = ["Custom months: one per line: Sunswake: 30"]
         elif section_name == "QUEST":
-            hints = ["Objectives: one objective on each line."]
+            hints = [
+                "Objectives: one objective on each line.",
+                "Quest giver, people, places, rewards and handouts: write their names exactly as they appear in this document or in Rookie. Rookie links them for you.",
+            ]
+        elif section_name == "LOOT":
+            hints = ["Quantity is a whole number. Magical and attunement: yes or no."]
         for hint in hints:
             line = doc.add_paragraph()
             line.paragraph_format.space_after = Pt(2)

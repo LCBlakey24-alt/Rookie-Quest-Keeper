@@ -593,12 +593,14 @@ export default function CharacterRulesBridgeV2(props) {
 
   return (
     <>
-      <section className="full-creator-progress-card" aria-label="Starting level controls">
+      <section className="full-creator-progress-card" aria-label="Starting level">
         <div className="full-creator-progress-heading">
-          <span>Starting level supervisor</span>
+          <span>Starting level</span>
           <strong>Level {targetLevel}</strong>
         </div>
-        <p>Build normally below. When you save, this pass upgrades the saved sheet with level, HP, hit dice, proficiency, spell slots, class features, ASIs, feats, known spells, Pact Boon, invocations, class-specific choices, and homebrew resource trackers.</p>
+        <p>{targetLevel > 1
+          ? `Build a level 1 character below, then make the choices for levels 2 to ${targetLevel} here. Saving adds the hit points, features and spells for those levels.`
+          : 'Most characters start at level 1. Pick a higher level if your GM asks for an experienced character.'}</p>
         <div className="full-creator-form-grid">
           <label>
             <span>Starting level</span>
@@ -616,6 +618,9 @@ export default function CharacterRulesBridgeV2(props) {
           )}
         </div>
 
+        {/* Level 1 choices (fighting style, skills, first spells) are made in
+            the steps below; this panel only adds what higher levels need. */}
+        {targetLevel > 1 && (<>
         {choicePlan.asiChoices.length > 0 && <div className="full-creator-auto-box"><strong>ASI / feat choices</strong><span>These choices are applied to the saved sheet immediately, including saved Homebrew Workshop feats.</span></div>}
         {choicePlan.asiChoices.map((choice) => (
           <AsiChoiceRow key={choice.id} choice={choice} selection={levelChoiceSelections[choice.id]} featOptions={featOptions} onChange={(selection) => updateLevelChoice(choice.id, selection)} />
@@ -626,8 +631,9 @@ export default function CharacterRulesBridgeV2(props) {
         <StartingLevelClassSpecificChoices plan={classSpecificPlan} selection={detailSelections.classSpecific} onChange={updateClassSpecificSelection} />
 
         {choicePlan.manualHooks.length > 0 && (
-          <div className="full-creator-auto-box"><strong>Still needs detailed pass</strong><span>{choicePlan.manualHooks.map((choice) => choice.label).join(' • ')}</span></div>
+          <div className="full-creator-auto-box"><strong>Check on your sheet after saving</strong><span>{choicePlan.manualHooks.map((choice) => choice.label).join(' • ')}</span></div>
         )}
+        </>)}
       </section>
 
       {hasCustomContent && (

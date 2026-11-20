@@ -1,0 +1,12 @@
+.rq-city-view { display: flex; flex-direction: column; min-height: 0; height: 100%; animation: rq-city-in 420ms ease-out both; }
+.rq-city-view__head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 12px; border-bottom: 1px solid var(--guild-line, rgba(255,255,255,0.16)); }
+.rq-city-view__head h3 { margin: 0; flex: 1; min-width: 0; font-family: var(--guild-font-display, Cinzel, serif); font-size: clamp(20px, 3vw, 30px); color: var(--guild-text, #fff); }
+.rq-city-view__button { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--guild-line, rgba(255,255,255,0.16)); background: var(--guild-bg, #0a0612); color: var(--guild-text, #fff); font: inherit; font-weight: 700; cursor: pointer; }
+.rq-city-view__button:focus-visible { outline: 2px solid var(--guild-focus-ring, #fff); outline-offset: 2px; }
+.rq-city-view__stage { flex: 1; min-height: 0; overflow: auto; padding: 12px; }
+.rq-city-view__map { position: relative; line-height: 0; }
+.rq-city-view__map img { width: 100%; height: auto; display: block; }
+.rq-city-view__pin { position: absolute; z-index: 2; transform: translate(-50%, -100%); display: inline-flex; align-items: center; gap: 4px; padding: 4px 7px; line-height: 1.2; font-size: 11px; font-weight: 800; white-space: nowrap; color: var(--guild-text, #fff); background: var(--guild-bg, #0a0612); border: 1px solid var(--guild-line-hot, #ff4fa3); border-radius: 8px; }
+.rq-city-view__empty { color: var(--guild-muted, rgba(255,255,255,0.72)); }
+@keyframes rq-city-in { from { opacity: 0; transform: scale(0.82); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .rq-city-view { animation: none; } }

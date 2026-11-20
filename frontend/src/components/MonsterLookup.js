@@ -41,7 +41,7 @@ export default function MonsterLookup({ onAddToCombat }) {
           <NpcCompactStatBlock npc={selectedMonster} />
           {onAddToCombat && (
             <button type="button" data-testid="add-monster-to-combat-btn" onClick={() => onAddToCombat(selectedMonster)}
-              style={{ minHeight: 42, border: '1px solid var(--rq-line-strong, rgba(242, 137, 47,.3))', background: 'var(--rq-card, #0a2342)', color: ink, cursor: 'pointer', fontWeight: 850, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+              style={{ minHeight: 42, border: '1px solid var(--rq-line-strong, rgba(var(--guild-c1-rgb), .3))', background: 'var(--rq-card, #0a2342)', color: ink, cursor: 'pointer', fontWeight: 850, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
               <Plus size={16} /> Add to Combat
             </button>
           )}
@@ -55,7 +55,7 @@ export default function MonsterLookup({ onAddToCombat }) {
                 <strong style={{ fontSize: 13 }}>{monster.name}</strong>
                 <span style={{ fontSize: 11, color: muted }}>{[monster.size, monster.type].filter(Boolean).join(' ')}</span>
               </span>
-              <span style={{ flexShrink: 0, fontSize: 11, color: 'var(--rq-primary, #f2892f)', fontWeight: 850 }}>CR {monster.cr ?? '—'}</span>
+              <span style={{ flexShrink: 0, fontSize: 11, color: 'var(--rq-primary, var(--guild-c1))', fontWeight: 850 }}>CR {monster.cr ?? '—'}</span>
             </button>
           ))}
         </div>

@@ -7,7 +7,7 @@ import apiClient from '@/lib/apiClient';
 import '@/styles/globalFeedbackPlayer.css';
 
 const rq = {
-  panel: '#071522',
+  panel: 'var(--guild-bg-deep)',
   input: '#081B2A',
   border: 'rgba(255,45,170,0.18)',
   borderDefault: 'rgba(255,45,170,0.18)',
@@ -41,6 +41,7 @@ export default function GlobalFeedbackButton({ isAuthenticated, hideLauncher = f
   }, [isAuthenticated, location.pathname]);
 
   const launcherHidden = hideLauncher || launcherManagedByAppShell(location.pathname);
+  const compactLauncher = /^\/(gm-screen|combat|gm-second-screen)(\/|$)/.test(location.pathname);
 
   useEffect(() => {
     const openFeedback = () => setOpen(true);
@@ -57,11 +58,13 @@ export default function GlobalFeedbackButton({ isAuthenticated, hideLauncher = f
           type="button"
           data-testid="global-feedback-btn"
           onClick={() => setOpen(true)}
-          style={floatingButtonStyle}
+          style={compactLauncher ? { ...floatingButtonStyle, minWidth: 44, minHeight: 44, padding: 0, justifyContent: 'center' } : floatingButtonStyle}
+          title="Send site feedback"
           aria-label="Send site feedback"
         >
           <MessageSquare size={17} />
-          <span style={{ display: 'inline-block' }}>Feedback</span>
+          {/* On the busy table screens it is a compact icon, so it never covers controls. */}
+          {!compactLauncher && <span style={{ display: 'inline-block' }}>Feedback</span>}
         </button>
       )}
       {open && <FeedbackModal pagePath={location.pathname} onClose={() => setOpen(false)} />}

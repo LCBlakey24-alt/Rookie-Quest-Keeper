@@ -10,8 +10,8 @@ describe('Approved Guild Command screenshot-to-web implementation', () => {
   const entry = read('../index.js');
 
   test('uses final yellow to ember-red to deep-red gradient with centre blend', () => {
-    expect(citrus).toContain('--rq-citrus-yellow: #FF8A1F;');
-    expect(citrus).toContain('--rq-citrus-orange: #F4551F;');
+    expect(citrus).toContain('--rq-citrus-yellow: var(--guild-c1);');
+    expect(citrus).toContain('--rq-citrus-orange: var(--guild-h1);');
     expect(citrus).toContain('--rq-citrus-blood: #E03A2F;');
     expect(citrus).toContain('var(--rq-citrus-yellow) 28%,');
     expect(citrus).toContain('var(--rq-citrus-orange) 50%,');
@@ -22,6 +22,8 @@ describe('Approved Guild Command screenshot-to-web implementation', () => {
   });
 
   test('show a campaign-scoped party, not sample names or fake HP', () => {
+    // Real linked sheets first; the hand-typed roster only as a fallback.
+    expect(campaign).toContain('apiClient.get(`/campaigns/${campaignId}/live-party`)');
     expect(campaign).toContain('apiClient.get(`/campaigns/${campaignId}/players`)');
     expect(campaign).toContain('rows.map(normalizeCampaignCharacter)');
     expect(campaign).toContain('if (cancelled) return');

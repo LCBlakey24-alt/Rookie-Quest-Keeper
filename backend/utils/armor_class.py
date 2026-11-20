@@ -24,6 +24,10 @@ ARMOR_RULES: Dict[str, Dict[str, Any]] = {
 
 KNOWN_AC_ITEMS = {'ring of protection': 1, 'cloak of protection': 1, 'bracers of defense': 2, 'bracers of defence': 2}
 WORN_ACCESSORY_SLOTS = ['head', 'neck', 'shoulders', 'gauntlets', 'wrists', 'waist', 'boots', 'ring1', 'ring2']
+# Rings, amulets, cloaks, bracers, gloves and belts live in the equipment
+# list (the sheet shows five slots); an attuned one there still counts.
+# Mirrors frontend/src/data/equipmentLoadout.js.
+ACCESSORY_RE = re.compile(r'\bring\b|amulet|necklace|periapt|medallion|talisman|scarab|cloak|\bcape\b|mantle|bracer|glove|gauntlet|\bbelt\b|girdle')
 
 
 def _int(value: Any, default: int = 0) -> int:
@@ -110,14 +114,33 @@ def _has_defense_style(character: Dict[str, Any]) -> bool:
     return bool(names & {'defense', 'defence'})
 
 
-def worn_magic_ac_bonus(equipped: Dict[str, Any]) -> int:
+def _is_attuned(item: Dict[str, Any]) -> bool:
+    return bool(item.get('attuned') or item.get('is_attuned'))
+
+
+def _item_text(item: Dict[str, Any]) -> str:
+    return f"{item.get('type') or ''} {item.get('item_type') or ''} {item.get('category') or ''} {_name(item)}".lower()
+
+
+def _item_key(item: Dict[str, Any]) -> str:
+    ident = item.get('id') or item.get('item_id') or item.get('instance_id') or ''
+    return f'id:{ident}' if ident else f'name:{_name(item).lower()}'
+
+
+def worn_magic_ac_bonus(equipped: Dict[str, Any], inventory: Optional[list] = None) -> int:
     wearing_armour = bool(equipped.get('armor') or equipped.get('armour'))
     holding_shield = any(_is_shield(equipped.get(slot)) for slot in ('offHand', 'off_hand', 'shield'))
+    worn = [equipped.get(slot) for slot in WORN_ACCESSORY_SLOTS if isinstance(equipped.get(slot), dict)]
+    listed = [item for item in (inventory if isinstance(inventory, list) else [])
+              if isinstance(item, dict) and _is_attuned(item)
+              and ACCESSORY_RE.search(_item_text(item)) and 'ring mail' not in _item_text(item)]
+    seen = set()
     total = 0
-    for slot in WORN_ACCESSORY_SLOTS:
-        item = equipped.get(slot)
-        if not isinstance(item, dict):
+    for item in worn + listed:
+        key = _item_key(item)
+        if key in seen:
             continue
+        seen.add(key)
         if (item.get('attunement_required') or item.get('requires_attunement')) and not (item.get('attuned') or item.get('is_attuned')):
             continue
         name = _name(item).lower()
@@ -147,7 +170,7 @@ def armor_class_from_equipment(character: Dict[str, Any], equipped: Dict[str, An
     if not armor_rule and not shield_rule:
         armor_bonus = _int(armor.get('ac_bonus', 0), 0) if isinstance(armor, dict) else 0
         shield_bonus = max(_int(shield.get('ac_bonus', 0), 0), 2) if isinstance(shield, dict) else 0
-        return unarmored + armor_bonus + shield_bonus + defense + worn_magic_ac_bonus(equipped)
+        return unarmored + armor_bonus + shield_bonus + defense + worn_magic_ac_bonus(equipped, character.get('inventory'))
 
     ac = unarmored
     category = (armor_rule or {}).get('category')
@@ -160,4 +183,4 @@ def armor_class_from_equipment(character: Dict[str, Any], equipped: Dict[str, An
     if shield_rule and shield_rule.get('category') == 'shield':
         ac += shield_rule.get('bonus', 2)
     ac += _extra_bonus(armor, armor_rule) + _extra_bonus(shield, shield_rule)
-    return ac + defense + worn_magic_ac_bonus(equipped)
+    return ac + defense + worn_magic_ac_bonus(equipped, character.get('inventory'))

@@ -181,7 +181,7 @@
 
 #root .loading-screen,
 #root .clean-sheet-loading {
-  background: #071522 !important;
+  background: var(--guild-bg-deep) !important;
   color: #FFFFFF !important;
 }
 

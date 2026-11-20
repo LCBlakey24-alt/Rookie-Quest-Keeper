@@ -1,4 +1,5 @@
 """Character routes: core CRUD, level up, journal, and campaign linking."""
+import re
 from fastapi import APIRouter, HTTPException, Depends, status, Request
 from config import db, HIT_DICE, get_subclass_unlock_level
 from utils.character_campaign_link import release_character_from_other_campaigns
@@ -454,7 +455,33 @@ async def get_character_level_up_options(
     }
 
 
+def _is_asi_feat(feat_choice: Any) -> bool:
+    name = feat_choice.get('name') if isinstance(feat_choice, dict) else feat_choice
+    return re.sub(r'[^a-z]', '', str(name or '').lower()) == 'abilityscoreimprovement'
+
+
+def route_asi_feat_to_asi(level_up: LevelUpRequest) -> LevelUpRequest:
+    """The "Ability Score Improvement" feat is the ASI itself.
+
+    Taking it as a feat used to record its name and change no scores
+    (review finding 13). With the two increases chosen it becomes the
+    ordinary ASI, which raises the scores, honours the cap of 20 and adds
+    retroactive hit points for Constitution. Without them it is refused,
+    rather than saved as a feat that does nothing.
+    """
+    if level_up.choice_type != 'feat' or not _is_asi_feat(level_up.feat_choice):
+        return level_up
+    choices = level_up.asi_choices or {}
+    if not (choices.get('ability1') and choices.get('ability2')):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ability Score Improvement needs two ability increases. Choose Ability Score Improvement and pick them.",
+        )
+    return level_up.model_copy(update={'choice_type': 'asi', 'feat_choice': None})
+
+
 def build_level_up_update(existing: Dict[str, Any], level_up: LevelUpRequest, leveled_class: str, progression_type: str) -> Dict[str, Any]:
+    level_up = route_asi_feat_to_asi(level_up)
     current_level = int(existing.get('level', 1))
     if level_up.new_level != current_level + 1:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Can only level up from {current_level} to {current_level + 1}")

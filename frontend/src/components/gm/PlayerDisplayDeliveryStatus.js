@@ -4,6 +4,9 @@ import apiClient from '@/lib/apiClient';
 import { getLiveBootstrapExtras } from '@/data/livePlayLoaders';
 
 const FRESH_ACK_MS = 20000;
+// States that need no action from the GM. A display that was never opened
+// is a choice, not a fault, so it is not shown as a warning.
+const NEUTRAL_STATES = new Set(['pending', 'waiting', 'unacknowledged']);
 
 function parsedTime(value) {
   const parsed = Date.parse(value || '');
@@ -58,8 +61,8 @@ export function derivePlayerDisplayDeliveryStatus(state, nowMs = Date.now()) {
 
   return {
     state: 'unacknowledged',
-    label: 'No active player display acknowledgement.',
-    detail: 'Open the TV/table display to confirm that reveals are actually being received.',
+    label: 'No player display open.',
+    detail: 'Optional. Open the TV/table display when you want players to see reveals.',
   };
 }
 
@@ -123,7 +126,7 @@ export default function PlayerDisplayDeliveryStatus({ campaignId, pollMs = 4000 
         detail: 'The last known campaign state has been left untouched. Retry when the connection is available.',
       }
     : delivery;
-  const Icon = view.state === 'received' ? CheckCircle2 : view.state === 'pending' || view.state === 'waiting' ? Monitor : AlertTriangle;
+  const Icon = view.state === 'received' ? CheckCircle2 : NEUTRAL_STATES.has(view.state) ? Monitor : AlertTriangle;
 
   return (
     <section
@@ -160,7 +163,7 @@ const shellStyle = (state) => ({
   background: 'var(--rq-bg-panel)',
   border: `1px solid ${state === 'received'
     ? 'var(--rq-success, #5FA67A)'
-    : state === 'pending' || state === 'waiting'
+    : NEUTRAL_STATES.has(state)
       ? 'var(--rq-info, #3C92E0)'
       : state === 'error'
         ? 'var(--rq-danger, #B94A4F)'

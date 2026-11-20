@@ -54,7 +54,7 @@
 #root .dashboard-eyebrow {
   margin: 0 0 5px !important;
   padding: 0 !important;
-  color: var(--rq-primary-hover, #ffb066) !important;
+  color: var(--rq-primary-hover, var(--guild-hi)) !important;
   background: transparent !important;
   border: 0 !important;
   font-size: 10px !important;
@@ -205,7 +205,7 @@
   height: 42px !important;
   display: grid !important;
   place-items: center !important;
-  color: var(--rq-primary, #f2892f) !important;
+  color: var(--rq-primary, var(--guild-c1)) !important;
   background: var(--rq-secondary-soft, rgba(var(--guild-c2-rgb),0.12)) !important;
   border: 1px solid var(--rq-accent-border, rgba(var(--guild-c2-rgb), 0.30)) !important;
   border-radius: var(--rq-inner-radius, 5px) !important;
@@ -218,7 +218,7 @@
 }
 
 #root .dashboard-continue-copy em {
-  color: var(--rq-primary, #f2892f) !important;
+  color: var(--rq-primary, var(--guild-c1)) !important;
   font-size: 10px !important;
   font-style: normal !important;
   font-weight: 800 !important;
@@ -292,7 +292,7 @@
 #root .dashboard-command-card--simple.is-primary .dashboard-command-icon {
   background: var(--rq-secondary-soft, rgba(var(--guild-c2-rgb),0.12)) !important;
   border-color: var(--rq-accent-border, rgba(var(--guild-c2-rgb), 0.30)) !important;
-  color: var(--rq-primary, #f2892f) !important;
+  color: var(--rq-primary, var(--guild-c1)) !important;
 }
 
 #root .dashboard-command-icon {

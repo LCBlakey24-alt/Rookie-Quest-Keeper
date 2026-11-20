@@ -157,7 +157,7 @@ export function PlayerCampaignWorkspace({ campaignId }) {
               <section className="player-campaign-card">
                 <h2>Your characters</h2>
                 {characters === null ? <p>{loading ? 'Loading characters…' : 'Your characters could not be loaded.'}</p>
-                  : characters.length === 0 ? <p>No character is linked to this campaign. <Link to="/player">Choose a character and join with your GM’s code.</Link></p>
+                  : characters.length === 0 ? <p>No character is linked to this campaign. <Link to="/campaigns?join=1">Join with your GM’s code</Link> to link one, or claim a character your GM made for you.</p>
                     : <ul className="player-campaign-list">{characters.map(character => <li key={character.id}>
                       <div className="player-campaign-character-copy">
                         <h3>{character.name || character.character_name || 'Character'}</h3>

@@ -6,6 +6,7 @@ import { recordRemoteRoll } from '@/lib/sessionRollStats';
 import FlatDiceResultOverlay from '@/components/FlatDiceResultOverlay';
 import { currentCharacterId } from '@/lib/characterRoute';
 import { loadDiceTray3D } from '@/components/dice3d/loadDiceTray3D';
+import { loadDiceStyle, loadTowerSkinId, subscribeDiceStyle } from '@/lib/diceStylePreference';
 import './DiceRollFlicker.css';
 
 const characterCache = new Map();
@@ -18,6 +19,9 @@ const REVEAL_DELAY = 360;
 // The longest replay is MAX_STEPS at TIME_SCALE (dice3d/diceTrayScene.js
 // longestReplayMs, 12.5 s) plus the pause before the total: wait for that.
 const TRAY_REVEAL_CEILING = 13500;
+// The tower's drop is longer: its longest replay (longestReplayMs('tower'),
+// 20 s) plus the camera coming down to the dice and the pause.
+const TOWER_REVEAL_CEILING = 28000; // includes the wide shot, which also covers planning the throw
 const REDUCED_MOTION_REVEAL_DELAY = 90;
 const HOLD_AFTER_REVEAL = 6000;
 
@@ -154,9 +158,15 @@ export default function DiceRollFlicker({
   // While the chunk is loading, show a neutral "Preparing" status instead
   // of flashing the retired flat result before the physical throw appears.
   // A genuine load failure still falls back so a table never loses a roll.
+  // The viewer's roller style (Settings): the tray or the tower.
+  const [diceStyle, setDiceStyle] = useState(() => ({ style: loadDiceStyle(), towerSkin: loadTowerSkinId() }));
+  useEffect(() => subscribeDiceStyle(setDiceStyle), []);
+  const flatOnly = prefersReducedMotion;
+  const rig = diceStyle.style === 'tower' ? 'tower' : 'tray';
+
   const [TrayOverlay, setTrayOverlay] = useState(null);
   useEffect(() => {
-    if (prefersReducedMotion || !visible || TrayOverlay || isFixedDamage) return undefined;
+    if (flatOnly || !visible || TrayOverlay || isFixedDamage) return undefined;
 
     let cancelled = false;
     setTrayLoadFailed(false);
@@ -165,7 +175,7 @@ export default function DiceRollFlicker({
       .catch(() => { if (!cancelled) setTrayLoadFailed(true); });
 
     return () => { cancelled = true; };
-  }, [prefersReducedMotion, visible, TrayOverlay, isFixedDamage, rollId]);
+  }, [flatOnly, visible, TrayOverlay, isFixedDamage, rollId]);
 
   useEffect(() => { onCloseRef.current = onClose || onComplete; }, [onClose, onComplete]);
   useEffect(() => { onRevealRef.current = onReveal; }, [onReveal]);
@@ -264,16 +274,16 @@ export default function DiceRollFlicker({
       revealNow();
       return undefined;
     }
-    const waitingForTray = !prefersReducedMotion && !TrayOverlay && !trayLoadFailed;
+    const waitingForTray = !flatOnly && !TrayOverlay && !trayLoadFailed;
     if (waitingForTray) return undefined;
-    const usingTray = !prefersReducedMotion && Boolean(TrayOverlay);
+    const usingTray = !flatOnly && Boolean(TrayOverlay);
     const delay = prefersReducedMotion
       ? REDUCED_MOTION_REVEAL_DELAY
-      : usingTray ? TRAY_REVEAL_CEILING : REVEAL_DELAY;
+      : usingTray ? (rig === 'tower' ? TOWER_REVEAL_CEILING : TRAY_REVEAL_CEILING) : REVEAL_DELAY;
 
     const revealTimer = window.setTimeout(revealNow, delay);
     return () => window.clearTimeout(revealTimer);
-  }, [visible, diceFingerprint, finalTotal, prefersReducedMotion, TrayOverlay, trayLoadFailed, rollId, isFixedDamage, revealNow]);
+  }, [visible, diceFingerprint, finalTotal, prefersReducedMotion, flatOnly, rig, TrayOverlay, trayLoadFailed, rollId, isFixedDamage, revealNow]);
 
   useEffect(() => {
     if (!visible || !isResultRevealed || typeof window === 'undefined') return undefined;
@@ -299,7 +309,7 @@ export default function DiceRollFlicker({
 
   if (!visible || typeof document === 'undefined') return null;
 
-  const waitingForTray = !isFixedDamage && !prefersReducedMotion && !TrayOverlay && !trayLoadFailed;
+  const waitingForTray = !isFixedDamage && !flatOnly && !TrayOverlay && !trayLoadFailed;
   if (waitingForTray) {
     return createPortal(
       <div className="rq-dice-preparing" role="status" aria-live="polite" data-testid="dice-3d-preparing">
@@ -319,7 +329,7 @@ export default function DiceRollFlicker({
   // (docs/UI_DESIGN_SYSTEM.md requires honouring prefers-reduced-motion),
   // and remains the honest fallback if the 3D chunk or WebGL cannot load.
   // Both take the same props.
-  const Overlay = (!isFixedDamage && !prefersReducedMotion && TrayOverlay) || FlatDiceResultOverlay;
+  const Overlay = (!isFixedDamage && !flatOnly && TrayOverlay) || FlatDiceResultOverlay;
 
   return createPortal(
     <Overlay
@@ -339,6 +349,8 @@ export default function DiceRollFlicker({
       onClose={() => onCloseRef.current?.()}
       shape={shape}
       anchorSelector={anchorSelector}
+      rig={rig}
+      towerSkin={diceStyle.towerSkin}
     />,
     document.body,
   );

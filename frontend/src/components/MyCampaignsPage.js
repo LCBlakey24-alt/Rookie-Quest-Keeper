@@ -157,8 +157,7 @@ export default function MyCampaignsPage() {
 
   useEffect(() => {
     if (joinCharactersLoaded && searchParams.get('join') === '1') {
-      if (joinCharacters.length > 0) setJoinOpen(true);
-      else toast.info('Create a character before joining a campaign');
+      setJoinOpen(true);
       const next = new URLSearchParams(searchParams);
       next.delete('join');
       setSearchParams(next, { replace: true });
@@ -170,11 +169,7 @@ export default function MyCampaignsPage() {
       toast.error('Your character list has not loaded. Try refreshing player tools before joining.');
       return;
     }
-    if (!joinCharacters.length) {
-      toast.info('Create a character before joining a campaign');
-      navigate('/characters/new');
-      return;
-    }
+    // No characters yet is fine: the GM may have one waiting to claim.
     setJoinOpen(true);
   };
 
@@ -425,7 +420,7 @@ export default function MyCampaignsPage() {
                   </div>
                   <p className="campaign-card-primary-line">{campaignMeta(campaign)}</p>
                   <p className="campaign-card-description">{campaignDescription(campaign)}</p>
-                  <p className="campaign-card-meta-line">Updated {formatDate(campaign?.updated_at || campaign?.created_at)}</p>
+                  <p className="campaign-card-meta-line">{(campaign?.updated_at || campaign?.created_at) ? `Updated ${formatDate(campaign?.updated_at || campaign?.created_at)}` : 'Not updated yet'}</p>
                 </div>
 
                 <div className="campaign-card-actions campaign-card-actions--simple">
@@ -474,6 +469,7 @@ export default function MyCampaignsPage() {
       )}
       <JoinCampaignModal
         characterId={recordId(selectedCharacter)} characterName={selectedCharacter?.name || 'Selected character'}
+        characters={joinCharacters.map((character) => ({ id: recordId(character), name: character.name }))}
         open={joinOpen} onOpenChange={setJoinOpen}
         onSuccess={() => { loadCampaigns(); loadPlayerCampaignTools(); }}
       />

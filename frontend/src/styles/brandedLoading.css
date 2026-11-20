@@ -410,15 +410,15 @@
 .loading-screen::before,
 .clean-sheet-loading::before {
   background: var(--guild-bg) !important;
-  border: 1px solid rgba(242, 137, 47, 0.24) !important;
-  border-left: 4px solid #f2892f !important;
+  border: 1px solid rgba(var(--guild-c1-rgb),  0.24) !important;
+  border-left: 4px solid var(--guild-c1) !important;
   border-radius: 7px !important;
 }
 
 .loading-brand-mark,
 .loading-screen .loading-spinner {
   background: var(--guild-bg) !important;
-  border: 1px solid rgba(242, 137, 47, 0.30) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb),  0.30) !important;
   color: #ffffff !important;
   border-radius: 5px !important;
 }
@@ -426,8 +426,8 @@
 .loading-screen .loading-spinner::before,
 .clean-sheet-loading::after {
   background-image: none !important;
-  border: 3px solid rgba(242, 137, 47, 0.22) !important;
-  border-top-color: #f2892f !important;
+  border: 3px solid rgba(var(--guild-c1-rgb),  0.22) !important;
+  border-top-color: var(--guild-c1) !important;
   mask: none !important;
   -webkit-mask: none !important;
 }

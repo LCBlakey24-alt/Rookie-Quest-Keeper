@@ -21,6 +21,8 @@ jest.mock('sonner', () => ({
   },
 }));
 
+jest.mock('@/components/gm/PreparedCharactersPanel', () => function MockPreparedCharacters() { return null; });
+
 jest.mock('@/components/gm/CampaignJoinCodeCard', () => function MockJoinCodeCard(props) {
   return (
     <div>

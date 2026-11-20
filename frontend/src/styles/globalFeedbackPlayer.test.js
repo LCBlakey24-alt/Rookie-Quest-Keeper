@@ -13,10 +13,10 @@ describe('Player feedback presentation ownership', () => {
     expect(component).toContain("@/styles/globalFeedbackPlayer.css");
     expect(css).not.toMatch(/rq-sunset-gradient|linear-gradient|radial-gradient|conic-gradient|Cinzel/i);
     expect(css).not.toMatch(/#7357ff|#d84df1|#ff4f81|#ff9542|#d00000/i);
-    expect(css).toContain('#071522');
-    expect(css).toContain('#112A40');
-    expect(css).toContain('#79BCE8');
-    expect(css).toContain('#f2892f');
+    expect(css).toContain('var(--guild-bg-deep)');
+    expect(css).toContain('var(--guild-panel)');
+    expect(css).toContain('var(--guild-h3)');
+    expect(css).toContain('var(--guild-c1)');
     expect(css).toContain("[data-testid='global-feedback-modal'][data-testid]");
     expect(css).toContain("[data-testid='global-feedback-btn'][data-testid]");
   });

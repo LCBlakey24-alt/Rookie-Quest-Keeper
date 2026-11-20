@@ -8,10 +8,11 @@ import { setAuthToken } from '@/lib/auth';
 import '@/styles/guildTokens.css';
 import {
   User, Mail, Lock, ArrowLeft, Save, Trash2, Shield,
-  AlertTriangle, CheckCircle, Eye, EyeOff, RefreshCw
+  AlertTriangle, CheckCircle, Eye, EyeOff, RefreshCw, Dices,
 } from 'lucide-react';
 import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import PrivacyRightsPanel from '@/components/privacy/PrivacyRightsPanel';
+import DiceRollerStylePicker from '@/components/dice3d/DiceRollerStylePicker';
 
 function AccountSettings({ username, onLogout, onUsernameChange }) {
   const navigate = useNavigate();
@@ -197,6 +198,12 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
           </form>
         </section>
 
+        <section className="account-settings-panel" style={panelStyle} data-testid="dice-roller-settings">
+          <SectionHeader icon={Dices} title="Dice roller" />
+          <p style={{ ...helpTextStyle, margin: '0 0 16px' }}>The roller works the same either way. This only changes what plays in the dice window after you roll. Saved on this device.</p>
+          <DiceRollerStylePicker />
+        </section>
+
         <section className="account-settings-panel" style={panelStyle} aria-busy={passwordSaving || passwordSetupSaving ? 'true' : 'false'}>
           <SectionHeader icon={Shield} title={googleOnlyAccount ? "Password & Google Sign-in" : "Change Password"} />
           {googleOnlyAccount ? (
@@ -250,6 +257,10 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
         </section>
 
         <PrivacyRightsPanel key={profile?.username || username} username={profile?.username || username} />
+
+        {/* Privacy & Data controls are placed here, above the Danger Zone,
+            so account deletion is always the last thing on the page. */}
+        <div className="account-settings-privacy-slot" data-testid="account-privacy-slot" />
 
         <section className="account-settings-panel account-settings-danger" style={dangerPanelStyle} aria-busy={deleteSaving ? 'true' : 'false'}>
           <SectionHeader icon={AlertTriangle} title="Danger Zone" danger />

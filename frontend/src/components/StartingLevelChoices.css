@@ -98,7 +98,7 @@
 }
 
 .full-creator-toggle-option.active {
-  background: rgba(121,188,232,.12);
+  background: rgba(var(--guild-c2-rgb), .12);
   border-color: var(--rqk-creator-accent);
   box-shadow: inset 2px 0 0 var(--rqk-creator-accent);
 }
@@ -110,7 +110,7 @@
 
 .full-creator-toggle-option[aria-disabled='true']:focus-visible {
   opacity: .76;
-  border-color: rgba(242, 137, 47,.42);
+  border-color: rgba(var(--guild-c1-rgb), .42);
 }
 
 .full-creator-toggle-option span,
@@ -162,8 +162,8 @@
 
 .full-creator-readiness-hero {
   grid-column: 1 / -1;
-  background: rgba(121,188,232,.08);
-  border-color: rgba(242, 137, 47,.28);
+  background: rgba(var(--guild-c2-rgb), .08);
+  border-color: rgba(var(--guild-c1-rgb), .28);
 }
 
 .full-creator-readiness-list {
@@ -172,11 +172,11 @@
 }
 
 .full-creator-readiness-list.priority {
-  background: rgba(242, 137, 47,.04);
+  background: rgba(var(--guild-c1-rgb), .04);
 }
 
 .full-creator-readiness-list.ready {
-  background: rgba(121,188,232,.05);
+  background: rgba(var(--guild-c2-rgb), .05);
 }
 
 .full-creator-readiness-list ul {
@@ -203,11 +203,11 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #79BCE8;
+  background: var(--guild-h3);
 }
 
 .full-creator-readiness-list.priority li::before {
-  background: #f2892f;
+  background: var(--guild-c1);
 }
 
 @media (max-width: 760px) {

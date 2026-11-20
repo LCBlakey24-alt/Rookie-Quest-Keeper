@@ -35,7 +35,7 @@
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 10px;
   background-color: var(--guild-bg);
-  background-image: var(--rq-ledger-rule, #F4551F);
+  background-image: var(--rq-ledger-rule, var(--guild-h1));
   background-repeat: no-repeat;
   background-position: left top;
   background-size: 100% 2px;
@@ -198,13 +198,23 @@
 
 /* A natural 20 or a 1 is a moment at the table, so it is marked -- but with
    a rule and the numeral's colour, not a coloured fill. */
-.rq-dice-tray__panel.is-crit .rq-dice-tray__result strong { color: #FF8A1F; }
+.rq-dice-tray__panel.is-crit .rq-dice-tray__result strong { color: var(--guild-c1); }
 .rq-dice-tray__panel.is-fumble .rq-dice-tray__result strong { color: #E03A2F; }
 
 @media (max-width: 719px) {
   .rq-dice-tray__panel { width: 100%; padding: 12px 12px 16px; }
   .rq-dice-tray__stage { max-height: 40dvh; }
   .rq-dice-tray__result strong { font-size: 38px; }
+}
+
+/* Dice tower: a taller stage so the whole tower and its tray fit. */
+.rq-dice-tray__panel.is-tower { width: min(460px, 100%); }
+.rq-dice-tray__panel.is-tower .rq-dice-tray__stage {
+  aspect-ratio: 3 / 4;
+  max-height: 64dvh;
+}
+@media (max-width: 520px) {
+  .rq-dice-tray__panel.is-tower .rq-dice-tray__stage { max-height: 58dvh; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -241,28 +251,63 @@ html body .rq-dice-tray.rq-dice-tray--hex[role='dialog'] {
 .rq-dice-hex__stage {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 45%, #10305a 0%, var(--guild-bg, #0a2342) 62%, var(--guild-bg-deep, #071a33) 100%);
+  /* A plum felt lit from below, like the page's crimson-lit stage. */
+  background:
+    radial-gradient(70% 45% at 50% 100%, rgba(var(--guild-h1-rgb, 242, 23, 81), 0.22), transparent 70%),
+    radial-gradient(circle at 50% 40%, #2a1640 0%, var(--guild-bg, #120d27) 62%, var(--guild-bg-deep, #090c20) 100%);
 }
-.rq-dice-hex__stage .rq-dice-tray__canvas-holder { position: absolute; inset: 0; }
+/* The dice are framed a little above the middle, so the total in the
+   lower part of the hexagon never sits on top of them. The holder keeps
+   the stage's size (the tray renders for that size) and is only moved. */
+.rq-dice-hex__stage .rq-dice-tray__canvas-holder { position: absolute; inset: -9% 0 9% 0; }
 .rq-dice-hex__stage .rq-dice-tray__canvas {
   width: 100%;
   height: 100%;
   display: block;
   /* Clipped here too: some GPUs composite the WebGL canvas on its own
      layer, where the stage's clip alone does not reach. */
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  clip-path: polygon(50% 9%, 100% 34%, 100% 84%, 50% 109%, 0% 84%, 0% 34%);
 }
 .rq-dice-hex__case { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
 .rq-dice-hex__glow { fill: none; stroke: var(--guild-stroke-hot, #ff5fa0); stroke-width: 16; opacity: 0.45; filter: blur(5px); vector-effect: non-scaling-stroke; }
 .rq-dice-hex__edge { fill: none; stroke: var(--guild-stroke-hot, #ff5fa0); stroke-width: 2; vector-effect: non-scaling-stroke; }
 .rq-dice-hex.is-crit .rq-dice-hex__glow { opacity: 0.8; }
+.rq-dice-hex.is-revealed .rq-dice-hex__glow { animation: rq-dice-hex-pulse 900ms ease-out both; }
+@keyframes rq-dice-hex-pulse { 0% { opacity: 0.45; } 35% { opacity: 0.95; } 100% { opacity: 0.55; } }
+.rq-dice-hex.is-crit.is-revealed .rq-dice-hex__glow { stroke: var(--guild-h3, #ff8fbf); animation: rq-dice-hex-crit-ring 1.6s ease-out both; }
+@keyframes rq-dice-hex-crit-ring { 0% { opacity: 0.4; stroke-width: 10; } 30% { opacity: 1; stroke-width: 28; } 100% { opacity: 0.85; stroke-width: 16; } }
+/* The natural-20 flare: a burst of gold and blush light from where the
+   dice rest, that blooms and settles into a soft halo. */
+.rq-dice-hex__flare {
+  position: absolute;
+  left: 50%;
+  top: 41%;
+  width: 92%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background:
+    radial-gradient(circle, rgba(255, 210, 122, 0.55) 0%, rgba(var(--guild-h3-rgb, 255, 143, 191), 0.28) 30%, transparent 62%),
+    repeating-conic-gradient(from 0deg, rgba(255, 176, 92, 0.22) 0deg 5deg, transparent 5deg 30deg);
+  -webkit-mask-image: radial-gradient(circle, #000 18%, transparent 64%);
+  mask-image: radial-gradient(circle, #000 18%, transparent 64%);
+  mix-blend-mode: screen;
+  animation: rq-dice-crit-flare 1.8s cubic-bezier(.2, .7, .2, 1) both;
+}
+@keyframes rq-dice-crit-flare {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.2) rotate(0deg); }
+  25% { opacity: 1; transform: translate(-50%, -50%) scale(1.05) rotate(18deg); }
+  100% { opacity: 0.55; transform: translate(-50%, -50%) scale(0.9) rotate(40deg); }
+}
 
 .rq-dice-hex__label {
   position: absolute;
-  top: 13%;
+  top: 11%;
   left: 50%;
   transform: translateX(-50%);
-  max-width: 62%;
+  max-width: 58%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -270,15 +315,17 @@ html body .rq-dice-tray.rq-dice-tray--hex[role='dialog'] {
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--guild-hi, #ffb066);
+  color: var(--guild-hi, var(--guild-hi));
   pointer-events: none;
 }
 .rq-dice-hex__result {
   position: absolute;
   left: 50%;
-  bottom: 16%;
+  /* Kept inside the hexagon: at this height the hexagon is narrowing, and
+     a wider box crossed its lower edges and hid their glow. */
+  bottom: 17%;
   transform: translateX(-50%);
-  width: 64%;
+  width: 46%;
   display: grid;
   justify-items: center;
   gap: 2px;
@@ -287,20 +334,41 @@ html body .rq-dice-tray.rq-dice-tray--hex[role='dialog'] {
 html body #root ~ .rq-dice-tray .rq-dice-hex__result strong,
 .rq-dice-hex__result strong {
   font-family: var(--guild-font-display, 'Cinzel', serif) !important;
-  font-size: clamp(2.2rem, 9vw, 3.2rem);
+  font-size: clamp(2.4rem, 10vw, 3.6rem);
   line-height: 1;
   color: var(--guild-text, #fff);
-  animation: rq-dice-hex-total 260ms ease-out both;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85), 0 0 18px rgba(var(--guild-c1-rgb, 255, 25, 118), 0.55);
+  animation: rq-dice-hex-total 320ms cubic-bezier(.2, .8, .3, 1.3) both;
 }
-@keyframes rq-dice-hex-total { from { opacity: 0; transform: translateY(6px) scale(0.9); } to { opacity: 1; transform: none; } }
-.rq-dice-hex.is-crit .rq-dice-hex__result strong { color: var(--guild-h3, #ffd27a); }
-.rq-dice-hex.is-fumble .rq-dice-hex__result strong { color: #ff9b7a; }
+@keyframes rq-dice-hex-total { from { opacity: 0; transform: translateY(8px) scale(0.8); } to { opacity: 1; transform: none; } }
+html body #root ~ .rq-dice-tray .rq-dice-hex.is-crit .rq-dice-hex__result strong,
+.rq-dice-hex.is-crit .rq-dice-hex__result strong {
+  --rq-text-primary: #ffd27a;
+  color: #ffd27a;
+  text-shadow: 0 0 14px rgba(255, 210, 122, 0.85), 0 0 34px rgba(var(--guild-h3-rgb, 255, 143, 191), 0.6);
+  animation: rq-dice-hex-total 320ms cubic-bezier(.2, .8, .3, 1.3) both, rq-dice-crit-total 1.6s ease-in-out 320ms 2;
+}
+@keyframes rq-dice-crit-total { 50% { text-shadow: 0 0 22px rgba(255, 210, 122, 1), 0 0 52px rgba(var(--guild-h3-rgb, 255, 143, 191), 0.85); } }
+html body #root ~ .rq-dice-tray .rq-dice-hex.is-fumble .rq-dice-hex__result strong,
+.rq-dice-hex.is-fumble .rq-dice-hex__result strong { --rq-text-primary: #ff9b7a; color: #ff9b7a; }
 .rq-dice-hex__result span { font-size: 0.74rem; color: var(--guild-muted, #c9d2e6); white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
-/* A soft backing so the total stays readable over the dice and the page. */
+/* The dice sit above the total, so it needs only a soft halo, not a box. */
 .rq-dice-hex__result {
   padding: 6px 10px;
-  border-radius: 12px;
-  background: rgba(var(--guild-bg-rgb, 10, 35, 66), 0.72);
+  border-radius: 14px;
+  background: transparent;
+}
+.rq-dice-hex__result,
+.rq-dice-hex__result.is-shown {
+  /* No backing box at all: nothing may sit over the hexagon's edge glow.
+     A soft shadow on the text keeps it readable over the dice and floor. */
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+.rq-dice-hex__result span { text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); }
+.rq-dice-hex__result .rq-visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
 }
 .rq-dice-hex__result .rq-dice-tray__rolling { font-size: 0.9rem; font-weight: 700; color: var(--guild-text, #fff); }
 .rq-dice-hex__skip,
@@ -325,7 +393,12 @@ html body #root ~ .rq-dice-tray .rq-dice-hex__result strong,
   border-radius: 50% !important;
 }
 @media (prefers-reduced-motion: reduce) {
-  .rq-dice-hex, .rq-dice-hex__result strong { animation: none; }
+  .rq-dice-hex,
+  .rq-dice-hex__result strong,
+  .rq-dice-hex.is-crit .rq-dice-hex__result strong,
+  .rq-dice-hex.is-revealed .rq-dice-hex__glow,
+  .rq-dice-hex__flare { animation: none; }
+  .rq-dice-hex__flare { opacity: 0.5; }
 }
 
 /* A roll that is a pass or a fail (a death save): the number in green or red,

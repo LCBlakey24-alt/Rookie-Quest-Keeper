@@ -100,21 +100,27 @@ export function magicLevels(spells = [], pools = {}) {
 }
 
 /**
- * The spells listed under a wedge, by name. Each spell sits under the lowest
- * wedge at or above its own level, so a spell whose level has no slots of its
- * own (a Warlock's 1st-level spells once Pact Magic slots are 3rd level) is
- * still listed and cast with the higher slot. `wedgeLevels` are the levels on
- * the wheel; without them a wedge lists only spells of exactly its level.
+ * The spells listed under a wedge. The cantrip wedge lists cantrips. A slot
+ * wedge lists every spell that slot can cast: the spells of its own level
+ * first, then lower-level spells cast with it ("upcast"), highest first.
+ * So choosing the 2nd-level wedge offers Magic Missile with a 2nd-level
+ * slot even while 1st-level slots remain (review finding 15), and a
+ * Warlock's 1st-level spells sit under its 3rd-level Pact Magic wedge.
+ * `wedgeLevels` is accepted for older callers and no longer needed.
  */
+// eslint-disable-next-line no-unused-vars
 export function spellsAtLevel(spells = [], level = 0, wedgeLevels = null) {
-  const levels = Array.isArray(wedgeLevels) ? [...wedgeLevels].sort((a, b) => a - b) : null;
-  const home = (spellLevel) => {
-    if (!levels || spellLevel === 0) return spellLevel;
-    const above = levels.find((value) => value >= spellLevel);
-    return above === undefined ? spellLevel : above;
-  };
-  return spells.filter((spell) => home(spell.level) === level).sort((a, b) => a.name.localeCompare(b.name) || String(a.key).localeCompare(String(b.key)));
+  const target = Number(level) || 0;
+  const fits = (spell) => (target === 0 ? spell.level === 0 : spell.level > 0 && spell.level <= target);
+  return spells
+    .filter(fits)
+    .sort((a, b) => (b.level - a.level)
+      || a.name.localeCompare(b.name)
+      || String(a.key).localeCompare(String(b.key)));
 }
+
+/** True when a spell listed under this wedge is cast above its own level. */
+export const isUpcast = (spell, level) => Number(level) > 0 && spell.level > 0 && spell.level < Number(level);
 
 /**
  * The cast option for a spell from the wedge it is listed under: that

@@ -1,8 +1,8 @@
 /* Floating dice roller — Guild Ledger flat surfaces.
  *
  * This panel was missed by the flat-single-surface pass and still stacked
- * five different blues (page var(--guild-bg) behind a #071522 panel, #112A40 cards,
- * a #071A29 input and a var(--guild-bg) toggle) with antique-gold borders. The
+ * five different blues (page var(--guild-bg) behind a var(--guild-bg-deep) panel, var(--guild-panel) cards,
+ * a var(--guild-bg-deep) input and a var(--guild-bg) toggle) with antique-gold borders. The
  * approved direction is one background colour everywhere, with structure
  * carried by hairlines and the citrus rule -- "rules only, no boxes".
  *
@@ -31,7 +31,7 @@
      on the same accent as the rest of the app instead of pinning a second
      copy of the ramp here. The fallback is a flat citrus so the rule still
      reads if the token is ever missing. */
-  --dice-rule: var(--rq-ledger-rule, #F4551F);
+  --dice-rule: var(--rq-ledger-rule, var(--guild-h1));
 
   position: fixed;
   left: max(18px, env(safe-area-inset-left));

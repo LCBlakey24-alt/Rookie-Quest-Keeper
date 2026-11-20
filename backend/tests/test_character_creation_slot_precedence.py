@@ -75,5 +75,29 @@ class TestCharacterCreationSlotPrecedence(unittest.TestCase):
         self.assertEqual(character["spell_slots_remaining"], {"1": 1, "2": 0})
 
 
+class TestSingleClassUsesOwnSlotTable(unittest.TestCase):
+    """A single spellcasting class uses its own table, not the multiclass pool."""
+
+    def _slots(self, **fields):
+        base = {"name": "Slots", "race": "Human", "level": fields.get("level", 1), "charisma": 16, "wisdom": 16, "intelligence": 16}
+        return normalise_created_character({**base, **fields}, "player-one")["spell_slots"]
+
+    def test_2014_paladin_5_has_four_first_and_two_second_level_slots(self):
+        self.assertEqual(self._slots(character_class="Paladin", level=5, rules_edition="2014"), {"1": 4, "2": 2})
+
+    def test_2014_ranger_3_has_three_first_level_slots(self):
+        self.assertEqual(self._slots(character_class="Ranger", level=3, rules_edition="2014"), {"1": 3})
+
+    def test_multiclass_casters_still_share_the_pool(self):
+        slots = self._slots(character_class="Paladin", level=5, rules_edition="2014", class_levels={"Paladin": 2, "Sorcerer": 3})
+        self.assertEqual(slots, {"1": 4, "2": 3})
+
+    def test_warlock_keeps_pact_magic(self):
+        self.assertEqual(self._slots(character_class="Warlock", level=5, rules_edition="2014"), {"3": 2})
+
+    def test_full_caster_unchanged(self):
+        self.assertEqual(self._slots(character_class="Wizard", level=5, rules_edition="2014"), {"1": 4, "2": 3, "3": 2})
+
+
 if __name__ == "__main__":
     unittest.main()

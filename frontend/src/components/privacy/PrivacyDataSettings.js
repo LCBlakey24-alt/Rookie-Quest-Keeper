@@ -34,7 +34,9 @@ export default function PrivacyDataSettings() {
         setMountNode(null);
         return;
       }
-      const target = document.querySelector('.account-settings-container');
+      // Its own slot above the Danger Zone; the page end as a fallback.
+      const target = document.querySelector('.account-settings-privacy-slot')
+        || document.querySelector('.account-settings-container');
       if (target) setMountNode(target);
     };
 

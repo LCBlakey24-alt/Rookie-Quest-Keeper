@@ -3,6 +3,7 @@ import { AlertTriangle, ArrowRight, CheckCircle2, Coins, Eraser, Gift, Link, Pla
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import InitiativeTracker from './InitiativeTracker';
+import EncounterPlacement from './EncounterPlacement';
 import apiClient from '@/lib/apiClient';
 
 const toNumber = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
@@ -28,6 +29,7 @@ function playerToCombatant(player) {
     maxHp,
     ac: toNumber(player.ac ?? player.armor_class, 10),
     initiativeMod: toNumber(player.initiativeMod, dexMod(player.stats || player)),
+    speed: player.speed,
     conditions: [],
     tokenColor: '#4a7dff',
     tokenSize: 40,
@@ -152,7 +154,7 @@ function storyFocusFrom(arcs) {
   return { arc, chapter, beats: asList(chapter?.combats) };
 }
 
-export default function CombatTab({ theme: incomingTheme, campaignId, scenarios = [], selectedScenario, setSelectedScenario, launchCombat, quickStartCombat, players = [] }) {
+export default function CombatTab({ theme: incomingTheme, campaignId, scenarios = [], selectedScenario, setSelectedScenario, launchCombat, quickStartCombat, players = [], onScenarioSaved }) {
   const theme = incomingTheme || fallbackTheme;
   const [npcs, setNpcs] = useState([]);
   const [creatures, setCreatures] = useState([]);
@@ -380,6 +382,14 @@ export default function CombatTab({ theme: incomingTheme, campaignId, scenarios 
             {players.length > 0 && <Button onClick={quickStartCombat} data-testid="quick-combat-btn" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 14, background: theme.accent.subtle, border: `1px solid ${theme.border}`, borderRadius: 0, color: theme.text.secondary, fontSize: 15 }}><Users size={16} /> Start with All Players ({players.length})</Button>}
           </div>
           {selectedScenario && <SelectedScenarioPreview theme={theme} scenario={selectedScenario} scenarioWithParty={selectedScenarioWithParty} alreadyHasPlayers={selectedScenarioAlreadyHasPlayers} players={players} warnings={savedEncounterWarnings} />}
+          {selectedScenario && (
+            <EncounterPlacement
+              campaignId={campaignId}
+              scenario={selectedScenario}
+              combatants={selectedScenarioWithParty?.combatants || []}
+              onSaved={updated => { setSelectedScenario?.(updated); onScenarioSaved?.(updated); }}
+            />
+          )}
         </section>
       </div>
 
