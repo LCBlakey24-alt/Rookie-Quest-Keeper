@@ -41,3 +41,40 @@ test('homebrew subclasses are never hidden', () => {
   expect(offerableSubclasses(['Champion', 'Bloodbound Knight'], '')).toEqual(['Champion', 'Bloodbound Knight']);
   expect(offerableSubclasses([{ label: 'Oath of Starlight' }, { label: 'Oath of Glory' }])).toEqual([{ label: 'Oath of Starlight' }]);
 });
+
+describe('species and backgrounds, per edition', () => {
+  const { offerableSpecies, offerableBackgrounds } = jest.requireActual('./builtInContentPolicy');
+  const { RACES, BACKGROUNDS } = jest.requireActual('../characterRules5e');
+  require('../applyOriginData');
+
+  test('2014 offers the SRD 5.1 species and the original starters, never Aasimar, Goliath or Orc', () => {
+    const offered = offerableSpecies(Object.keys(RACES), '2014');
+    expect(offered).toEqual(expect.arrayContaining(['Human', 'Elf', 'Half-Elf', 'Half-Orc', 'Tiefling', 'Custom Lineage']));
+    ['Aasimar', 'Goliath', 'Orc'].forEach((name) => expect(offered).not.toContain(name));
+  });
+
+  test('2024 offers the SRD 5.2.1 species, not Aasimar, Half-Elf or Half-Orc', () => {
+    const offered = offerableSpecies(Object.keys(RACES), '2024');
+    expect(offered).toEqual(expect.arrayContaining(['Human', 'Goliath', 'Orc', 'Tiefling']));
+    ['Aasimar', 'Half-Elf', 'Half-Orc'].forEach((name) => expect(offered).not.toContain(name));
+  });
+
+  test('backgrounds: SRD for the edition plus the original starters', () => {
+    const b2014 = offerableBackgrounds(Object.keys(BACKGROUNDS), '2014');
+    const b2024 = offerableBackgrounds(Object.keys(BACKGROUNDS), '2024');
+    expect(b2014).toEqual(expect.arrayContaining(['Acolyte', 'Adventurer', 'Custom Background']));
+    ['Folk Hero', 'Noble', 'Criminal', 'Sage'].forEach((name) => expect(b2014).not.toContain(name));
+    expect(b2024).toEqual(expect.arrayContaining(['Acolyte', 'Criminal', 'Sage', 'Soldier']));
+    ['Folk Hero', 'Noble', 'Hermit', 'Urchin'].forEach((name) => expect(b2024).not.toContain(name));
+  });
+
+  test('a character keeps its current species and background', () => {
+    expect(offerableSpecies(['Human', 'Aasimar'], '2024', 'Aasimar')).toEqual(['Human', 'Aasimar']);
+    expect(offerableBackgrounds(['Acolyte', 'Folk Hero'], '2014', 'Folk Hero')).toEqual(['Acolyte', 'Folk Hero']);
+  });
+
+  test('homebrew origins are never hidden', () => {
+    expect(offerableSpecies(['Human', 'Moonborn'], '2014')).toEqual(['Human', 'Moonborn']);
+    expect(offerableBackgrounds(['Acolyte', 'Lamplighter'], '2014')).toEqual(['Acolyte', 'Lamplighter']);
+  });
+});

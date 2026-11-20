@@ -1,4 +1,5 @@
 import { BACKGROUNDS, CLASSES, RACES } from './characterRules5e';
+import { offerableBackgrounds, offerableSpecies } from './licensing/builtInContentPolicy';
 import { rollAbilityScoreSet } from './abilityScoreRolls';
 import { EXTRA_LANGUAGE_OPTIONS, countChoiceLanguages, getFixedLanguages } from './languageChoiceUtils';
 import { getBackgroundLanguageBudget } from './languageFullBuilderHelpers';
@@ -222,8 +223,10 @@ export function buildRandomCharacterPlan({
   const rulesEdition = String(edition).includes('2024') ? '2024' : '2014';
   const level = Math.max(1, Math.min(20, Math.floor(Number(startingLevel) || 1)));
   const classNames = Object.keys(CLASSES);
-  const raceNames = Object.keys(RACES);
-  const backgroundNames = Object.keys(BACKGROUNDS);
+  // Only options a player could pick by hand (SRD for this edition, original
+  // starters): see data/licensing/builtInContentPolicy.js.
+  const raceNames = offerableSpecies(Object.keys(RACES), rulesEdition);
+  const backgroundNames = offerableBackgrounds(Object.keys(BACKGROUNDS), rulesEdition);
 
   const characterClass = pickRandom(classNames, rng) || 'Fighter';
   const race = pickRandom(raceNames, rng) || 'Human';
