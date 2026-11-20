@@ -1,0 +1,10 @@
+.rq-tv-link { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 10px 12px; border: 1px solid var(--guild-line, rgba(255,255,255,0.16)); background: var(--guild-box, #120a1f); box-shadow: inset 0 0 18px var(--guild-box-glow, rgba(150,60,200,0.18)); color: var(--guild-text, #fff); }
+.rq-tv-link__text { flex: 1 1 280px; min-width: 0; }
+.rq-tv-link h3 { margin: 0 0 4px; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 850; }
+.rq-tv-link p { margin: 0; font-size: 12px; line-height: 1.45; color: var(--guild-muted, rgba(255,255,255,0.74)); overflow-wrap: anywhere; }
+.rq-tv-link__code-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.rq-tv-link__code { font-size: 24px; font-weight: 900; letter-spacing: 0.18em; padding: 4px 12px; border: 1px solid var(--guild-line-hot, #ff4fa3); border-radius: 8px; font-variant-numeric: tabular-nums; }
+.rq-tv-link button { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 1px solid var(--guild-line, rgba(255,255,255,0.16)); background: var(--guild-bg, #0a0612); color: inherit; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
+.rq-tv-link__make { border-color: var(--guild-line-hot, #ff4fa3) !important; }
+.rq-tv-link button:disabled { opacity: 0.55; cursor: not-allowed; }
+.rq-tv-link button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }

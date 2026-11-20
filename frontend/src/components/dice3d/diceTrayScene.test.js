@@ -223,3 +223,40 @@ describe('the logo on the tray floor', () => {
     expect(FLOOR_LOGO_URL).toBe('/brand/rqk-hex-logo.png');
   });
 });
+
+describe('the dice tower follow camera', () => {
+  test('rides down the tube with the dice and keeps them in front of it', () => {
+    const { towerFollowShot } = jest.requireActual('./diceTrayScene');
+    const high = towerFollowShot(14, 35, 0.87);
+    const low = towerFollowShot(5, 35, 0.87);
+    expect(high.target[1]).toBeGreaterThan(low.target[1]);
+    expect(high.position[1] - high.target[1]).toBeCloseTo(low.position[1] - low.target[1], 5);
+    // The camera stays in front of the tube (the tray side), looking back at it.
+    expect(low.position[2]).toBeGreaterThan(low.target[2]);
+  });
+});
+
+describe('the dice tower wide shot', () => {
+  test('opens further back than the close shot, so the whole tower is in view', () => {
+    const { towerWideShot, towerFollowShot } = jest.requireActual('./diceTrayScene');
+    const dist = (shot) => Math.hypot(...shot.position.map((value, index) => value - shot.target[index]));
+    const wide = towerWideShot(35, 0.87);
+    const close = towerFollowShot(14, 35, 0.87);
+    expect(dist(wide)).toBeGreaterThan(dist(close) * 1.5);
+    expect(wide.position[2]).toBeGreaterThan(wide.target[2]);
+  });
+});
+
+describe('the dice tower intro sweep', () => {
+  test('starts off to one side, ends on the wide shot pushed in, and keeps looking at the tower', () => {
+    const { towerWideShot, towerIntroShot } = jest.requireActual('./diceTrayScene');
+    const wide = towerWideShot(35, 0.87);
+    const dist = (shot) => Math.hypot(...shot.position.map((value, index) => value - shot.target[index]));
+    const start = towerIntroShot(wide, 0);
+    const end = towerIntroShot(wide, 1);
+    expect(start.position[0]).not.toBeCloseTo(end.position[0], 1);
+    expect(dist(start)).toBeCloseTo(dist(wide), 5);
+    expect(dist(end)).toBeLessThan(dist(wide));
+    expect(end.target).toEqual(wide.target);
+  });
+});

@@ -9,6 +9,8 @@ import './GuildChoiceWheel.css';
 const R = 100;
 const RING_OUTER = 84; // inside the hexagon's flat sides (86.6)
 const RING_INNER = 56;
+// Where the inner roll-mode words sit, mid-way across the inner ring (25-47).
+const INNER_LABEL_RADIUS = 36;
 const LABEL_RADIUS = 70;
 const DRAG_THRESHOLD = 6;
 const clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
@@ -296,13 +298,10 @@ export default function GuildChoiceWheel({
           <filter id={`${uid}-blur`} x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.6" /></filter>
           <clipPath id={`${uid}-case`}><polygon points={hexPoints(R)} /></clipPath>
           <clipPath id={`${uid}-core`}><polygon points={hexPoints(coreRadius)} /></clipPath>
-          {options.map((option, index) => (
-            <clipPath key={option.id} id={`${uid}-seg-${index}`}><path d={segmentPath(index, step)} /></clipPath>
-          ))}
+          <filter id={`${uid}-line`} filterUnits="userSpaceOnUse" x="-110" y="-110" width="220" height="220"><feGaussianBlur stdDeviation="1.6" /></filter>
         </defs>
         <polygon className="guild-wheel__case" points={hexPoints(R)} />
         <polygon className="guild-wheel__glow guild-wheel__glow--case" points={hexPoints(R)} clipPath={`url(#${uid}-case)`} filter={`url(#${uid}-blur)`} />
-        <circle className="guild-wheel__rim" cx="0" cy="0" r={RING_OUTER} />
         <g className="guild-wheel__ring" style={{ transform: `rotate(${rotation}deg)`, ...(glideMs ? { transitionDuration: `${glideMs}ms`, transitionTimingFunction: GLIDE_EASING } : {}) }}>
           {options.map((option, index) => {
             const [lx, ly] = polar(index * step, LABEL_RADIUS);
@@ -322,9 +321,19 @@ export default function GuildChoiceWheel({
                 onClick={() => commit(index)}
               >
                 <path className="guild-wheel__face" d={segmentPath(index, step)} />
-                {/* Light blue inside every wedge; orange inside the one at the top. */}
-                <path className="guild-wheel__glow" d={segmentPath(index, step)} clipPath={`url(#${uid}-seg-${index})`} filter={`url(#${uid}-blur)`} />
-                <path className="guild-wheel__edge" d={segmentPath(index, step)} />
+                {(() => {
+                  // No wedges and no ring (owner decision, 18 Nov 2026): a
+                  // single line after each option, glowing on both sides.
+                  // The transparent face above is the option's tap area.
+                  const [ax, ay] = polar(index * step + step / 2, RING_INNER + 2);
+                  const [bx, by] = polar(index * step + step / 2, RING_OUTER - 2);
+                  return (
+                    <g aria-hidden="true">
+                      <line className="guild-wheel__divider-glow" x1={ax} y1={ay} x2={bx} y2={by} filter={`url(#${uid}-line)`} />
+                      <line className="guild-wheel__divider" x1={ax} y1={ay} x2={bx} y2={by} />
+                    </g>
+                  );
+                })()}
                 {/* Printed on the ring: the label turns with its segment, and
                     flips on the lower half so it always reads upright. */}
                 <g transform={`rotate(${index * step + (readsUpsideDown(index * step + rotation) ? 180 : 0)} ${lx} ${ly})`} aria-hidden="true">
@@ -382,7 +391,6 @@ export default function GuildChoiceWheel({
         {hasInnerRing && (
           <g className="guild-wheel__inner-modes" aria-label="Roll mode">
             {innerOptions.map((mode, index) => {
-              const [mx, my] = polar(index * (360 / innerOptions.length), 36);
               const chosen = mode.id === innerValue;
               return (
                 <g
@@ -419,9 +427,36 @@ export default function GuildChoiceWheel({
                   }}
                 >
                   <path d={segmentPath(index, 360 / innerOptions.length, 47, 25)} />
-                  <text x={mx} y={my} textAnchor="middle" dominantBaseline="central" aria-hidden="true">
-                    {mode.short || mode.label}
-                  </text>
+                  {(() => {
+                    const [ax, ay] = polar(index * (360 / innerOptions.length) + 180 / innerOptions.length, 27);
+                    const [bx, by] = polar(index * (360 / innerOptions.length) + 180 / innerOptions.length, 45);
+                    return (
+                      <g aria-hidden="true">
+                        <line className="guild-wheel__divider-glow" x1={ax} y1={ay} x2={bx} y2={by} filter={`url(#${uid}-line)`} />
+                        <line className="guild-wheel__divider" x1={ax} y1={ay} x2={bx} y2={by} />
+                      </g>
+                    );
+                  })()}
+                  {(() => {
+                    // The word follows its own arc so a full word such as
+                    // "Disadvantage" fits the narrow ring without crossing the
+                    // centre. Arcs in the lower half run the other way, so
+                    // every word reads left to right.
+                    const centre = index * (360 / innerOptions.length);
+                    const half = Math.min(54, 180 / innerOptions.length - 6);
+                    const lower = Math.cos((centre * Math.PI) / 180) < 0;
+                    const from = polar(lower ? centre + half : centre - half, INNER_LABEL_RADIUS);
+                    const to = polar(lower ? centre - half : centre + half, INNER_LABEL_RADIUS);
+                    const arcId = `${uid}-mode-${index}`;
+                    return (
+                      <>
+                        <path id={arcId} d={`M ${from[0]} ${from[1]} A ${INNER_LABEL_RADIUS} ${INNER_LABEL_RADIUS} 0 0 ${lower ? 0 : 1} ${to[0]} ${to[1]}`} fill="none" stroke="none" />
+                        <text className="guild-wheel__inner-word" dominantBaseline="central" aria-hidden="true">
+                          <textPath href={`#${arcId}`} startOffset="50%" textAnchor="middle">{mode.short || mode.label}</textPath>
+                        </text>
+                      </>
+                    );
+                  })()}
                 </g>
               );
             })}

@@ -1,5 +1,5 @@
 .rq-worlds-page {
-  --worlds-ink: #071522;
+  --worlds-ink: var(--guild-bg-deep);
   --worlds-ink-soft: #0b1e2d;
   --worlds-panel: rgba(9, 25, 38, 0.86);
   --worlds-panel-strong: rgba(7, 20, 31, 0.96);

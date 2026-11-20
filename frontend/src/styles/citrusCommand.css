@@ -10,8 +10,8 @@
      so the ~50 files that reference them do not all have to change; only the
      values moved. --rq-citrus-yellow is the start stop, and is no longer
      yellow. */
-  --rq-citrus-yellow: #FF8A1F;
-  --rq-citrus-orange: #F4551F;
+  --rq-citrus-yellow: var(--guild-c1);
+  --rq-citrus-orange: var(--guild-h1);
   --rq-citrus-blood: #E03A2F;
   /* Hold each end colour for roughly the outer 28% of the line;
      concentrate the colour transition in the middle 44%. On a 320px rule,
@@ -34,9 +34,11 @@
   /* A solid base, even on public/auth, long GM pages and full-screen TVs.
    * Only outer page surfaces are reset: maps, stat blocks, artwork and
    * content panels keep their own backgrounds and remain legible. */
+  /* The player display is not listed: it paints its own dusk sky with the
+   * turning hexagons over it (PlayerDisplayPage.css), and a layered
+   * !important here would cover them. */
   html, body, #root,
   #root :is(.App, .rqk-app-shell, .keeper-product-site, .rqk-auth-page,
-            .rqk-player-display, .rqk-player-display__frame,
             .rqk-live-grid, .character-page-v2, .clean-sheet-page) {
     background-color: var(--rq-citrus-navy) !important;
     background-image: none !important;
@@ -90,7 +92,7 @@
     background-color: var(--rq-citrus-control) !important;
     background-image: var(--rq-citrus-gradient) !important;
     background-size: 100% 3px !important;
-    border-color: rgba(244,85,31,.5) !important;
+    border-color: rgba(var(--guild-h1-rgb), .5) !important;
     color: var(--rq-citrus-cream) !important;
   }
 
@@ -109,7 +111,7 @@
     background-color: var(--rq-citrus-control) !important;
     background-image: var(--rq-citrus-gradient) !important;
     background-size: 100% 3px !important;
-    border-color: rgba(244,85,31,.48) !important;
+    border-color: rgba(var(--guild-h1-rgb), .48) !important;
   }
 
   /* Hover, pointer press and keyboard focus produce the same left-to-right
@@ -210,7 +212,7 @@
   #root .rqk-reference-browser .rqk-reference-browser__item:is(.is-selected, [aria-current='true']) {
     background-size: 100% 3px !important;
     border-left-color: transparent !important;
-    border-bottom-color: rgba(244,85,31,.6) !important;
+    border-bottom-color: rgba(var(--guild-h1-rgb), .6) !important;
   }
 
   /* Focus keeps its independent blue outline; dangerous, disabled and

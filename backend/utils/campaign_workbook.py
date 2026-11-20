@@ -63,9 +63,27 @@ FIELDS = {
         "name": "Name", "domain": "Domain", "description": "Description",
         "symbol": "Symbol", "alignment": "Alignment", "notes": "Notes",
     },
+    "LOOT": {
+        "name": "Name", "quantity": "Quantity", "item_type": "Item type",
+        "description": "Description", "value": "Value",
+        "is_magical": "Magical (yes or no)",
+        "attunement_required": "Needs attunement (yes or no)",
+        "notes": "GM notes",
+    },
+    "HANDOUT": {
+        "title": "Title", "category": "Category", "content": "Text the players read",
+    },
     "QUEST": {
         "title": "Title", "summary": "Summary", "hook": "Hook",
         "status": "Status", "gm_notes": "GM notes", "objectives": "Objectives",
+        # Links, written as names. The importer matches each name to a person,
+        # place, loot item or handout in this document or already in the
+        # campaign; a name it cannot match is reported, never invented.
+        "quest_giver": "Quest giver",
+        "related_npcs": "Other people involved",
+        "locations": "Places",
+        "rewards": "Rewards (loot names)",
+        "handouts": "Handouts (titles)",
     },
     "STORY ARC": {
         "title": "Title", "description": "Description", "status": "Status",
@@ -90,6 +108,7 @@ FIELDS = {
 SINGLETONS = {"CAMPAIGN", "CALENDAR"}
 IDENTITY = {
     "NPC": "name", "LOCATION": "name", "GOD": "name", "QUEST": "title",
+    "LOOT": "name", "HANDOUT": "title",
     "STORY ARC": "title", "CALENDAR EVENT": "name",
     "SESSION NOTE": "content", "TIMELINE EVENT": "title",
 }

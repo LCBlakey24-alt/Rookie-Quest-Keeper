@@ -55,6 +55,11 @@ export function isAttuned(item) {
 /** The body slots an item can go in, best first. Empty: carried, not worn. */
 export function slotsForItem(item) {
   if (!item) return [];
+  // Homebrew items say what they are; their names can be anything.
+  const kind = typeof item === 'object' ? item.homebrew_kind : '';
+  if (kind === 'weapon') return isTwoHanded(item) ? ['mainHand'] : HAND_SLOTS;
+  if (kind === 'armour') return ['armor'];
+  if (kind === 'shield') return ['offHand'];
   const text = textOf(item);
   const explicit = typeof item === 'object' ? (item.equip_slot || item.equipped_slot) : '';
   if (explicit === 'shield' || /\bshield\b/.test(text)) return ['offHand'];

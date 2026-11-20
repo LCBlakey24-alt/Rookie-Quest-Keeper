@@ -894,6 +894,28 @@ COMBAT_TERRAIN_IDS = {'stone', 'cobblestone', 'grass', 'dirt', 'sand',
                       'wood', 'water', 'snow', 'mud', 'lava'}
 
 
+def _clean_placements(value):
+    """Keep only {id, col, row} entries: where each combatant starts on the grid."""
+    if value is None:
+        return value
+    cleaned = []
+    seen = set()
+    for item in value or []:
+        if not isinstance(item, dict):
+            continue
+        token_id = str(item.get("id") or "").strip()[:200]
+        try:
+            col = int(item.get("col"))
+            row = int(item.get("row"))
+        except (TypeError, ValueError):
+            continue
+        if not token_id or token_id in seen or not (0 <= col < 100 and 0 <= row < 100):
+            continue
+        seen.add(token_id)
+        cleaned.append({"id": token_id, "col": col, "row": row})
+    return cleaned[:300]
+
+
 class CombatScenario(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -906,6 +928,8 @@ class CombatScenario(BaseModel):
     terrain_type: str = "stone"
     battlefield_mode: Optional[Literal["saved", "generic", "none"]] = None
     tokens: List[Dict[str, Any]] = []
+    # Starting squares for combatants, set in the encounter builder.
+    placements: List[Dict[str, Any]] = []
     grid_size: int = Field(default=40, ge=10, le=200)
     grid_cols: int = Field(default=30, ge=5, le=100)
     grid_rows: int = Field(default=20, ge=5, le=100)
@@ -918,6 +942,11 @@ class CombatScenario(BaseModel):
     def validate_terrain(cls, value):
         return value if value in COMBAT_TERRAIN_IDS else "stone"
 
+    @field_validator("placements", mode="before")
+    @classmethod
+    def validate_placements(cls, value):
+        return _clean_placements(value)
+
 
 class CombatScenarioCreate(BaseModel):
     name: str
@@ -928,6 +957,8 @@ class CombatScenarioCreate(BaseModel):
     terrain_type: str = "stone"
     battlefield_mode: Optional[Literal["saved", "generic", "none"]] = None
     tokens: List[Dict[str, Any]] = []
+    # Starting squares for combatants, set in the encounter builder.
+    placements: List[Dict[str, Any]] = []
     grid_size: int = Field(default=40, ge=10, le=200)
     grid_cols: int = Field(default=30, ge=5, le=100)
     grid_rows: int = Field(default=20, ge=5, le=100)
@@ -941,6 +972,11 @@ class CombatScenarioCreate(BaseModel):
             raise ValueError("Unknown combat terrain")
         return value
 
+    @field_validator("placements", mode="before")
+    @classmethod
+    def validate_placements(cls, value):
+        return _clean_placements(value)
+
 
 class CombatScenarioUpdate(BaseModel):
     name: Optional[str] = None
@@ -951,6 +987,8 @@ class CombatScenarioUpdate(BaseModel):
     terrain_type: Optional[str] = None
     battlefield_mode: Optional[Literal["saved", "generic", "none"]] = None
     tokens: Optional[List[Dict[str, Any]]] = None
+    # Starting squares for combatants, set in the encounter builder.
+    placements: Optional[List[Dict[str, Any]]] = None
     grid_size: Optional[int] = Field(default=None, ge=10, le=200)
     grid_cols: Optional[int] = Field(default=None, ge=5, le=100)
     grid_rows: Optional[int] = Field(default=None, ge=5, le=100)
@@ -963,6 +1001,11 @@ class CombatScenarioUpdate(BaseModel):
         if value is not None and value not in COMBAT_TERRAIN_IDS:
             raise ValueError("Unknown combat terrain")
         return value
+
+    @field_validator("placements", mode="before")
+    @classmethod
+    def validate_placements(cls, value):
+        return _clean_placements(value)
 
 class InGameNote(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -1527,6 +1570,21 @@ class GameMapUpdate(BaseModel):
 
 # ==================== WORLD MAP MODELS ====================
 
+class MapGrid(BaseModel):
+    """A square or hex grid laid over an uploaded map image.
+
+    Sizes are relative to the image so the grid stays aligned at any zoom:
+    ``size`` is one cell's width as a percentage of the image width, and the
+    offsets shift the grid by a percentage of one cell.
+    """
+    model_config = ConfigDict(extra="ignore")
+    type: Literal["none", "square", "hex_flat", "hex_pointy"] = "none"
+    size: float = Field(default=5.0, ge=0.5, le=50.0)
+    offset_x: float = Field(default=0.0, ge=0.0, le=100.0)
+    offset_y: float = Field(default=0.0, ge=0.0, le=100.0)
+    colour: Literal["light", "dark"] = "light"
+    opacity: float = Field(default=0.45, ge=0.05, le=1.0)
+
 class MapPin(BaseModel):
     """A pin/marker on a world or local map"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -1575,6 +1633,7 @@ class WorldMap(BaseModel):
         "flying": 96
     }
     notes: str = ""
+    grid: Optional[MapGrid] = None
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -1587,6 +1646,7 @@ class WorldMapCreate(BaseModel):
     scale_unit: str = "miles"
     travel_speeds: Optional[Dict[str, float]] = None
     notes: str = ""
+    grid: Optional[MapGrid] = None
 
 class WorldMapUpdate(BaseModel):
     name: Optional[str] = None
@@ -1599,6 +1659,7 @@ class WorldMapUpdate(BaseModel):
     paths: Optional[List[Dict[str, Any]]] = None
     travel_speeds: Optional[Dict[str, float]] = None
     notes: Optional[str] = None
+    grid: Optional[MapGrid] = None
 
 class LocalMap(BaseModel):
     """A local map (city, town, village) with places of interest"""
@@ -1614,6 +1675,7 @@ class LocalMap(BaseModel):
     height: int = 0
     pins: List[Dict[str, Any]] = []  # Places of interest pins
     notes: str = ""
+    grid: Optional[MapGrid] = None
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -1624,6 +1686,7 @@ class LocalMapCreate(BaseModel):
     image_data: str = ""
     image_url: Optional[str] = None
     notes: str = ""
+    grid: Optional[MapGrid] = None
 
 class LocalMapUpdate(BaseModel):
     name: Optional[str] = None
@@ -1632,6 +1695,7 @@ class LocalMapUpdate(BaseModel):
     image_url: Optional[str] = None
     pins: Optional[List[Dict[str, Any]]] = None
     notes: Optional[str] = None
+    grid: Optional[MapGrid] = None
 
 class TravelCalculateRequest(BaseModel):
     from_pin_id: str

@@ -414,10 +414,10 @@ img, video, canvas, svg {
   --accent-red-hover: #E0B15C;
   --accent-red-subtle: rgba(192, 138, 61, 0.14);
   --accent-red-border: rgba(192, 138, 61, 0.34);
-  --rq-accent-primary: #C08A3D;
-  --rq-accent-hover: #E0B15C;
-  --rq-accent-soft: rgba(192, 138, 61, 0.14);
-  --rq-accent-border: rgba(192, 138, 61, 0.34);
+  --rq-accent-primary: var(--guild-c1);
+  --rq-accent-hover: var(--guild-hi);
+  --rq-accent-soft: rgba(var(--guild-c1-rgb), 0.14);
+  --rq-accent-border: rgba(var(--guild-c1-rgb), 0.34);
 
   /* Text Colors - cream/parchment */
   --text-primary: #F5E6C8;
@@ -609,18 +609,20 @@ p, span, div, label, a, button {
 
 /* ===== BUTTONS ===== */
 /* Primary Button - Velvet gold */
+/* The themes now paint primary buttons in the page colour, so the old
+   borderless red style left them looking like plain text. A fine edge (its
+   colour comes from the theme) keeps the main action recognisable, and
+   sentence case matches every other button. */
 .btn-primary {
   background: var(--accent-red);
   color: var(--text-primary);
-  border: none;
+  border: 1px solid var(--guild-line-hot, rgba(255, 79, 163, 0.55));
   padding: 12px 24px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 14px;
   font-family: var(--rq-font-sans, 'Manrope', sans-serif);
   cursor: pointer;
   transition: all 0.15s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .btn-primary:hover {

@@ -11,9 +11,9 @@
   --cs-text-soft: rgba(255, 255, 255, 0.78) !important;
   --cs-muted: rgba(255, 255, 255, 0.60) !important;
   --cs-border: rgba(137,157,176, 0.14) !important;
-  --cs-border-strong: rgba(242, 137, 47, 0.30) !important;
-  --cs-accent: #f2892f !important;
-  --cs-accent-soft: rgba(242, 137, 47, 0.12) !important;
+  --cs-border-strong: rgba(var(--guild-c1-rgb),  0.30) !important;
+  --cs-accent: var(--guild-c1) !important;
+  --cs-accent-soft: rgba(var(--guild-c1-rgb),  0.12) !important;
   --cs-blue: var(--guild-hi) !important;
   --cs-blue-soft: rgba(var(--guild-c2-rgb), 0.10) !important;
   --cs-success: #5FA67A !important;
@@ -29,9 +29,9 @@
   --rq-panel: var(--guild-bg) !important;
   --rq-surface: var(--guild-bg) !important;
   --rq-border-default: rgba(137,157,176, 0.14) !important;
-  --rq-accent-primary: #f2892f !important;
+  --rq-accent-primary: var(--guild-c1) !important;
   --rq-secondary: var(--guild-hi) !important;
-  --rq-sunset-gradient: #f2892f !important;
+  --rq-sunset-gradient: var(--guild-c1) !important;
 
   background: var(--guild-bg) !important;
   background-image: none !important;
@@ -194,7 +194,7 @@
 .character-page-v2 button:focus-visible,
 .character-page-v2 .clean-sheet-clickable:hover {
   background: var(--guild-bg) !important;
-  border-color: #f2892f !important;
+  border-color: var(--guild-c1) !important;
   filter: none !important;
   transform: none !important;
 }
@@ -246,7 +246,7 @@
 }
 
 .character-page-v2 .clean-sheet-tabs {
-  background: #050E18 !important;
+  background: var(--guild-bg-deep) !important;
   background-image: none !important;
   border: 1px solid rgba(137,157,176, 0.14) !important;
   border-radius: 7px !important;
@@ -289,13 +289,13 @@
 .character-page-v2 .clean-sheet-tab-warning,
 .character-page-v2 .clean-sheet-save-prof-marker,
 .character-page-v2 .clean-sheet-compact-skill.is-proficient::before {
-  background: #f2892f !important;
+  background: var(--guild-c1) !important;
   background-image: none !important;
   box-shadow: none !important;
 }
 
 .character-page-v2 .clean-sheet-readable-skills .clean-sheet-compact-skill.is-proficient {
-  border-left: 1px solid #f2892f !important;
+  border-left: 1px solid var(--guild-c1) !important;
 }
 
 .character-page-v2 .clean-sheet-attention-section,
@@ -304,7 +304,7 @@
 .character-page-v2 .clean-sheet-spell-warning {
   background: var(--guild-bg) !important;
   background-image: none !important;
-  border: 1px solid #f2892f !important;
+  border: 1px solid var(--guild-c1) !important;
   border-radius: 5px !important;
   color: #ffffff !important;
 }

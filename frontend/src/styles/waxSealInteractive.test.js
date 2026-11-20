@@ -18,7 +18,11 @@ describe('Guild Command citrus site-wide design contract', () => {
     expect(css).toContain('--rq-citrus-navy: var(--guild-bg);');
     expect(css).toContain('--rq-citrus-panel: var(--guild-bg);');
     expect(css).toContain('background-image: none !important;');
-    expect(css).toContain('.rqk-player-display__frame');
+    // The player display paints its own dusk sky with the site's turning
+    // hexagons (owner request, 19 Nov 2026), so it is left out of the flat base.
+    expect(css).not.toMatch(/\.rqk-player-display(__frame)?\s*,/);
+    const displayCss = read('../components/gm/PlayerDisplayPage.css');
+    expect(displayCss).toContain('.rqk-player-display > .rq-hex-backdrop');
     expect(css).toContain('.keeper-product-site');
     expect(css).toContain('.rqk-auth-page');
     expect(css).toContain('.character-page-v2');
@@ -27,8 +31,8 @@ describe('Guild Command citrus site-wide design contract', () => {
 
   test('gradient is yellow to citrus orange to blood orange, never a full card fill', () => {
     const css = read('./citrusCommand.css');
-    expect(css).toContain('--rq-citrus-yellow: #FF8A1F;');
-    expect(css).toContain('--rq-citrus-orange: #F4551F;');
+    expect(css).toContain('--rq-citrus-yellow: var(--guild-c1);');
+    expect(css).toContain('--rq-citrus-orange: var(--guild-h1);');
     expect(css).toContain('--rq-citrus-blood: #E03A2F;');
     expect(css).toContain('--rq-citrus-gradient: linear-gradient(90deg,');
     // The colour transition now lives in the centre, with deliberate solid

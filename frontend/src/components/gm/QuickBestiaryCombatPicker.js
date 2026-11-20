@@ -68,7 +68,7 @@ export default function QuickBestiaryCombatPicker({ onAdd }) {
 
 const panelStyle = { display: 'grid', gap: 8, padding: 10, background: 'var(--rq-bg-panel, #0a2342)', border: '1px solid var(--rq-line, rgba(137,157,176,0.14))', color: 'var(--rq-text-primary, #ffffff)' };
 const labelStyle = { display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 850 };
-const searchStyle = { display: 'flex', alignItems: 'center', gap: 8, padding: '0 9px', background: 'var(--rq-bg-input, #0a2342)', border: '1px solid var(--rq-line-strong, rgba(242, 137, 47,0.3))' };
+const searchStyle = { display: 'flex', alignItems: 'center', gap: 8, padding: '0 9px', background: 'var(--rq-bg-input, #0a2342)', border: '1px solid var(--rq-line-strong, rgba(var(--guild-c1-rgb), 0.3))' };
 const inputStyle = { width: '100%', minWidth: 0, minHeight: 38, background: 'transparent', color: 'inherit', border: 'none', outline: 'none' };
 const resultsStyle = { display: 'grid', maxHeight: 220, overflowY: 'auto', gap: 4 };
 const resultStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: 6, background: 'var(--rq-card, #0a2342)' };

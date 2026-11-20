@@ -10,7 +10,7 @@
   min-width: 0 !important;
   min-height: 100dvh !important;
   padding: clamp(10px, 2vw, 20px) !important;
-  background: #071522 !important;
+  background: var(--guild-bg-deep) !important;
   background-image: none !important;
   color: #F7F1E7 !important;
   font-family: inherit !important;
@@ -39,7 +39,7 @@
   min-width: 0 !important;
   background: var(--guild-bg) !important;
   background-image: none !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 7px !important;
   color: #F7F1E7 !important;
   padding: 11px !important;
@@ -108,10 +108,10 @@
   align-content: center !important;
   gap: 4px !important;
   padding: 9px !important;
-  background: #112A40 !important;
+  background: var(--guild-panel) !important;
   background-image: none !important;
   color: #F7F1E7 !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 5px !important;
   text-align: left !important;
   cursor: pointer !important;
@@ -119,15 +119,15 @@
 
 #root [data-testid='homebrew-workshop'] [data-testid^='hb-type-']:hover,
 #root [data-testid='homebrew-workshop'] [data-testid^='hb-type-']:focus-visible {
-  background: #17364F !important;
-  border-color: #f2892f !important;
+  background: var(--guild-panel) !important;
+  border-color: var(--guild-c1) !important;
   outline: none !important;
 }
 
 #root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'][style*='rgb(208, 0, 0)'],
 #root [data-testid='homebrew-workshop'] [data-testid^='hb-type-'][style*='#d00000'] {
-  background: rgba(121,188,232,.10) !important;
-  border-color: #f2892f !important;
+  background: rgba(var(--guild-c2-rgb), .10) !important;
+  border-color: var(--guild-c1) !important;
   color: #F7F1E7 !important;
 }
 
@@ -155,10 +155,10 @@
   min-width: 0 !important;
   min-height: 40px !important;
   padding: 8px 9px !important;
-  background: #071A29 !important;
+  background: var(--guild-bg-deep) !important;
   background-image: none !important;
   color: #F7F1E7 !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 5px !important;
   font: inherit !important;
   outline: none !important;
@@ -167,8 +167,8 @@
 #root [data-testid='homebrew-workshop'] input:not([type='file']):focus,
 #root [data-testid='homebrew-workshop'] select:focus,
 #root [data-testid='homebrew-workshop'] textarea:focus {
-  border-color: #f2892f !important;
-  outline: 1px solid #f2892f !important;
+  border-color: var(--guild-c1) !important;
+  outline: 1px solid var(--guild-c1) !important;
   outline-offset: 1px !important;
   box-shadow: none !important;
 }
@@ -186,10 +186,10 @@
   justify-content: center !important;
   gap: 6px !important;
   padding: 0 10px !important;
-  background: #112A40 !important;
+  background: var(--guild-panel) !important;
   background-image: none !important;
   color: #F7F1E7 !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 5px !important;
   font: inherit !important;
   font-size: 12px !important;
@@ -199,28 +199,28 @@
 
 #root [data-testid='homebrew-workshop'] button svg,
 #root [data-testid='homebrew-workshop'] label[for='hb-file-input'] svg {
-  color: #79BCE8 !important;
+  color: var(--guild-h3) !important;
 }
 
 #root [data-testid='homebrew-workshop'] button:hover:not(:disabled),
 #root [data-testid='homebrew-workshop'] button:focus-visible,
 #root [data-testid='homebrew-workshop'] label[for='hb-file-input']:hover {
-  background: #17364F !important;
-  border-color: #f2892f !important;
+  background: var(--guild-panel) !important;
+  border-color: var(--guild-c1) !important;
   outline: none !important;
 }
 
 #root [data-testid='homebrew-workshop'] button[data-testid='hb-parse-text-btn'],
 #root [data-testid='homebrew-workshop'] button[data-testid='hb-save-btn'] {
-  background: #112A40 !important;
-  border-color: #f2892f !important;
+  background: var(--guild-panel) !important;
+  border-color: var(--guild-c1) !important;
   color: #F7F1E7 !important;
 }
 
 #root [data-testid='homebrew-workshop'] button[data-testid='hb-parse-text-btn']:hover:not(:disabled),
 #root [data-testid='homebrew-workshop'] button[data-testid='hb-save-btn']:hover:not(:disabled) {
-  background: #17364F !important;
-  border-color: #f2892f !important;
+  background: var(--guild-panel) !important;
+  border-color: var(--guild-c1) !important;
 }
 
 #root [data-testid='homebrew-workshop'] button:disabled,
@@ -236,7 +236,7 @@
 }
 
 #root [data-testid='homebrew-workshop'] article {
-  background: #112A40 !important;
+  background: var(--guild-panel) !important;
 }
 
 #root [data-testid='homebrew-workshop'] img {

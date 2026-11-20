@@ -198,21 +198,12 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
     return draft === undefined ? resource : { ...resource, current: Math.min(resource.max, draft) };
   }), [character, resourceDrafts]);
 
+  // Only real attacks: equipped weapons and the unarmed strike. A made-up
+  // "1d8 weapon" for a character with nothing in hand misled new players.
   const attackOptions = useMemo(() => ([
-    ...(equippedWeaponAttacks.length > 0 ? equippedWeaponAttacks : [{
-      id: 'main-attack',
-      title: 'Weapon Attack',
-      type: 'Action',
-      attackLabel: 'Weapon Attack',
-      details: 'Fallback weapon attack',
-      attackMod: bestAttackMod,
-      saveText: null,
-      damageText: `1d8 ${fmt(bestAbilityMod)}`,
-      damageType: 'weapon',
-      damage: { label: 'Weapon Damage', count: 1, sides: 8, modifier: bestAbilityMod, damageType: 'weapon' },
-    }]),
+    ...equippedWeaponAttacks,
     unarmedAttack,
-  ]), [bestAbilityMod, bestAttackMod, equippedWeaponAttacks, unarmedAttack]);
+  ]), [equippedWeaponAttacks, unarmedAttack]);
 
   const groupedSpells = useMemo(() => ({
     action: spells.filter((spell) => actionTypeFromText(spell.castingTime, 'action') === 'action'),
@@ -460,6 +451,11 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
           title="Actions"
           summary={`Attack action: ${attacksPerAction} attack${attacksPerAction === 1 ? '' : 's'}`}
         >
+          {equippedWeaponAttacks.length === 0 && (
+            <p className="clean-sheet-no-weapon" data-testid="combat-no-weapon">
+              No weapon equipped. Equip one from Equipment to see its attack here.
+            </p>
+          )}
           {attackOptions.map(attack => (
             <AttackCard
               key={attack.id}

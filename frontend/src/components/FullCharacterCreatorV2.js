@@ -332,6 +332,13 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
   ];
   const step = Math.min(Number(draft.step || 0), steps.length - 1);
   const stepId = steps[step]?.id || 'setup';
+  // Steps the player has opened in this visit. A new character starts with
+  // sensible defaults (background, scores, gear); those read "Default" until
+  // the player has looked at them, rather than claiming they are "Done".
+  const [visitedSteps, setVisitedSteps] = useState(() => new Set([stepId]));
+  useEffect(() => {
+    setVisitedSteps((previous) => (previous.has(stepId) ? previous : new Set([...previous, stepId])));
+  }, [stepId]);
   const currentStep = steps[step] || steps[0];
   const journeyPercent = steps.length > 1 ? Math.round((step / (steps.length - 1)) * 100) : 100;
   const firstIncompleteStepId = steps.find((item) => item.id !== 'review' && !completionByStep[item.id])?.id;
@@ -744,7 +751,8 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
             const Icon = item.icon;
             const isCurrent = index === step;
             const isComplete = item.id === 'review' ? canSave : Boolean(completionByStep[item.id]);
-            const stateLabel = isCurrent ? 'Current' : isComplete ? 'Done' : 'To do';
+            const seen = editMode || visitedSteps.has(item.id);
+            const stateLabel = isCurrent ? 'Current' : !isComplete ? 'To do' : seen || item.id === 'review' ? 'Done' : 'Default';
             return (
               <button
                 key={item.id}
@@ -808,7 +816,7 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
 
 function Setup({ draft, update }) {
   return <>
-    <Title icon={Sparkles} title="Character setup" text="Start with name, rules edition, and starting level. Higher starting levels will come after the level-up pass." />
+    <Title icon={Sparkles} title="Character setup" text="Give your character a name and choose which rules edition to use. Every choice can be changed later." />
     <div className="full-creator-form-grid">
       <label><span>Character name</span><input value={draft.name} onChange={(event) => update({ name: event.target.value })} placeholder="Pip, Javen, Thorne, Mira…" autoFocus /></label>
       <label><span>Rules edition</span><select value={draft.edition} onChange={(event) => update({ edition: event.target.value, floatingAsi: {}, extraFeat: 'None', rolledStartingGold: 0 })}>{Object.entries(EDITIONS).map(([id, item]) => <option key={id} value={id}>{item.name}</option>)}</select></label>

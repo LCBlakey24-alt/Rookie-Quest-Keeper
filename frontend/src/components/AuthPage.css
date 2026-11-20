@@ -224,7 +224,7 @@
   height: 32px;
   display: grid;
   place-items: center;
-  color: #f2892f !important;
+  color: var(--guild-c1) !important;
   background: rgba(var(--guild-c2-rgb), 0.12) !important;
   border: 1px solid rgba(var(--guild-c2-rgb), 0.30);
   border-radius: 5px;
@@ -387,8 +387,8 @@
 
 .rqk-auth-note svg,
 .rqk-auth-input-icon {
-  color: #f2892f !important;
-  stroke: #f2892f !important;
+  color: var(--guild-c1) !important;
+  stroke: var(--guild-c1) !important;
 }
 
 .rqk-auth-assurance {
@@ -440,7 +440,7 @@
 }
 
 .rqk-auth-required-mark {
-  color: #f2892f;
+  color: var(--guild-c1);
 }
 
 .rqk-auth-input-shell {
@@ -727,7 +727,7 @@
 
 .rqk-auth-next-steps li::before {
   content: counter(auth-step, decimal-leading-zero);
-  color: #f2892f;
+  color: var(--guild-c1);
   font-size: 0.64rem;
   letter-spacing: 0.08em;
 }
@@ -948,7 +948,7 @@
 }
 #root .rqk-auth-page .rqk-auth-heading p {
   margin: 0 0 7px !important;
-  color: #f2892f !important;
+  color: var(--guild-c1) !important;
   letter-spacing: .13em !important;
   font-size: .66rem !important;
 }
@@ -1078,7 +1078,7 @@ html body #root .rqk-auth-brand .rqk-auth-brand__sigil {
   -webkit-text-fill-color: #ffffff !important;
   font-weight: 750 !important;
   letter-spacing: .02em;
-  border: 1px solid var(--guild-line-hot, #ffb066) !important;
+  border: 1px solid var(--guild-line-hot, var(--guild-hi)) !important;
   border-radius: 10px !important;
   box-shadow: var(--guild-box-glow-hot, none) !important;
 }

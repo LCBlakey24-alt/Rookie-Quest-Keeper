@@ -1,0 +1,124 @@
+.rq-grid-controls {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  background: var(--guild-box, #120a1f);
+  border: 1px solid var(--guild-line, rgba(255, 255, 255, 0.16));
+  box-shadow: inset 0 0 18px var(--guild-box-glow, rgba(150, 60, 200, 0.18));
+  border-radius: 12px;
+  color: var(--guild-text, #fff);
+  font-family: var(--guild-font-body, Inter, system-ui, sans-serif);
+}
+
+.rq-grid-controls__types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rq-grid-controls__type,
+.rq-grid-controls__button,
+.rq-grid-controls__icon {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--guild-line, rgba(255, 255, 255, 0.16));
+  background: var(--guild-bg, #0a0612);
+  color: var(--guild-text, #fff);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rq-grid-controls__type[aria-checked='true'],
+.rq-grid-controls__button--primary {
+  border-color: var(--guild-line-hot, #ff4fa3);
+  box-shadow: inset 0 0 14px var(--guild-box-glow-hot, rgba(255, 79, 163, 0.35));
+}
+
+.rq-grid-controls__icon {
+  width: 44px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+}
+
+.rq-grid-controls :focus-visible {
+  outline: 2px solid var(--guild-focus-ring, #fff);
+  outline-offset: 2px;
+}
+
+.rq-grid-controls__rows {
+  display: grid;
+  gap: 8px 18px;
+}
+
+/* Two columns when the panel is wide, so the map stays in view while lining up. */
+@media (min-width: 900px) {
+  .rq-grid-controls__rows {
+    grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+  }
+}
+
+.rq-grid-controls__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.rq-grid-controls__row > label:first-child,
+.rq-grid-controls__label {
+  min-width: 92px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--guild-muted, rgba(255, 255, 255, 0.72));
+}
+
+.rq-grid-controls__row input[type='number'] {
+  width: 84px;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--guild-field-line, rgba(255, 255, 255, 0.4));
+  background: var(--guild-bg, #0a0612);
+  color: var(--guild-text, #fff);
+  font: inherit;
+}
+
+.rq-grid-controls__row input[type='range'] {
+  flex: 1 1 140px;
+  min-width: 120px;
+  min-height: 44px;
+  accent-color: var(--guild-accent, #ff4fa3);
+}
+
+.rq-grid-controls__pad {
+  display: flex;
+  gap: 4px;
+}
+
+.rq-grid-controls__slider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 180px;
+  font-size: 12px;
+  color: var(--guild-muted, rgba(255, 255, 255, 0.72));
+}
+
+.rq-grid-controls__hint {
+  font-size: 12px;
+  color: var(--guild-muted, rgba(255, 255, 255, 0.72));
+}
+
+.rq-grid-controls__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.rq-grid-controls__button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}

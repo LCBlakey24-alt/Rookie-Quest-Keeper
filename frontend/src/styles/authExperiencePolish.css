@@ -7,7 +7,7 @@
   margin-top: clamp(18px, 3vw, 30px);
   padding: 16px;
   border-radius: 8px;
-  border: 1px solid rgba(242, 137, 47, 0.16);
+  border: 1px solid rgba(var(--guild-c1-rgb),  0.16);
   background: #0F1A26;
   box-shadow: none;
 }
@@ -36,7 +36,7 @@
 }
 
 .rqk-auth-required-mark {
-  color: #f2892f;
+  color: var(--guild-c1);
   text-shadow: none;
 }
 
@@ -47,7 +47,7 @@
 .rqk-auth-input-shell:has(.rqk-auth-field:disabled) {
   opacity: 0.72;
   transform: none;
-  border-color: rgba(242, 137, 47, 0.10);
+  border-color: rgba(var(--guild-c1-rgb),  0.10);
   background: #0F1A26;
 }
 
@@ -79,8 +79,8 @@
 }
 
 #root .rqk-auth-page .rqk-auth-icon-button[aria-pressed="true"] {
-  border-color: rgba(242, 137, 47, 0.46) !important;
-  color: #f2892f !important;
+  border-color: rgba(var(--guild-c1-rgb),  0.46) !important;
+  color: var(--guild-c1) !important;
   box-shadow: none !important;
 }
 
@@ -168,7 +168,7 @@
 }
 
 .rqk-auth-assurance span {
-  color: #f2892f;
+  color: var(--guild-c1);
   font-size: 0.7rem;
   font-weight: 950;
   letter-spacing: 0.13em;
@@ -194,7 +194,7 @@
   margin-top: -3px;
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid rgba(242, 137, 47, 0.14);
+  border: 1px solid rgba(var(--guild-c1-rgb),  0.14);
   background: #0F1A26;
 }
 
@@ -247,7 +247,7 @@
   min-height: 28px;
   padding: 5px 8px;
   border-radius: 5px;
-  border: 1px solid rgba(242, 137, 47, 0.12);
+  border: 1px solid rgba(var(--guild-c1-rgb),  0.12);
   color: rgba(255, 255, 255, 0.62);
   background: var(--guild-bg);
   font-size: 0.75rem;
@@ -306,7 +306,7 @@
   margin-top: 18px;
   padding: 13px;
   border-radius: 8px;
-  border: 1px solid rgba(242, 137, 47, 0.14);
+  border: 1px solid rgba(var(--guild-c1-rgb),  0.14);
   background: #0F1A26;
 }
 
@@ -336,7 +336,7 @@
   gap: 4px;
   padding: 10px;
   border-radius: 7px;
-  border: 1px solid rgba(242, 137, 47, 0.14);
+  border: 1px solid rgba(var(--guild-c1-rgb),  0.14);
   background: var(--guild-bg);
   color: #ffffff;
   font-size: 0.76rem;
@@ -346,7 +346,7 @@
 
 .rqk-auth-next-steps li::before {
   content: counter(rqk-auth-step, decimal-leading-zero);
-  color: #f2892f;
+  color: var(--guild-c1);
   font-size: 0.68rem;
   letter-spacing: 0.08em;
 }
@@ -359,7 +359,7 @@
   gap: 8px;
   margin-top: 14px;
   padding-top: 16px;
-  border-top: 1px solid rgba(242, 137, 47, 0.12);
+  border-top: 1px solid rgba(var(--guild-c1-rgb),  0.12);
 }
 
 .rqk-auth-trust-row span {
@@ -368,7 +368,7 @@
   min-height: 28px;
   padding: 5px 9px;
   border-radius: 5px;
-  border: 1px solid rgba(242, 137, 47, 0.18);
+  border: 1px solid rgba(var(--guild-c1-rgb),  0.18);
   background: #0F1A26;
   color: rgba(255, 255, 255, 0.72);
   font-size: 0.74rem;

@@ -35,20 +35,20 @@
   --rq-card: var(--guild-bg);
   --rq-card-hover: var(--guild-bg);
   /* Antique gold is for text only. Clickable surfaces use these controls. */
-  --rq-gold-text: #f2892f;
+  --rq-gold-text: var(--guild-c1);
   --rq-control-blue: var(--guild-bg);
   --rq-control-wax: #7E2D2D;
   --rq-control-ink: #F8F0E5;
 
   --rq-secondary: var(--guild-hi);
   --rq-secondary-soft: rgba(var(--guild-c2-rgb), 0.10);
-  --rq-secondary-border: rgba(121, 188, 232, 0.28);
+  --rq-secondary-border: rgba(var(--guild-c2-rgb), 0.28);
 
-  --rq-accent-primary: #f2892f;
+  --rq-accent-primary: var(--guild-c1);
   --rq-accent-hover: var(--guild-hi);
   --rq-accent-active: #B7924D;
-  --rq-accent-soft: rgba(242, 137, 47, 0.12);
-  --rq-accent-border: rgba(242, 137, 47, 0.30);
+  --rq-accent-soft: rgba(var(--guild-c1-rgb), 0.12);
+  --rq-accent-border: rgba(var(--guild-c1-rgb), 0.30);
   --rq-accent-strong-border: rgba(232, 197, 110, 0.62);
 
   --rq-text-primary: #ffffff;
@@ -112,7 +112,7 @@
   --rq-gold-bright: var(--rq-secondary);
   --rq-gold-soft: var(--rq-secondary-soft);
   --rq-gold-border: var(--rq-secondary-border);
-  --rq-gold-border-strong: rgba(121, 188, 232, 0.48);
+  --rq-gold-border-strong: rgba(var(--guild-c2-rgb), 0.48);
   --rq-charcoal: var(--rq-bg-main);
   --rq-charcoal-soft: var(--rq-bg-panel);
   --rq-navy: var(--rq-bg-main);

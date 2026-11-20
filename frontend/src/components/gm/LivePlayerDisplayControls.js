@@ -7,19 +7,21 @@ import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishS
 import { loadPlayerDisplayResources, playerDisplayResourceWarning } from '@/lib/livePlayerDisplayResources';
 import { normalizeCampaignCharacter } from '@/data/campaignCharacterBridge';
 import LiveDisplayLocationExplorer from './LiveDisplayLocationExplorer';
+import TvLinkCard from './TvLinkCard';
+import { openDisplayAndReport } from '@/lib/openDisplayWindow';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
 const theme = {
-  bg: 'var(--rq-bg, #071522)',
-  panel: 'var(--rq-surface, #0C2234)',
-  card: 'var(--rq-card, #112A40)',
-  hover: 'var(--rq-card-hover, #17364F)',
-  line: 'var(--rq-line, rgba(242, 137, 47,0.18))',
-  lineStrong: 'var(--rq-line-strong, rgba(242, 137, 47,0.42))',
-  pink: 'var(--rq-primary, #f2892f)',
-  blue: 'var(--rq-secondary, #79BCE8)',
-  red: 'var(--rq-primary, #f2892f)',
+  bg: 'var(--rq-bg, var(--guild-bg-deep))',
+  panel: 'var(--rq-surface, var(--guild-bg))',
+  card: 'var(--rq-card, var(--guild-panel))',
+  hover: 'var(--rq-card-hover, var(--guild-panel))',
+  line: 'var(--rq-line, rgba(var(--guild-c1-rgb), 0.18))',
+  lineStrong: 'var(--rq-line-strong, rgba(var(--guild-c1-rgb), 0.42))',
+  pink: 'var(--rq-primary, var(--guild-c1))',
+  blue: 'var(--rq-secondary, var(--guild-h3))',
+  red: 'var(--rq-primary, var(--guild-c1))',
   text: 'var(--rq-text-primary)',
   soft: 'var(--rq-text-primary)',
   muted: 'var(--rq-text-primary)',
@@ -307,8 +309,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
     setDisplayTarget(safeTarget);
     // The URL already specifies TV vs table. Opening a new viewer must not
     // broadcast a blank state and erase the current map, combat or reveal.
-    const opened = window.open(displayUrlFor(safeTarget), '_blank', 'noopener,noreferrer');
-    if (!opened) toast.error('The display tab was blocked. Allow pop-ups, then try again.');
+    // Opens on the TV screen where the browser can (see lib/openDisplayWindow).
+    openDisplayAndReport(displayUrlFor(safeTarget), toast);
   };
 
   const copyDisplayLink = async (targetId = displayTarget) => {
@@ -539,6 +541,8 @@ export default function LivePlayerDisplayControls({ campaignId, campaignName = '
           {activeSection === 'screen' && <button type="button" onClick={() => setOpen(prev => !prev)} style={secondaryButtonStyle}>{open ? <X size={14} /> : <Eye size={14} />} {open ? 'Hide Advanced' : 'Show Advanced'}</button>}
         </div>
       </header>
+
+      <TvLinkCard campaignId={campaignId} />
 
       <div style={statusStripStyle}>
         <span><strong>Current target:</strong> {currentTarget.label}</span>

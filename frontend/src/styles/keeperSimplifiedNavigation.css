@@ -48,7 +48,7 @@
   background: #10283d;
 }
 #root .rqk-app-shell .campaign-player-tools-actions button.is-active {
-  border-color: #ff8a1f;
+  border-color: var(--guild-c1);
   background: #17344a;
 }
 #root .rqk-app-shell .campaign-player-tools-panel {

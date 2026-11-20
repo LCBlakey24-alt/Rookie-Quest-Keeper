@@ -26,7 +26,10 @@
     -webkit-text-fill-color: currentColor !important;
     text-shadow: none !important;
   }
-  :where(#root, [role='dialog'], [role='alertdialog']) :where([style*='linear-gradient('], [style*='radial-gradient('], [class*='bg-gradient-']) {
+  /* Decorative gradients are flattened. Battlefield terrain previews opt out
+     with data-rq-texture: their gradients draw the stone/grass texture the
+     GM is choosing, not decoration. */
+  :where(#root, [role='dialog'], [role='alertdialog']) :where([style*='linear-gradient('], [style*='radial-gradient('], [class*='bg-gradient-']):not([data-rq-texture]) {
     background-image: none !important;
     background-color: var(--rq-bg-panel) !important;
   }
@@ -88,14 +91,14 @@ html[data-theme='player'] {
 
   --rq-secondary: var(--guild-hi);
   --rq-secondary-soft: rgba(var(--guild-c2-rgb), 0.10);
-  --rq-secondary-border: rgba(121, 188, 232, 0.28);
+  --rq-secondary-border: rgba(var(--guild-c2-rgb), 0.28);
 
-  --rq-primary: #f2892f;
+  --rq-primary: var(--guild-c1);
   --rq-primary-hover: var(--guild-hi);
-  --rq-primary-soft: rgba(242, 137, 47, 0.14);
-  --rq-accent-primary: #f2892f;
+  --rq-primary-soft: rgba(var(--guild-c1-rgb),  0.14);
+  --rq-accent-primary: var(--guild-c1);
   --rq-accent-hover: var(--guild-hi);
-  --rq-accent-soft: rgba(242, 137, 47, 0.14);
+  --rq-accent-soft: rgba(var(--guild-c1-rgb), 0.14);
   --rq-accent-border: rgba(var(--guild-c2-rgb), 0.36);
 
   --rq-text: #ffffff;
@@ -1037,7 +1040,7 @@ body,
 #root :where(input,textarea,select) {
   background: var(--rq-bg-input) !important;
   background-image: none !important;
-  border: 1px solid rgba(242, 137, 47,.22) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .22) !important;
   color: var(--rq-text-primary) !important;
   -webkit-text-fill-color: var(--rq-text-primary) !important;
   box-shadow: none !important;

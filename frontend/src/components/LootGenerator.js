@@ -529,7 +529,7 @@ function LootGenerator({ partyLevel = 5, enemiesDefeated = [] }) {
               edge instead of a gold gradient wash and gold border. */}
           <div style={{
             backgroundColor: 'var(--rq-citrus-panel, #0a2342)',
-            backgroundImage: 'var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%))',
+            backgroundImage: 'var(--rq-citrus-gradient, linear-gradient(90deg, var(--guild-c1) 0%, var(--guild-c1) 28%, var(--guild-h1) 50%, #E03A2F 72%, #E03A2F 100%))',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'left top',
             backgroundSize: '100% 3px',

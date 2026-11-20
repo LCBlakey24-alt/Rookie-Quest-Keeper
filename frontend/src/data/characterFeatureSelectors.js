@@ -54,17 +54,45 @@ function subclassFeatureTypeOverride(className, subclassName, featureName) {
   return null;
 }
 
-export function getCharacterClassFeatures(character, editionOverride = null) {
-  if (!character) return [];
+function primaryClassName(character = {}) {
+  return character.character_class || character.class_name || character.className || character.class;
+}
 
-  const className = character.character_class || character.class_name || character.className || character.class;
-  const level = Number(character.level || 1);
-  const edition = editionOverride || (String(character.rules_edition || character.edition || character.ruleset_id || '').includes('2024') ? '2024' : '2014');
+/**
+ * Each class the character has, with its own class level and subclass.
+ * Multiclass saves use class_levels (or multiclass_levels) or a classes
+ * array; a single-class save has neither and uses the total level.
+ */
+function classEntries(character = {}) {
+  const primary = primaryClassName(character);
+  const primaryKey = normalizeKey(primary);
+  const subclassFor = (name) => {
+    const entry = (character.classes || []).find((item) => normalizeKey(item?.name || item?.class_name || item?.character_class || item?.class) === normalizeKey(name));
+    if (entry?.subclass) return entry.subclass;
+    return normalizeKey(name) === primaryKey ? (character.subclass || character.subclass_name || character.subclassName || '') : '';
+  };
+  const positive = (value) => Math.max(0, Math.floor(Number(value) || 0));
+
+  const map = character.class_levels || character.multiclass_levels || {};
+  let entries = Object.entries(map).filter(([, level]) => positive(level) > 0).map(([name, level]) => [name, positive(level)]);
+  if (!entries.length) {
+    entries = (character.classes || [])
+      .map((entry) => [entry?.name || entry?.class_name || entry?.character_class || entry?.class, positive(entry?.level || entry?.class_level)])
+      .filter(([name, level]) => name && level > 0);
+  }
+  if (!entries.length) return primary ? [{ name: primary, level: Math.max(1, positive(character.level) || 1), subclass: subclassFor(primary) }] : [];
+  // The primary class first, so a single-class list keeps its old order.
+  entries.sort(([a], [b]) => Number(normalizeKey(b) === primaryKey) - Number(normalizeKey(a) === primaryKey));
+  return entries.map(([name, level]) => ({ name, level, subclass: subclassFor(name) }));
+}
+
+/** One class's features at its own class level (and its subclass's). */
+function featuresForClass(className, level, subclassName, edition) {
   const classData = CLASS_FEATURES[String(className || '').toLowerCase()];
   const baseFeatures = getClassFeatures(className, level, edition)
     .map(feature => ({ ...feature, source: feature.source || 'class', type: inferFeatureType(feature) }));
 
-  const subclassData = findSubclassData(classData, className, character.subclass || character.subclass_name || character.subclassName);
+  const subclassData = findSubclassData(classData, className, subclassName);
   const subclassFeatures = (subclassData?.features || [])
     .filter(feature => Number(feature.level || 0) <= level)
     .map(feature => ({
@@ -87,12 +115,30 @@ export function getCharacterClassFeatures(character, editionOverride = null) {
       source: 'class',
     });
   }
+  return [...visibleBaseFeatures, ...subclassFeatures];
+}
+
+/**
+ * Class and subclass features, each class at its own class level. A
+ * Fighter 1 / Wizard 10 has Fighter level-1 features and Wizard level-10
+ * features -- not Action Surge or Extra Attack from treating the total
+ * level 11 as Fighter 11 (review finding 9). On a multiclass character
+ * each feature carries `sourceClass`.
+ */
+export function getCharacterClassFeatures(character, editionOverride = null) {
+  if (!character) return [];
+
+  const edition = editionOverride || (String(character.rules_edition || character.edition || character.ruleset_id || '').includes('2024') ? '2024' : '2014');
+  const classes = classEntries(character);
+  const multiclass = classes.length > 1;
 
   const seen = new Set();
-  return [...visibleBaseFeatures, ...subclassFeatures]
+  return classes
+    .flatMap(({ name, level, subclass }) => featuresForClass(name, level, subclass, edition)
+      .map((feature) => (multiclass ? { ...feature, sourceClass: feature.sourceClass || name } : feature)))
     .filter(feature => feature?.name && !feature.isChoice)
     .filter(feature => {
-      const key = `${normalizeKey(feature.name)}-${feature.level || ''}-${feature.source || ''}`;
+      const key = `${normalizeKey(feature.sourceClass || '')}-${normalizeKey(feature.name)}-${feature.level || ''}-${feature.source || ''}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;

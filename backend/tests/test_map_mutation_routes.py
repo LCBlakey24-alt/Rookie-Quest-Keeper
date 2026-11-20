@@ -419,8 +419,8 @@ def test_one_sided_path_endpoint_edit_validates_against_existing_other_endpoint(
                 }
             return {'paths': [{'id': 'path-1', 'from_pin_id': 'c', 'to_pin_id': 'b'}]}
 
-        async def update_one(self, query, update):
-            writes.append((query, update))
+        async def update_one(self, query, update, **options):
+            writes.append((query, update, options))
             return Result(1)
 
     monkeypatch.setattr(maps, 'verify_campaign_ownership', verify)
@@ -430,14 +430,16 @@ def test_one_sided_path_endpoint_edit_validates_against_existing_other_endpoint(
         'campaign-a', 'map-1', 'path-1', {'from_pin_id': 'c'}, username='gm-a'
     ))
 
+    # Two arrays in the filter would make `paths.$` ambiguous: the whole road
+    # list is written back, only if it is unchanged since it was read.
     assert writes[0][0] == {
         'id': 'map-1',
         'campaign_id': 'campaign-a',
-        'paths.id': 'path-1',
         'pins.id': {'$all': ['c', 'b']},
+        'paths': [{'id': 'path-1', 'from_pin_id': 'a', 'to_pin_id': 'b'}],
     }
-    assert writes[0][1]['$set']['paths.$.from_pin_id'] == 'c'
-    assert 'paths.$.to_pin_id' not in writes[0][1]['$set']
+    assert writes[0][1]['$set']['paths'] == [{'id': 'path-1', 'from_pin_id': 'c', 'to_pin_id': 'b'}]
+    assert not any(key.startswith('paths.$') for key in writes[0][1]['$set'])
     assert reads[0][0] == {'id': 'map-1', 'campaign_id': 'campaign-a'}
     assert result['from_pin_id'] == 'c'
     assert result['to_pin_id'] == 'b'
@@ -493,3 +495,46 @@ def test_local_linked_place_must_exist_in_campaign(monkeypatch):
             'campaign-a', 'local-1', {'linked_place_id': 'missing'}, username='gm-a'
         ))
     assert exc.value.status_code == 422
+
+
+def test_world_pin_can_link_a_town_map_only_from_the_same_campaign(monkeypatch):
+    queries = []
+
+    class LocalMaps:
+        async def find_one(self, query, projection=None):
+            queries.append(query)
+            return {'id': 'balderin-map'} if query['id'] == 'balderin-map' else None
+
+    monkeypatch.setattr(maps, 'db', SimpleNamespace(local_maps=LocalMaps()))
+
+    asyncio.run(maps._validate_pin_links('campaign-a', linked_local_map_id=' balderin-map '))
+    assert queries == [{'id': 'balderin-map', 'campaign_id': 'campaign-a'}]
+
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(maps._validate_pin_links('campaign-a', linked_local_map_id='map-from-b'))
+    assert exc.value.status_code == 422
+
+
+def test_new_world_pin_keeps_its_town_map_link(monkeypatch):
+    pushed = []
+
+    async def verify(campaign_id, username):
+        return None
+
+    class LocalMaps:
+        async def find_one(self, query, projection=None):
+            return {'id': query['id']}
+
+    class WorldMaps:
+        async def update_one(self, query, update):
+            pushed.append(update['$push']['pins'])
+            return SimpleNamespace(matched_count=1)
+
+    monkeypatch.setattr(maps, 'verify_campaign_ownership', verify)
+    monkeypatch.setattr(maps, 'db', SimpleNamespace(local_maps=LocalMaps(), world_maps=WorldMaps()))
+
+    pin = asyncio.run(maps.add_world_map_pin(
+        'campaign-a', 'map-1', {'name': 'Balderin', 'linked_local_map_id': 'balderin-map'}, username='gm-a'
+    ))
+    assert pin['linked_local_map_id'] == 'balderin-map'
+    assert pushed[0]['linked_local_map_id'] == 'balderin-map'

@@ -126,6 +126,18 @@
 
   --guild-font-display: 'Cinzel', 'Fraunces', Georgia, serif;
   --guild-font-body: 'Inter', 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Map drawing: roads, grids, the combat ruler and movement range. */
+  --rq-map-road: #f4d58d;
+  --rq-map-trail: #e8c9a0;
+  --rq-map-river: #7cc4ff;
+  --rq-map-sea: #9fd8ff;
+  --rq-map-road-casing: #120a1f;
+  --rq-map-grid-light: #ffffff;
+  --rq-map-grid-dark: #0b0614;
+  --rq-map-reach-ok: #7cf5c0;
+  --rq-map-reach-far: #ff6b8b;
+  --rq-map-reach-fill: rgba(96, 200, 255, 0.2);
 }
 
 /* The dusk sky behind every page, painted once on <html>. The large turning

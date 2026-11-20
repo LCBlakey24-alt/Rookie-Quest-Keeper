@@ -3,6 +3,9 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import LiveSessionGridMode from './LiveSessionGridMode';
 
 jest.mock('./LiveEncounterLauncher', () => () => <div>Encounter launcher</div>);
+// The Run screen's quest panel loads quests over the network; this suite is
+// about choosing tools, so it is stubbed like the encounter launcher.
+jest.mock('./LiveActiveQuests', () => () => null);
 
 describe('Live Play wax-seal navigation', () => {
   beforeEach(() => localStorage.clear());

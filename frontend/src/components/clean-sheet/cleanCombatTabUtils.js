@@ -3,14 +3,13 @@ import { rollDiceNotation } from '@/data/diceRoller';
 import { canonicalInventorySlot, getCanonicalEquippedItem } from '@/data/characterInventoryState';
 import { getMonkClassLevel } from '@/data/monkCharacterShape';
 import { getMonkMartialArtsDie } from '@/data/monkProgression';
+import { isSaveProficient } from '@/data/saveProficiencies';
 
 export const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 export const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
 
 export function hasSaveProficiency(character, ability) {
-  const saves = character?.saving_throw_proficiencies || [];
-  const short = ability.slice(0, 3).toLowerCase();
-  return saves.some(save => String(save).toLowerCase() === ability || String(save).toLowerCase() === short);
+  return isSaveProficient(character, ability);
 }
 
 export function rollDice(count = 1, sides = 8, modifier = 0, rng = Math.random) {
@@ -351,7 +350,9 @@ function getWeaponProfile(character, item, strengthMod, dexterityMod, bestAbilit
     ? { count: 1, sides: martialArts.sides }
     : weaponDice;
   const explicitAbility = String(item?.ability || item?.attack_ability || '').toLowerCase();
-  const abilityMod = explicitAbility.includes('dex')
+  const abilityMod = explicitAbility.includes('finesse')
+    ? Math.max(strengthMod, dexterityMod)
+    : explicitAbility.includes('dex')
     ? dexterityMod
     : explicitAbility.includes('str')
       ? strengthMod
@@ -370,6 +371,10 @@ function getWeaponProfile(character, item, strengthMod, dexterityMod, bestAbilit
   const damageText = dice.sides === 1
     ? `${dice.count}${totalDamageMod ? ` ${fmt(totalDamageMod)}` : ''}`
     : `${dice.count}d${dice.sides}${totalDamageMod ? ` ${fmt(totalDamageMod)}` : ''}`;
+  const extraDamage = (Array.isArray(item?.extra_damage) ? item.extra_damage : [])
+    .filter(row => row && /^\d+d\d+/i.test(String(row.dice || '')))
+    .map(row => ({ dice: String(row.dice).replace(/\s+/g, ''), type: String(row.type || '') }));
+  const versatile = parseDamageDice(item?.versatile_damage || item?.versatileDamage);
   const category = normaliseName(rule?.category || item?.weapon_category || item?.category || '');
   const isMelee = category.includes('melee') || /^\s*(melee|reach)\b/i.test(String(range || ''));
   const detailParts = [range, properties, martialArts ? `Martial Arts ${martialArts.die}` : null, proficient ? null : 'Not proficient'].filter(Boolean);
@@ -384,9 +389,12 @@ function getWeaponProfile(character, item, strengthMod, dexterityMod, bestAbilit
     proficient,
     isMelee,
     saveText: null,
-    damageText,
+    damageText: extraDamage.length ? `${damageText} ${extraDamage.map(row => `+ ${row.dice}${row.type ? ` ${row.type}` : ''}`).join(' ')}` : damageText,
     damageType,
-    damage: { label: `${name} Damage`, count: dice.count, sides: dice.sides, modifier: totalDamageMod, damageType }
+    damage: { label: `${name} Damage`, count: dice.count, sides: dice.sides, modifier: totalDamageMod, damageType },
+    // Homebrew extras: rolled alongside the main damage, each with its own type.
+    extraDamage,
+    versatileDamage: versatile ? { label: `${name} Damage (two hands)`, count: versatile.count, sides: versatile.sides, modifier: totalDamageMod, damageType } : null
   };
 }
 
