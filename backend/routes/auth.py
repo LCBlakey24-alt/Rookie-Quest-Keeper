@@ -8,7 +8,7 @@ from utils.account_profile import public_account_profile
 from utils.admin_identity import USERNAME_UNAVAILABLE, username_is_available
 from utils.site_settings import require_signups_enabled
 from utils.auth import (
-    get_current_user, hash_password, verify_password, create_token, session_version,
+    get_current_user, hash_password, verify_password, create_token, create_user_token, session_version,
     get_ai_consent_status,
 )
 from models import (
@@ -320,7 +320,7 @@ async def login(user_data: UserLogin):
     if not user or not verify_password(user_data.password, user['password_hash']):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     
-    token = create_token(user['username'], session_version(user))
+    token = create_user_token(user)
     return TokenResponse(token=token, username=user['username'], email=user.get('email'))
 
 
@@ -495,7 +495,7 @@ async def change_password(request: ChangePasswordRequest, current_username: str 
 
     return {
         "message": "Password changed successfully",
-        "token": create_token(current_username, new_version),
+        "token": create_user_token(user, new_version),
     }
 
 

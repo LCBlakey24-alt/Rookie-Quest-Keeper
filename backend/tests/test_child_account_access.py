@@ -60,6 +60,36 @@ class TestTheTokenCarriesTheAccountType:
         assert account_type_from_token(forged) is None
 
 
+class TestEverySignInCopiesTheAccountType:
+    """create_user_token is the one way the sign-in routes mint tokens."""
+
+    def test_a_child_record_gets_a_child_token(self):
+        from utils.auth import create_user_token
+        token = create_user_token({'username': 'kid', 'account_type': 'child', 'token_version': 3})
+        assert account_type_from_token(token) == CHILD_ACCOUNT_TYPE
+        assert claims(token)['tv'] == 3
+
+    def test_a_new_version_after_a_password_change_keeps_the_claim(self):
+        from utils.auth import create_user_token
+        token = create_user_token({'username': 'kid', 'account_type': 'child', 'token_version': 3}, 4)
+        assert account_type_from_token(token) == CHILD_ACCOUNT_TYPE
+        assert claims(token)['tv'] == 4
+
+    def test_an_adult_record_is_unchanged(self):
+        from utils.auth import create_user_token
+        token = create_user_token({'username': 'rowan'})
+        assert ACCOUNT_TYPE_CLAIM not in claims(token)
+
+    def test_no_sign_in_route_mints_from_a_bare_username(self):
+        """Guard: login, password change and impersonation go through the helper."""
+        root = Path(__file__).resolve().parents[1] / 'routes'
+        for name in ('auth.py', 'auth_login_fast.py', 'admin.py'):
+            source = (root / name).read_text()
+            assert "create_token(user['username']" not in source, name
+            assert 'create_token(current_username' not in source, name
+            assert "create_token(target['username']" not in source, name
+
+
 class TestWhatAChildMayReach:
     def test_their_own_character_sheets(self):
         assert child_may_reach('GET', '/api/characters')

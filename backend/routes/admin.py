@@ -573,8 +573,9 @@ async def admin_impersonate_user(target_username: str, username: str = Depends(g
         target = await db.users.find_one({'email': target_username}, {'_id': 0})
     if not target:
         raise HTTPException(status_code=404, detail="User not found")
-    from utils.auth import create_token, session_version
-    token = create_token(target['username'], session_version(target))
+    from utils.auth import create_user_token
+    # Impersonating a child account must carry the child claim too.
+    token = create_user_token(target)
     logger.info(f"Admin {username} impersonating {target['username']}")
     return {
         "token": token,
