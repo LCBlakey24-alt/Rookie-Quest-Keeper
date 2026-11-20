@@ -197,3 +197,18 @@ test('hides the previous account queue immediately when another tab changes auth
   act(() => { window.dispatchEvent(new StorageEvent('storage', { key: 'dm_token' })); });
   expect(screen.queryByText('1 Sync Conflict')).not.toBeInTheDocument();
 });
+
+test('after a combat change syncs, the cached character is refreshed for the same account', async () => {
+  const { removeOfflineCombatSync } = jest.requireMock('@/offline/offlineCombatSyncQueue');
+  listOfflineCombatClosures.mockResolvedValue([]);
+  listOfflineCombatSyncs.mockResolvedValue([{
+    key: 'combat-1', campaignId: 'campaign-1', characterId: 'char-9', characterName: 'Pip',
+    baseState: { current_hit_points: 10 }, state: { current_hit_points: 4 }, status: 'queued',
+  }]);
+  apiClient.post.mockResolvedValue({ data: { applied: true } });
+  render(<OfflineSyncManager />);
+  await waitFor(() => expect(removeOfflineCombatSync).toHaveBeenCalledWith('combat-1', expect.anything()));
+  const refresh = apiClient.get.mock.calls.find(([url]) => url === '/characters/char-9');
+  expect(refresh).toBeTruthy();
+  expect(refresh[1].rqkExpectedAuthScope).toBe(getOfflineCacheScope());
+});
