@@ -17,7 +17,7 @@ import {
   homebrewSpellcastingIsActive,
   normaliseHomebrewClassSpellcasting,
 } from '@/data/homebrewClassSpellcasting';
-import { offerableSubclasses } from '@/data/licensing/builtInContentPolicy';
+import { offerableBackgrounds, offerableSpecies, offerableSubclasses } from '@/data/licensing/builtInContentPolicy';
 import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import { buildInitialClassResources } from '@/data/classResourceRules';
 import { mergeToolProficiencies, normaliseBackgroundFeatureForSheet, normaliseClassFeatureForSheet, normaliseTraitForSheet } from '@/data/characterCreationPayload';
@@ -862,9 +862,9 @@ function Species({ onConfirm, draft, update, subraces, raceData, racialTraits, b
   const chooseRace = (name) => update({ race: name, subrace: '', floatingAsi: {}, raceChosenLanguages: [], backgroundChosenLanguages: [] });
   return <>
     <Title icon={Shield} title={`Choose ${speciesLabel.toLowerCase()}`} text={`Pick your character's ${speciesLabel.toLowerCase()} and review what it gives them.`} />
-    <ChoicePicker label={speciesLabel} caption={speciesLabel.toUpperCase()} options={Object.keys(RACES).map((name) => ({ id: name, label: name }))} value={draft.race} onChoose={chooseRace} onConfirm={onConfirm}>
+    <ChoicePicker label={speciesLabel} caption={speciesLabel.toUpperCase()} options={offerableSpecies(Object.keys(RACES), draft.edition, draft.race).map((name) => ({ id: name, label: name }))} value={draft.race} onChoose={chooseRace} onConfirm={onConfirm}>
       <div className="full-creator-option-grid" role="group" aria-label={`${speciesLabel} options`}>
-        {Object.keys(RACES).map((name) => {
+        {offerableSpecies(Object.keys(RACES), draft.edition, draft.race).map((name) => {
           const option = RACES[name] || {};
           const summary = option.description || `${option.size || 'Medium'} · ${option.speed || 30} ft speed`;
           return (
@@ -966,7 +966,7 @@ function Background({ draft, update, featRequired, originFeat, backgroundFeature
   return <>
     <Title icon={BookOpen} title="Choose background" text="Pick where your character came from. Origin feat lives here for 2024 characters." />
     <div className="full-creator-option-grid" role="group" aria-label="Background options">
-      {Object.keys(BACKGROUNDS).map((name) => {
+      {offerableBackgrounds(Object.keys(BACKGROUNDS), draft.edition, draft.background).map((name) => {
         const option = BACKGROUNDS[name] || {};
         const skills = arr(option.skillProficiencies).slice(0, 2).join(', ');
         const summary = option.description || (skills ? `Skills: ${skills}` : 'Review this background\'s skills, equipment, and feature.');

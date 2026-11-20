@@ -80,3 +80,50 @@ export function offerableSubclasses(options = [], current = '') {
     return !NON_SRD_SUBCLASS_KEYS.has(key) || (currentKey && key === currentKey);
   });
 }
+
+/*
+ * Species and backgrounds, per edition. The built-in lists hold the Player's
+ * Handbook options; only those licensed by the SRD for the character's edition
+ * are offered. Original starter origins (data/starterOrigins5e.js), homebrew
+ * and the character's current choice are never hidden.
+ */
+const BUILTIN_SPECIES = ['Human', 'Elf', 'Dwarf', 'Halfling', 'Gnome', 'Half-Orc', 'Half-Elf', 'Tiefling', 'Aasimar', 'Goliath', 'Orc'];
+const SRD_SPECIES = {
+  2014: ['Dragonborn', 'Dwarf', 'Elf', 'Gnome', 'Half-Elf', 'Half-Orc', 'Halfling', 'Human', 'Tiefling'],
+  2024: ['Dragonborn', 'Dwarf', 'Elf', 'Gnome', 'Goliath', 'Halfling', 'Human', 'Orc', 'Tiefling'],
+};
+const BUILTIN_BACKGROUNDS = [
+  'Acolyte', 'Criminal', 'Entertainer', 'Folk Hero', 'Guild Artisan', 'Hermit', 'Noble', 'Outlander', 'Sage',
+  'Sailor', 'Soldier', 'Urchin',
+  // The development-only "test" backgrounds (data/testBackgrounds5e.js).
+  'Anthropologist', 'Archaeologist', 'Athlete', 'Courtier', 'Faction Agent', 'Far Traveler', 'Gambler', 'Gladiator',
+  'Investigator', 'Mercenary', 'City Watch', 'Urban Bounty Hunter', 'Smuggler', 'Pirate', 'Haunted One',
+  'Clan Crafter', 'Inheritor', 'Knight of the Order', 'Spy',
+];
+const SRD_BACKGROUNDS = { 2014: ['Acolyte'], 2024: ['Acolyte', 'Criminal', 'Sage', 'Soldier'] };
+
+const editionKey = (edition) => (String(edition || '').includes('2024') ? 2024 : 2014);
+const keySet = (list) => new Set(list.map(normalise));
+const BUILTIN_SPECIES_KEYS = keySet(BUILTIN_SPECIES);
+const BUILTIN_BACKGROUND_KEYS = keySet(BUILTIN_BACKGROUNDS);
+const SRD_SPECIES_KEYS = { 2014: keySet(SRD_SPECIES[2014]), 2024: keySet(SRD_SPECIES[2024]) };
+const SRD_BACKGROUND_KEYS = { 2014: keySet(SRD_BACKGROUNDS[2014]), 2024: keySet(SRD_BACKGROUNDS[2024]) };
+
+function offerable(names, builtInKeys, srdKeys, current) {
+  const currentKey = normalise(optionName(current));
+  return (Array.isArray(names) ? names : []).filter((name) => {
+    const key = normalise(optionName(name));
+    if (currentKey && key === currentKey) return true;
+    return !builtInKeys.has(key) || srdKeys.has(key);
+  });
+}
+
+/** Species a picker may offer for this edition (see the note above). */
+export function offerableSpecies(names = [], edition = '2014', current = '') {
+  return offerable(names, BUILTIN_SPECIES_KEYS, SRD_SPECIES_KEYS[editionKey(edition)], current);
+}
+
+/** Backgrounds a picker may offer for this edition (see the note above). */
+export function offerableBackgrounds(names = [], edition = '2014', current = '') {
+  return offerable(names, BUILTIN_BACKGROUND_KEYS, SRD_BACKGROUND_KEYS[editionKey(edition)], current);
+}
