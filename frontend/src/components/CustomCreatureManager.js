@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import UploadRightsConfirmation from '@/components/licensing/UploadRightsConfirmation';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ const CR_OPTIONS = [
 
 function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, embedded = false }) {
   const [creatures, setCreatures] = useState([]);
+  const [rightsConfirmed, setRightsConfirmed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingCreature, setEditingCreature] = useState(null);
@@ -286,6 +288,7 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
             type="file"
             accept=".csv"
             onChange={handleImportCSV}
+            disabled={!rightsConfirmed}
             style={{ display: 'none' }}
             data-testid="import-csv-input"
           />
@@ -293,8 +296,9 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
             as="span"
             className="btn-outline"
             data-testid="import-csv-btn"
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
-            onClick={(e) => e.currentTarget.parentElement.querySelector('input').click()}
+            aria-disabled={!rightsConfirmed}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: rightsConfirmed ? 'pointer' : 'not-allowed', opacity: rightsConfirmed ? 1 : 0.55 }}
+            onClick={(e) => { if (rightsConfirmed) e.currentTarget.parentElement.querySelector('input').click(); }}
           >
             <Upload size={18} /> Import CSV
           </Button>
@@ -310,6 +314,7 @@ function CustomCreatureManager({ campaignId, onSelectCreature, isOpen, onClose, 
           </Button>
         )}
       </div>
+      <UploadRightsConfirmation checked={rightsConfirmed} onChange={setRightsConfirmed} />
 
       {/* CSV Format Help */}
       <div style={{
