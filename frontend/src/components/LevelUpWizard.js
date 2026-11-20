@@ -66,6 +66,7 @@ import {
 } from '@/data/levelUpProgressionRules';
 import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import { CLASSES, MULTICLASS_REQUIREMENTS, getMulticlassOptions } from '@/data/characterRules5e';
+import { offerableSubclasses } from '@/data/licensing/builtInContentPolicy';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const theme = {
@@ -131,7 +132,14 @@ function localSubclassOptions(className) {
   }));
 }
 
+// Paid-book subclasses are not offered as built-ins (SRD only): see
+// data/licensing/builtInContentPolicy.js. A subclass is only chosen here when
+// the character has none yet, so there is no current one to keep.
 function normaliseSubclassOptions(preflight, className) {
+  return offerableSubclasses(allSubclassOptions(preflight, className));
+}
+
+function allSubclassOptions(preflight, className) {
   const remote = preflight?.subclass_options || [];
   if (remote.length) {
     // The server sends names; fill in a one-line summary from local data so

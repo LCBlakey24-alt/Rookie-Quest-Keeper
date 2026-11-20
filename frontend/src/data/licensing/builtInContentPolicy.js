@@ -1,0 +1,82 @@
+/**
+ * Which built-in options Rookie Quest Keeper may offer.
+ *
+ * Built-in rules content must come from the open System Reference Documents
+ * (SRD 5.1 and SRD 5.2.1, CC BY 4.0). The app's data still names many
+ * subclasses from paid books (the Player's Handbook, Xanathar's, Tasha's
+ * and others) because earlier versions offered them. Those names are listed
+ * here so pickers can stop offering them, while:
+ *   - a character that already has one keeps it (the current value is
+ *     always kept in its picker, and saved data is never rewritten), and
+ *   - homebrew and campaign content, which is the table's own, is untouched:
+ *     only these specific built-in names are hidden, so a GM's homebrew
+ *     subclass still appears.
+ *
+ * Every name here was checked against the official SRD PDFs; see
+ * docs/licensing/CONTENT_INVENTORY.md.
+ */
+
+const normalise = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+
+/** Subclasses named in the built-in data that are in neither SRD. */
+export const NON_SRD_BUILTIN_SUBCLASSES = Object.freeze([
+  // Barbarian
+  'Path of the Totem Warrior', 'Path of the Ancestral Guardian', 'Path of the Storm Herald', 'Path of the Zealot',
+  'Path of the Beast', 'Path of Wild Magic', 'Path of the Wild Heart', 'Path of the World Tree',
+  // Bard
+  'College of Valor', 'College of Glamour', 'College of Swords', 'College of Whispers', 'College of Creation',
+  'College of Eloquence', 'College of Dance',
+  // Cleric
+  'Knowledge Domain', 'Light Domain', 'Nature Domain', 'Tempest Domain', 'Trickery Domain', 'War Domain',
+  'Death Domain', 'Forge Domain', 'Grave Domain', 'Order Domain', 'Peace Domain', 'Twilight Domain',
+  // Druid
+  'Circle of the Moon', 'Circle of Dreams', 'Circle of the Shepherd', 'Circle of Spores', 'Circle of Stars',
+  'Circle of the Stars', 'Circle of Wildfire', 'Circle of the Sea',
+  // Fighter
+  'Battle Master', 'Eldritch Knight', 'Arcane Archer', 'Cavalier', 'Samurai', 'Echo Knight', 'Psi Warrior', 'Rune Knight',
+  // Monk
+  'Way of Shadow', 'Way of the Four Elements', 'Way of the Drunken Master', 'Way of the Kensei', 'Way of the Sun Soul',
+  'Way of Mercy', 'Way of the Astral Self', 'Warrior of Shadow', 'Warrior of the Elements', 'Warrior of Mercy',
+  // Paladin
+  'Oath of the Ancients', 'Oath of Vengeance', 'Oath of Conquest', 'Oath of Redemption', 'Oath of Glory',
+  'Oath of the Watchers', 'Oathbreaker',
+  // Ranger
+  'Beast Master', 'Gloom Stalker', 'Horizon Walker', 'Monster Slayer', 'Fey Wanderer', 'Swarmkeeper', 'Drakewarden',
+  // Rogue
+  'Assassin', 'Arcane Trickster', 'Inquisitive', 'Mastermind', 'Scout', 'Swashbuckler', 'Phantom', 'Soulknife',
+  // Sorcerer
+  'Wild Magic', 'Divine Soul', 'Shadow Magic', 'Storm Sorcery', 'Aberrant Mind', 'Clockwork Soul',
+  'Aberrant Sorcery', 'Clockwork Sorcery', 'Wild Magic Sorcery',
+  // Warlock
+  'The Archfey', 'The Great Old One', 'The Celestial', 'The Hexblade', 'The Fathomless', 'The Genie', 'The Undead',
+  'Archfey Patron', 'Great Old One Patron', 'Celestial Patron', 'Hexblade Patron', 'Fathomless Patron',
+  'Genie Patron', 'Undead Patron',
+  // Wizard
+  'School of Abjuration', 'School of Conjuration', 'School of Divination', 'School of Enchantment',
+  'School of Illusion', 'School of Necromancy', 'School of Transmutation', 'Bladesinging', 'War Magic',
+  'Chronurgy Magic', 'Graviturgy Magic', 'Order of Scribes', 'Abjurer', 'Diviner', 'Illusionist',
+]);
+
+const NON_SRD_SUBCLASS_KEYS = new Set(NON_SRD_BUILTIN_SUBCLASSES.map(normalise));
+
+/** Is this a built-in subclass from a paid book (not in either SRD)? */
+export function isNonSrdBuiltInSubclass(name) {
+  return NON_SRD_SUBCLASS_KEYS.has(normalise(name));
+}
+
+const optionName = (option) => (option && typeof option === 'object'
+  ? (option.label || option.name || option.value || '')
+  : option);
+
+/**
+ * The subclass options a picker may offer: everything except the paid-book
+ * built-ins, plus whatever the character already has (so editing a saved
+ * character never loses its subclass). Works on plain names or option objects.
+ */
+export function offerableSubclasses(options = [], current = '') {
+  const currentKey = normalise(optionName(current));
+  return (Array.isArray(options) ? options : []).filter((option) => {
+    const key = normalise(optionName(option));
+    return !NON_SRD_SUBCLASS_KEYS.has(key) || (currentKey && key === currentKey);
+  });
+}

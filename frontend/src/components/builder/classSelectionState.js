@@ -18,6 +18,7 @@ export function getClassSelectionState({
   const builderClassOptions = getCharacterBuilderClassOptions(className, {
     edition,
     level,
+    currentSubclass: selectedSubclass,
     ...(classes ? { classes } : {}),
   });
 

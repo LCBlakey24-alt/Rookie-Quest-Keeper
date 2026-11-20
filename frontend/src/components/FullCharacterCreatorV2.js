@@ -17,6 +17,7 @@ import {
   homebrewSpellcastingIsActive,
   normaliseHomebrewClassSpellcasting,
 } from '@/data/homebrewClassSpellcasting';
+import { offerableSubclasses } from '@/data/licensing/builtInContentPolicy';
 import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import { buildInitialClassResources } from '@/data/classResourceRules';
 import { mergeToolProficiencies, normaliseBackgroundFeatureForSheet, normaliseClassFeatureForSheet, normaliseTraitForSheet } from '@/data/characterCreationPayload';
@@ -937,7 +938,7 @@ function ClassStep({ onConfirm, draft, update, classData, classFeatures, classCh
     {CLASSES[draft.characterClass]?.description && <p className="full-creator-choice-summary" data-testid="class-summary">{CLASSES[draft.characterClass].description}</p>}
     {classChoicesRequired && (
       <div className="full-creator-form-grid">
-        <label><span>Level 1 subclass</span><select value={draft.subclass} onChange={(event) => update({ subclass: event.target.value })}><option value="">Choose…</option>{arr(classData.subclasses).map((option) => <option key={displayName(option)} value={displayName(option)}>{displayName(option)}</option>)}</select></label>
+        <label><span>Level 1 subclass</span><select value={draft.subclass} onChange={(event) => update({ subclass: event.target.value })}><option value="">Choose…</option>{offerableSubclasses(arr(classData.subclasses), draft.subclass).map((option) => <option key={displayName(option)} value={displayName(option)}>{displayName(option)}</option>)}</select></label>
       </div>
     )}
     {!classChoicesRequired && <div className="full-creator-auto-box"><strong>Subclass timing</strong><span>{draft.edition === '2024' ? 'This class chooses its subclass at level 3 in the 2024 flow.' : `This class chooses its subclass at level ${subclassLevel}. It will be handled through level-up later.`}</span></div>}

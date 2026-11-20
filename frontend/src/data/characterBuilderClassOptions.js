@@ -1,4 +1,5 @@
 import { CLASSES } from './characterRules5e';
+import { offerableSubclasses } from './licensing/builtInContentPolicy';
 import { getClassBuilderUiOptions } from './classBuilderHelperBridge';
 
 function normaliseKey(value = '') {
@@ -35,14 +36,16 @@ function getStaticSubclassOptions(classData = null) {
     .filter(option => option.value && option.label);
 }
 
-export function getCharacterBuilderClassOptions(className = '', { edition = '2014', level = 1, classes = CLASSES } = {}) {
+export function getCharacterBuilderClassOptions(className = '', { edition = '2014', level = 1, classes = CLASSES, currentSubclass = '' } = {}) {
   const classData = classes?.[className] || null;
   const packageOptions = getClassBuilderUiOptions(className, { edition, level });
   const packageSubclasses = (packageOptions.subclassOptions || [])
     .map(option => normaliseSubclassOption(option, 'package'))
     .filter(option => option.value && option.label);
   const staticSubclasses = getStaticSubclassOptions(classData);
-  const subclassOptions = packageSubclasses.length ? packageSubclasses : staticSubclasses;
+  // Paid-book subclasses are not offered as built-ins (SRD only); a character's
+  // current subclass is always kept. See data/licensing/builtInContentPolicy.js.
+  const subclassOptions = offerableSubclasses(packageSubclasses.length ? packageSubclasses : staticSubclasses, currentSubclass);
 
   return {
     className,

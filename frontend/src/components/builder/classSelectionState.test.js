@@ -10,7 +10,8 @@ describe('class selection state', () => {
 
     expect(state.hasPackage).toBe(true);
     expect(state.usesPackageSubclassOptions).toBe(true);
-    expect(state.availableSubclasses).toEqual(expect.arrayContaining(['Draconic Bloodline', 'Wild Magic', 'Aberrant Mind', 'Clockwork Soul']));
+    // The SRD subclass, plus the character's existing (paid-book) Wild Magic.
+    expect(state.availableSubclasses).toEqual(['Draconic Bloodline', 'Wild Magic']);
     expect(state.selectedSubclassOption).toEqual(expect.objectContaining({ key: 'wild_magic' }));
     expect(state.selectedSubclassIsAvailable).toBe(true);
     expect(state.shouldClearSelectedSubclass).toBe(false);
