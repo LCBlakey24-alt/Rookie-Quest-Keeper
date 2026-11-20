@@ -3,20 +3,22 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import ClassSubclassPicker from './ClassSubclassPicker';
 
 describe('ClassSubclassPicker', () => {
-  test('renders package-backed subclass options', () => {
+  test('renders package-backed subclass options: the SRD subclass, not paid-book ones', () => {
     render(<ClassSubclassPicker className="Sorcerer" edition="2024" label="Sorcerous Origin" />);
 
     expect(screen.getByTestId('class-subclass-picker')).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Wild Magic' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Clockwork Soul' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Draconic Bloodline' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Wild Magic' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Clockwork Soul' })).not.toBeInTheDocument();
     expect(screen.queryByRole('option', { name: 'Divine Soul' })).not.toBeInTheDocument();
   });
 
-  test('keeps edition-specific Sorcerer options available in the correct rules family', () => {
-    render(<ClassSubclassPicker className="Sorcerer" edition="2014" label="Sorcerous Origin" />);
+  test('keeps a character\'s existing edition-specific Sorcerer subclass available', () => {
+    render(<ClassSubclassPicker className="Sorcerer" edition="2014" label="Sorcerous Origin" selectedSubclass="Divine Soul" />);
 
     expect(screen.getByRole('option', { name: 'Divine Soul' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Clockwork Soul' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Draconic Bloodline' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Clockwork Soul' })).not.toBeInTheDocument();
   });
 
   test('calls the subclass change handler', () => {

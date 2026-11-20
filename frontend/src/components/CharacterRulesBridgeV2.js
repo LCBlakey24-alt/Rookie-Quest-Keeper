@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { offerableSubclasses } from '@/data/licensing/builtInContentPolicy';
 import { useLocation } from 'react-router-dom';
 
 import FullCharacterCreatorV2 from '@/components/FullCharacterCreatorV2';
@@ -471,7 +472,10 @@ export default function CharacterRulesBridgeV2(props) {
   const currentClassName = resolveDraftClassName(builderDraft, CLASSES);
   const currentEdition = resolveRulesEdition(builderDraft);
   const currentClassData = CLASSES[currentClassName] || {};
-  const subclasses = arr(currentClassData.subclasses).map(displayName).filter(Boolean);
+  // Offered subclasses: SRD and homebrew only, plus any the draft already has
+  // (data/licensing/builtInContentPolicy.js). Saved names are still resolved
+  // against the full list elsewhere, so nothing a character has is dropped.
+  const subclasses = offerableSubclasses(arr(currentClassData.subclasses).map(displayName).filter(Boolean), selectedSubclass);
   const subclassSignature = subclasses.join('|');
   const subclassLevel = subclassUnlockLevel(currentClassName, currentEdition, currentClassData);
   const needsSubclass = targetLevel >= subclassLevel && subclasses.length > 0;

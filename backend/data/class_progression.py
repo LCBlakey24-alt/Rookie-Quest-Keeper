@@ -10,20 +10,25 @@ editions.
 """
 from typing import List, Dict, Any
 
-# Subclasses per class (SRD-friendly only). Editions matter — 2024 dropped a few.
+# Built-in subclass options offered at level-up. Built-in rules content is
+# limited to the open SRDs (SRD 5.1 / SRD 5.2.1, CC BY 4.0), which license one
+# subclass per class; paid-book subclasses are no longer offered. A table's own
+# subclasses come from homebrew (user_subclasses). Characters that already have
+# another subclass keep it: this list is only used to offer choices.
+# See docs/licensing/CONTENT_INVENTORY.md.
 _CLASS_SUBCLASSES: Dict[str, List[str]] = {
-    'Barbarian': ['Path of the Berserker', 'Path of the Wild Heart', 'Path of the World Tree', 'Path of the Zealot'],
-    'Bard':      ['College of Lore', 'College of Valor', 'College of Glamour', 'College of Swords', 'College of Whispers'],
-    'Cleric':    ['Life Domain', 'Light Domain', 'Trickery Domain', 'War Domain', 'Knowledge Domain', 'Nature Domain', 'Tempest Domain'],
-    'Druid':     ['Circle of the Land', 'Circle of the Moon', 'Circle of the Sea', 'Circle of the Stars'],
-    'Fighter':   ['Champion', 'Battle Master', 'Eldritch Knight', 'Psi Warrior'],
-    'Monk':      ['Warrior of the Open Hand', 'Warrior of Shadow', 'Warrior of the Elements', 'Warrior of Mercy'],
-    'Paladin':   ['Oath of Devotion', 'Oath of the Ancients', 'Oath of Vengeance', 'Oath of Glory'],
-    'Ranger':    ['Hunter', 'Beast Master', 'Gloom Stalker', 'Fey Wanderer'],
-    'Rogue':     ['Thief', 'Assassin', 'Arcane Trickster', 'Soulknife', 'Swashbuckler'],
-    'Sorcerer':  ['Draconic Sorcery', 'Wild Magic', 'Aberrant Sorcery', 'Clockwork Sorcery'],
-    'Warlock':   ['Fiend Patron', 'Archfey Patron', 'Great Old One Patron', 'Celestial Patron'],
-    'Wizard':    ['Abjurer', 'Diviner', 'Evoker', 'Illusionist'],
+    'Barbarian': ['Path of the Berserker'],
+    'Bard':      ['College of Lore'],
+    'Cleric':    ['Life Domain'],
+    'Druid':     ['Circle of the Land'],
+    'Fighter':   ['Champion'],
+    'Monk':      ['Warrior of the Open Hand'],
+    'Paladin':   ['Oath of Devotion'],
+    'Ranger':    ['Hunter'],
+    'Rogue':     ['Thief'],
+    'Sorcerer':  ['Draconic Sorcery'],
+    'Warlock':   ['Fiend Patron'],
+    'Wizard':    ['Evoker'],
 }
 
 # 2014 spells known at each level (for "spells known" casters: Bard / Ranger / Sorcerer / Warlock).

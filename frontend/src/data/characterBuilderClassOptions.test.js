@@ -11,7 +11,8 @@ describe('character builder class options resolver', () => {
     expect(options.hasClassData).toBe(true);
     expect(options.hasPackage).toBe(true);
     expect(options.usesPackageSubclassOptions).toBe(true);
-    expect(options.subclassOptions.map(option => option.key)).toEqual(expect.arrayContaining(['draconic', 'wild_magic', 'aberrant_mind', 'clockwork_soul']));
+    // Built-in options are SRD only (data/licensing/builtInContentPolicy.js).
+    expect(options.subclassOptions.map(option => option.key)).toEqual(['draconic']);
     expect(options.subclassOptions.map(option => option.key)).not.toContain('divine_soul');
   });
 
