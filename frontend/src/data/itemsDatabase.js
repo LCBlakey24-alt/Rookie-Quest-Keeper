@@ -78,14 +78,6 @@ export const ITEMS_DATABASE = [
     description: "When you drink this potion, you gain a climbing speed equal to your walking speed for 1 hour."
   },
   {
-    name: "Potion of Fire Breath",
-    type: "Potion",
-    rarity: "Uncommon",
-    is_magic: true,
-    requires_attunement: false,
-    description: "After drinking this potion, you can use a bonus action to exhale fire at a target within 30 feet of you. The target must make a DC 13 Dexterity saving throw, taking 4d6 fire damage on a failed save, or half as much on a successful one."
-  },
-  {
     name: "Potion of Flying",
     type: "Potion",
     rarity: "Very Rare",

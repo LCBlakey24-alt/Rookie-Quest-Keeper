@@ -17,7 +17,7 @@ import {
   homebrewSpellcastingIsActive,
   normaliseHomebrewClassSpellcasting,
 } from '@/data/homebrewClassSpellcasting';
-import { offerableBackgrounds, offerableSpecies, offerableSubclasses } from '@/data/licensing/builtInContentPolicy';
+import { offerableBackgrounds, offerableSpecies, offerableSubclasses, offerableSpellLists } from '@/data/licensing/builtInContentPolicy';
 import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import { buildInitialClassResources } from '@/data/classResourceRules';
 import { mergeToolProficiencies, normaliseBackgroundFeatureForSheet, normaliseClassFeatureForSheet, normaliseTraitForSheet } from '@/data/characterCreationPayload';
@@ -294,7 +294,8 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
     ? equipmentState.currency
     : { copper: 0, silver: 0, electrum: 0, gold: startingGold, platinum: 0 };
   const spellReq = spellRequirements(draft.characterClass, classData, finalScores);
-  const spellLists = getSpellsForClass(draft.characterClass) || {};
+  // Only SRD spells are offered; anything already chosen stays visible.
+  const spellLists = offerableSpellLists(getSpellsForClass(draft.characterClass) || {}, [...draft.selectedCantrips, ...draft.selectedSpells]);
   const cantripPool = arr(spellLists.cantrips || spellLists[0]);
   const levelOnePool = arr(spellLists[1]);
   const visibleCantrips = cantripPool.filter((spell) => searchMatch(spell, spellSearch));

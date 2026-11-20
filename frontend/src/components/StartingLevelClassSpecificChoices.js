@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { normaliseClassSpecificSelection } from '@/data/classSpecificChoiceEngine';
+import { offerableFightingStyles } from '@/data/licensing/builtInContentPolicy';
 import './StartingLevelChoices.css';
 
 const arr = (value) => Array.isArray(value) ? value.filter(Boolean) : [];
@@ -131,7 +132,7 @@ export default function StartingLevelClassSpecificChoices({ plan, selection, onC
       <MultiSelectField
         label="Fighting Style"
         value={current.fightingStyles}
-        options={plan.options?.fightingStyles}
+        options={offerableFightingStyles(plan.options?.fightingStyles, current.fightingStyles)}
         target={plan.fightingStyleTarget}
         onChange={(fightingStyles) => update({ fightingStyles })}
       />

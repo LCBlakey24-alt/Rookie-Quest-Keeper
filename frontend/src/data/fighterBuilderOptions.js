@@ -1,5 +1,6 @@
 import { getFighterChoicesForLevel, getFighterProgressionSummary } from './fighterProgression';
 import { getFighterFightingStyles, isValidFighterFightingStyle } from './fighterFightingStyles';
+import { offerableFightingStyles } from './licensing/builtInContentPolicy';
 import { getFighterWeaponMasteryOptions, isValidFighterWeaponMastery } from './fighterWeaponMasteryOptions';
 
 export const FIGHTER_SUBCLASS_OPTIONS = [
@@ -83,14 +84,15 @@ export function isValidFighterSubclass(value = '', edition = '2014') {
   return getFighterSubclassOptions(edition).some(option => normaliseSelection(option.value) === selected || option.key === selected);
 }
 
-export function getFighterBuilderOptions(level = 1, edition = '2014') {
+export function getFighterBuilderOptions(level = 1, edition = '2014', currentStyle = '') {
   const summary = getFighterProgressionSummary(level, edition);
   const choices = getFighterChoicesForLevel(level, edition);
   const choiceSummaries = choices.map(buildChoiceSummary).filter(Boolean);
   const needsFightingStyle = choices.some(choice => choice.choiceType === 'fighting_style');
   const needsSubclass = choices.some(choice => choice.choiceType === 'subclass');
   const needsWeaponMastery = choices.find(choice => choice.choiceType === 'weapon_mastery') || null;
-  const fightingStyles = getFighterFightingStyles(edition);
+  // Only SRD styles are offered; a character's current style is kept.
+  const fightingStyles = offerableFightingStyles(getFighterFightingStyles(edition), currentStyle);
   const subclassOptions = getFighterSubclassOptions(summary.edition);
   const weaponMasteryOptions = getFighterWeaponMasteryOptions(summary.edition);
 

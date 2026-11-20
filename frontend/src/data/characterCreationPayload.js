@@ -1,5 +1,6 @@
 import { CLASSES, RACES, BACKGROUNDS, HIT_DICE, getProficiencyBonus } from './characterRules5e';
 import { SPELLCASTING_CLASSES, getSpellSlotsForCaster, getSpellsForClass } from './spellDatabase';
+import { offerableSpellLists } from './licensing/builtInContentPolicy';
 
 const ABILITIES = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
 const choiceText = value => String(value || '').toLowerCase().includes('choice') || String(value || '').toLowerCase().includes('additional');
@@ -182,7 +183,7 @@ function spellPoolForPreparedCaster(className = '', level = 1, template = {}, ed
   if (templatePool.length) return templatePool;
   if (!maxSpellLevel) return [];
 
-  const spellsByLevel = getSpellsForClass(className);
+  const spellsByLevel = offerableSpellLists(getSpellsForClass(className));
   const spells = [];
   for (let spellLevel = 1; spellLevel <= maxSpellLevel; spellLevel += 1) {
     spells.push(...(spellsByLevel[spellLevel] || []));

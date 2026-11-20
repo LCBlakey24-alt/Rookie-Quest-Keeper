@@ -66,7 +66,7 @@ import {
 } from '@/data/levelUpProgressionRules';
 import { getFeatsForRuleset } from '@/data/rules/feats/featRegistry';
 import { CLASSES, MULTICLASS_REQUIREMENTS, getMulticlassOptions } from '@/data/characterRules5e';
-import { offerableSubclasses } from '@/data/licensing/builtInContentPolicy';
+import { characterSpellNames, offerableSpellLists, offerableSubclasses } from '@/data/licensing/builtInContentPolicy';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const theme = {
@@ -163,8 +163,9 @@ function normaliseFeatOptions(preflight, character) {
   });
 }
 
-function spellListFor(className, maxLevel) {
-  const data = getSpellsForClass(className) || {};
+function spellListFor(className, maxLevel, current = []) {
+  // Only SRD spells are offered; spells the character already has stay listed.
+  const data = offerableSpellLists(getSpellsForClass(className) || {}, current);
   const cantrips = data.cantrips || [];
   const spells = [];
   for (let level = 1; level <= Math.min(9, Number(maxLevel || 0)); level += 1) {
@@ -386,7 +387,7 @@ export default function LevelUpWizard({ character, isOpen, onClose, onLevelUp })
   const customSpellPool = isCustomSpellcaster
     ? homebrewSpellsForClass(playerRulesOptions?.spells || [], characterClass, maxSpellLevel)
     : [];
-  const builtInSpellPool = isCustomSpellcaster ? null : spellListFor(characterClass, maxSpellLevel);
+  const builtInSpellPool = isCustomSpellcaster ? null : spellListFor(characterClass, maxSpellLevel, characterSpellNames(character));
   const cantrips = isCustomSpellcaster
     ? customSpellPool.filter((spell) => Number(spell.level || 0) === 0)
     : builtInSpellPool.cantrips;
