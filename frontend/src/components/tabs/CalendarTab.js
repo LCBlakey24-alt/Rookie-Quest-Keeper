@@ -363,7 +363,7 @@ export default function CalendarTab({ campaignId }) {
           <div className="rqk-calendar-month-scroller" style={{ overflowX: 'auto' }}>
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${daysPerWeek}, minmax(48px, 1fr))`, gap: 5, minWidth: daysPerWeek * 48 }}>
               {Array.from({ length: daysPerWeek }, (_, index) => (
-                <strong key={index} style={{ color: '#ffb066', textAlign: 'center', fontSize: 12 }}>Day {index + 1}</strong>
+                <strong key={index} style={{ color: 'var(--guild-hi)', textAlign: 'center', fontSize: 12 }}>Day {index + 1}</strong>
               ))}
               {Array.from({ length: monthStartOffset }, (_, index) => (
                 <span key={`weekday-offset-${index}`} className="rqk-calendar-day-placeholder" aria-hidden="true" />
@@ -486,7 +486,7 @@ export default function CalendarTab({ campaignId }) {
       <aside className="rqk-calendar-panel rqk-calendar-upcoming">
         <h3 style={{ color: '#ffffff', marginTop: 0 }}>Upcoming 30 Days</h3>
         {upcomingEvents.length === 0 ? <p style={{ color: '#ffffff' }}>No upcoming events.</p> : upcomingEvents.map(event => (
-          <div key={event.id} style={{ border: '1px solid rgba(242, 137, 47,0.24)', background: '#0a2342', padding: 10, marginBottom: 8 }}>
+          <div key={event.id} style={{ border: '1px solid rgba(var(--guild-c1-rgb), 0.24)', background: 'var(--guild-bg)', padding: 10, marginBottom: 8 }}>
             <strong style={{ color: '#ffffff' }}>{event.name}</strong>
             <p style={{ color: '#ffffff', margin: '4px 0 0' }}>{event.daysUntil === 0 ? 'Today' : `${event.daysUntil} day(s)`}</p>
           </div>

@@ -11,7 +11,7 @@
   align-content: start !important;
   gap: 8px !important;
   padding: clamp(10px, 2vw, 20px) !important;
-  background: #071522 !important;
+  background: var(--guild-bg-deep) !important;
   background-image: none !important;
   color: #F7F1E7 !important;
   box-sizing: border-box !important;
@@ -34,9 +34,9 @@
   min-width: 0 !important;
   position: relative !important;
   overflow: hidden !important;
-  background: #112A40 !important;
+  background: var(--guild-panel) !important;
   background-image: none !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 7px !important;
   color: #F7F1E7 !important;
 }
@@ -48,7 +48,7 @@
   align-items: center !important;
   gap: 14px !important;
   padding: clamp(13px, 2vw, 18px) !important;
-  background: #0C2234 !important;
+  background: var(--guild-bg) !important;
 }
 
 #root .uploads-dashboard-eyebrow,
@@ -122,8 +122,8 @@
   align-content: center !important;
   gap: 6px !important;
   padding: 11px !important;
-  background: #071A29 !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  background: var(--guild-bg-deep) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 5px !important;
 }
 
@@ -142,11 +142,11 @@
   display: inline-grid !important;
   place-items: center !important;
   padding: 8px !important;
-  border: 1px solid rgba(242, 137, 47,.28) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .28) !important;
   border-radius: 5px !important;
-  background: rgba(121,188,232,.10) !important;
+  background: rgba(var(--guild-c2-rgb), .10) !important;
   background-image: none !important;
-  color: #79BCE8 !important;
+  color: var(--guild-h3) !important;
 }
 
 #root .uploads-dashboard-dropzone {
@@ -155,7 +155,7 @@
   align-items: center !important;
   gap: 10px !important;
   padding: 12px !important;
-  background: #0C2234 !important;
+  background: var(--guild-bg) !important;
   border-style: dashed !important;
 }
 
@@ -175,9 +175,9 @@
   justify-content: center !important;
   gap: 6px !important;
   padding: 0 10px !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .18) !important;
   border-radius: 5px !important;
-  background: #112A40 !important;
+  background: var(--guild-panel) !important;
   background-image: none !important;
   color: #F7F1E7 !important;
   font: inherit !important;
@@ -187,13 +187,13 @@
 }
 
 #root .uploads-dashboard-action-row a svg {
-  color: #79BCE8 !important;
+  color: var(--guild-h3) !important;
 }
 
 #root .uploads-dashboard-action-row .library-page-button-primary,
 #root .uploads-dashboard-route-card em {
-  background: #112A40 !important;
-  border-color: #f2892f !important;
+  background: var(--guild-panel) !important;
+  border-color: var(--guild-c1) !important;
   color: #F7F1E7 !important;
 }
 
@@ -205,8 +205,8 @@
 #root .uploads-dashboard-card:focus-within,
 #root .uploads-dashboard-safety-grid article:hover,
 #root .uploads-dashboard-safety-grid article:focus-within {
-  background: #17364F !important;
-  border-color: #f2892f !important;
+  background: var(--guild-panel) !important;
+  border-color: var(--guild-c1) !important;
   outline: none !important;
   transform: none !important;
   filter: none !important;
@@ -216,8 +216,8 @@
 #root .uploads-dashboard-action-row .library-page-button-primary:focus-visible,
 #root .uploads-dashboard-route-card:hover em,
 #root .uploads-dashboard-route-card:focus-visible em {
-  background: #17364F !important;
-  border-color: #f2892f !important;
+  background: var(--guild-panel) !important;
+  border-color: var(--guild-c1) !important;
 }
 
 #root .uploads-dashboard-route-grid,

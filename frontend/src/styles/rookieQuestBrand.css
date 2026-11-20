@@ -1,5 +1,5 @@
 .rq-brand-page {
-  --rq-brand-bg: #0a2342;
+  --rq-brand-bg: var(--guild-bg);
   --rq-brand-panel: #0b1c2a;
   --rq-brand-panel-2: #102536;
   --rq-brand-text: #f7f2e8;
@@ -13,7 +13,7 @@
   min-height: 100vh;
   background:
     radial-gradient(circle at 50% -12%, rgba(216, 182, 109, 0.08), transparent 32rem),
-    linear-gradient(180deg, #081521 0%, #0a2342 48%, #06101a 100%);
+    linear-gradient(180deg, #081521 0%, var(--guild-bg) 48%, #06101a 100%);
   color: var(--rq-brand-text);
   font-family: 'Manrope', var(--font-sans, sans-serif);
 }
@@ -34,7 +34,7 @@
   padding: 10px 14px;
   border-radius: 4px;
   background: #fff;
-  color: #0a2342;
+  color: var(--guild-bg);
   font-weight: 800;
 }
 

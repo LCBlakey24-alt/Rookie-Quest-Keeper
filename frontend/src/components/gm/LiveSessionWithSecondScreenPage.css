@@ -48,7 +48,7 @@
       padding: 0 16px;
       color: var(--rq-guild-copy, #F8F0E5);
       background: var(--rq-bg, #0a2342);
-      background-image: var(--rq-ledger-rule, linear-gradient(90deg, #FF8A1F, #F4551F, #E03A2F));
+      background-image: var(--rq-ledger-rule, linear-gradient(90deg, var(--guild-c1), var(--guild-h1), #E03A2F));
       background-position: left bottom;
       background-size: 100% 2px;
       background-repeat: no-repeat;
@@ -79,7 +79,7 @@
       width: min(380px, calc(100vw - 16px));
       padding: 8px;
       background: var(--rq-bg-panel, #0a2342);
-      border: 1px solid var(--rq-line-strong, rgba(242, 137, 47,0.30));
+      border: 1px solid var(--rq-line-strong, rgba(var(--guild-c1-rgb), 0.30));
       border-radius: 7px;
       z-index: 59;
       overflow: auto;

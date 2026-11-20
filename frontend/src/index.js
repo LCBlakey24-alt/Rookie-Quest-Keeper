@@ -37,6 +37,7 @@ import "@/styles/guildCommandDashboard.css";
 // Loaded last: the compact rail has to win over the shell sheets above,
 // which set their widths with !important.
 import "@/styles/appShellFocusRail.css";
+import "@/styles/touchTargets.css";
 
 installSafeToasts();
 installQueuedCombatPartyOverlay();

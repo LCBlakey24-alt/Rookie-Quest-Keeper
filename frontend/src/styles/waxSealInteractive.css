@@ -6,7 +6,7 @@
  * Keep this file last and in the existing rq-controls important cascade layer.
  */
 :root {
-  --rq-control-blue: #0a2342;
+  --rq-control-blue: var(--guild-bg);
   --rq-control-wax: #7E2D2D;
   --rq-control-ink: #F8F0E5;
   --rq-control-sweep-duration: 340ms;
@@ -53,7 +53,7 @@
     background-repeat: no-repeat !important;
     background-position: left center !important;
     background-size: 0% 100% !important;
-    border-color: rgba(60,146,224,.36) !important;
+    border-color: rgba(var(--guild-c2-rgb),.36) !important;
     color: var(--rq-control-ink) !important;
     -webkit-text-fill-color: currentColor !important;
     transition: background-size var(--rq-control-sweep-duration) var(--rq-control-sweep-ease), border-color 180ms ease !important;

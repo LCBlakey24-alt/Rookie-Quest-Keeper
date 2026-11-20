@@ -12,8 +12,8 @@
  *
  * A dye may also carry a `glow`: a soft light drawn just inside every face
  * edge, the same inner glow the hexagonal sheet uses on its boxes and
- * wedges. Only the Neon Coast dye has one (with `glowStops`, so the light
- * runs pink -> violet -> blue); the others keep their plain faces.
+ * wedges, with `glowStops` giving the colours it runs through. The dark
+ * theme dyes have one; the light and metal dyes keep their plain faces.
  */
 
 const DEFAULT_DYE_ID = 'glow';
@@ -22,29 +22,97 @@ export const DICE_DYES = [
   // Light bodies take dark numerals; dark bodies take cream. A body in the
   // middle of the range fails both ways, which is how an earlier draft of
   // this palette ended up with eight combinations below AA.
+  //
+  // The set follows the Midnight Magenta theme (DESIGN_SYSTEM "Phase 2"):
+  // crimson, magenta, violet and indigo bodies with the theme's inner glow,
+  // plus a few light and metal dyes for players who want a classic die.
+  // Ids are kept from the earlier set, so a saved choice lands on the
+  // closest new colour rather than resetting.
   {
-    // The default, matching the Neon Coast look (DESIGN_SYSTEM §3): a deep
-    // blue body a step lighter than the page, white numerals, and a glow
-    // inside every face edge that runs pink -> violet -> blue. The id stays
-    // 'glow' so a player's saved choice keeps working.
+    // The default, matching the app: a midnight-plum body a step lighter
+    // than the page, white numerals, and a glow inside every face edge that
+    // runs magenta -> violet -> indigo. The id stays 'glow' so a player's
+    // saved choice keeps working.
     id: 'glow',
-    name: 'Neon Coast',
-    body: '#14294F',
+    name: 'Midnight Magenta',
+    body: '#2A1640',
     ink: '#FFFFFF',
-    edge: '#FF5FA0',
+    edge: '#FF5C93',
     crit: '#FFD27A',
     fumble: '#FF9B7A',
-    glow: '#FF5FA0',
-    glowStops: ['#FF3D8B', '#B04DFF', '#4FB3FF'],
+    glow: '#FF5C93',
+    glowStops: ['#FF1976', '#8C36DD', '#5A4BFF'],
+  },
+  {
+    id: 'garnet',
+    name: 'Crimson',
+    body: '#6E0C2A',
+    ink: '#FFF1F5',
+    edge: '#FF1976',
+    crit: '#FFD27A',
+    fumble: '#FFB4C6',
+    glow: '#FF5C93',
+    glowStops: ['#F21751', '#FF1976', '#FF8FBF'],
+  },
+  {
+    id: 'ledger',
+    name: 'Violet',
+    body: '#4B1E86',
+    ink: '#FFFFFF',
+    edge: '#B56CFF',
+    crit: '#FFD27A',
+    fumble: '#FFB4C6',
+    glow: '#C99BFF',
+    glowStops: ['#B56CFF', '#8C36DD', '#FF1976'],
+  },
+  {
+    id: 'moss',
+    name: 'Indigo',
+    body: '#221D66',
+    ink: '#FFFFFF',
+    edge: '#7C6CFF',
+    crit: '#FFD27A',
+    fumble: '#FFB4C6',
+    glow: '#9A8CFF',
+    glowStops: ['#5A4BFF', '#8C36DD', '#FF5C93'],
+  },
+  {
+    id: 'ink',
+    name: 'Obsidian',
+    body: '#0E0A18',
+    ink: '#FFFFFF',
+    edge: '#8C36DD',
+    crit: '#FFD27A',
+    fumble: '#FF9B7A',
+    glow: '#B56CFF',
+    glowStops: ['#8C36DD', '#5A4BFF', '#FF1976'],
+  },
+  {
+    id: 'bone',
+    name: 'Rose quartz',
+    body: '#F7C6DA',
+    ink: '#3A0D22',
+    edge: '#C2447A',
+    crit: '#7A0F2E',
+    fumble: '#2A1A6B',
+  },
+  {
+    id: 'parchment',
+    name: 'Pearl',
+    body: '#F4ECF7',
+    ink: '#2A1640',
+    edge: '#9C8BB5',
+    crit: '#8E0B37',
+    fumble: '#3A2A8C',
   },
   {
     id: 'amber',
-    name: 'Amber',
-    body: '#F2A93B',
-    ink: '#0a2342',
-    edge: '#6E4A12',
-    crit: '#6E1407',
-    fumble: '#123A52',
+    name: 'Gilded',
+    body: '#E9B949',
+    ink: '#2A1640',
+    edge: '#7A5410',
+    crit: '#6E0C2A',
+    fumble: '#24205E',
   },
   {
     id: 'ember',
@@ -54,60 +122,6 @@ export const DICE_DYES = [
     edge: '#4F1B08',
     crit: '#FFC97A',
     fumble: '#FFC2B8',
-  },
-  {
-    id: 'parchment',
-    name: 'Parchment',
-    body: '#ffffff',
-    ink: '#16283A',
-    edge: '#9A8A6B',
-    crit: '#7A1C0F',
-    fumble: '#2C4860',
-  },
-  {
-    id: 'ledger',
-    name: 'Ledger blue',
-    body: '#7FBCEF',
-    ink: '#06182B',
-    edge: '#2A6796',
-    crit: '#5A1004',
-    fumble: '#1C3C57',
-  },
-  {
-    id: 'ink',
-    name: 'Ink',
-    body: '#13293D',
-    ink: '#F5F1E8',
-    edge: '#ffffff',
-    crit: '#FF8A1F',
-    fumble: '#F2766A',
-  },
-  {
-    id: 'moss',
-    name: 'Moss',
-    body: '#245635',
-    ink: '#F2F7EE',
-    edge: '#13331F',
-    crit: '#FFD37A',
-    fumble: '#FFB4AA',
-  },
-  {
-    id: 'garnet',
-    name: 'Garnet',
-    body: '#8C2A1F',
-    ink: '#FBEFE4',
-    edge: '#3B100B',
-    crit: '#FFC46B',
-    fumble: '#FFB0A6',
-  },
-  {
-    id: 'bone',
-    name: 'Bone',
-    body: '#D8D3C6',
-    ink: '#13202B',
-    edge: '#8A8577',
-    crit: '#7A1C0F',
-    fumble: '#27425A',
   },
 ];
 

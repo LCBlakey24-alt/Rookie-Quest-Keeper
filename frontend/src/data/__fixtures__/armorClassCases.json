@@ -230,6 +230,93 @@
         }
       },
       "ac": 18
+    },
+    {
+      "name": "an attuned Ring of Protection in the equipment list adds 1",
+      "character": {
+        "character_class": "Rogue",
+        "level": 5,
+        "dexterity": 12,
+        "inventory": [
+          {
+            "name": "Ring of Protection",
+            "requires_attunement": true,
+            "attuned": true
+          }
+        ]
+      },
+      "equipped": {
+        "armor": {
+          "name": "Leather Armor"
+        }
+      },
+      "ac": 13
+    },
+    {
+      "name": "an unattuned Cloak of Protection in the list adds nothing",
+      "character": {
+        "character_class": "Rogue",
+        "level": 5,
+        "dexterity": 12,
+        "inventory": [
+          {
+            "name": "Cloak of Protection",
+            "requires_attunement": true
+          }
+        ]
+      },
+      "equipped": {
+        "armor": {
+          "name": "Leather Armor"
+        }
+      },
+      "ac": 12
+    },
+    {
+      "name": "a ring worn in an old slot and also in the list counts once",
+      "character": {
+        "character_class": "Rogue",
+        "level": 5,
+        "dexterity": 12,
+        "inventory": [
+          {
+            "id": "r1",
+            "name": "Ring of Protection",
+            "requires_attunement": true,
+            "attuned": true
+          }
+        ]
+      },
+      "equipped": {
+        "armor": {
+          "name": "Leather Armor"
+        },
+        "ring1": {
+          "id": "r1",
+          "name": "Ring of Protection",
+          "requires_attunement": true,
+          "attuned": true
+        }
+      },
+      "ac": 13
+    },
+    {
+      "name": "attuned Bracers of Defense in the list add 2 only without armour",
+      "character": {
+        "character_class": "Monk",
+        "level": 3,
+        "dexterity": 14,
+        "wisdom": 14,
+        "inventory": [
+          {
+            "name": "Bracers of Defense",
+            "requires_attunement": true,
+            "attuned": true
+          }
+        ]
+      },
+      "equipped": {},
+      "ac": 16
     }
   ]
 }

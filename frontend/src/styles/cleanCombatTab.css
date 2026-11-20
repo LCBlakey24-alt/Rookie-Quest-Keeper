@@ -572,3 +572,5 @@ button.clean-sheet-attack-stat-box:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+.clean-sheet-no-weapon { margin: 0 0 8px; padding: 10px 12px; border-radius: 10px; border: 1px dashed var(--guild-line, rgba(201,210,230,.35)); font-size: .9rem; opacity: .9; }

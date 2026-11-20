@@ -3,6 +3,7 @@ import {
   ArrowLeft, ArrowRight, BookOpen, Compass, FileText, Map,
   Monitor, ScrollText, Search, Swords, Users,
 } from 'lucide-react';
+import '@/styles/guildTokens.css';
 import './CampaignModeChooser.css';
 
 /**

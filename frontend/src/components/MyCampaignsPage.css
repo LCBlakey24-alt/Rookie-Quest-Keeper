@@ -9,23 +9,23 @@
   align-items: center !important;
   min-height: 0 !important;
   padding: 16px !important;
-  background: #0C2234 !important;
+  background: var(--rqk-midnight-panel) !important;
   background-image: none !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid var(--rqk-midnight-border) !important;
   border-radius: 7px !important;
-  box-shadow: none !important;
+  box-shadow: var(--rqk-midnight-inset) !important;
 }
 
 #root .campaigns-library-page--simple .campaigns-library-hero h1 {
   margin: 2px 0 4px !important;
-  color: #F7F1E7 !important;
+  color: var(--rqk-midnight-text) !important;
   font-size: clamp(1.75rem, 3vw, 2.35rem) !important;
   line-height: 1.03 !important;
 }
 
 #root .campaigns-library-page--simple .campaigns-library-hero h1 + p,
 #root .campaigns-library-page--simple .library-page-eyebrow {
-  color: #F7F1E7 !important;
+  color: var(--rqk-midnight-text) !important;
 }
 
 #root .campaigns-library-page--simple .campaigns-library-hero h1 + p {
@@ -53,27 +53,27 @@
 #root .campaigns-library-page--simple .library-page-button-secondary,
 #root .campaigns-library-actions > * {
   min-height: 40px !important;
-  color: #F7F1E7 !important;
-  background: #112A40 !important;
+  color: var(--rqk-midnight-text) !important;
+  background: var(--rqk-midnight-raised) !important;
   background-image: none !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid var(--rqk-midnight-border) !important;
   border-radius: 5px !important;
-  box-shadow: none !important;
+  box-shadow: var(--rqk-midnight-inset) !important;
 }
 
 #root .campaigns-library-page--simple .library-page-button-primary {
-  border-color: #f2892f !important;
+  border-color: var(--rqk-midnight-magenta) !important;
 }
 
 #root .campaigns-library-page--simple :where(.library-page-button,.library-page-button-secondary):hover,
 #root .campaigns-library-page--simple :where(.library-page-button,.library-page-button-secondary):focus-visible {
-  background: #17364F !important;
-  border-color: #f2892f !important;
+  background: var(--rqk-midnight-hover) !important;
+  border-color: var(--rqk-midnight-magenta) !important;
   outline: none !important;
 }
 
 #root .campaigns-library-page--simple :where(.library-page-button,.library-page-button-secondary) svg {
-  color: #79BCE8 !important;
+  color: var(--rqk-midnight-magenta) !important;
 }
 
 #root .campaigns-library-page--simple .campaigns-card-grid {
@@ -92,17 +92,17 @@
   flex-direction: column !important;
   gap: 10px !important;
   padding: 12px !important;
-  background: #112A40 !important;
+  background: var(--rqk-midnight-raised) !important;
   background-image: none !important;
-  border: 1px solid rgba(242, 137, 47,.18) !important;
+  border: 1px solid var(--rqk-midnight-border) !important;
   border-radius: 7px !important;
-  box-shadow: none !important;
+  box-shadow: var(--rqk-midnight-inset) !important;
 }
 
 #root .campaigns-library-page--simple .campaign-library-card--simple:hover,
 #root .campaigns-library-page--simple .campaign-library-card--simple:focus-within {
-  background: #17364F !important;
-  border-color: rgba(242, 137, 47,.42) !important;
+  background: var(--rqk-midnight-hover) !important;
+  border-color: var(--rqk-midnight-magenta) !important;
 }
 
 #root .campaigns-library-page--simple .campaign-card-main {
@@ -122,7 +122,7 @@
 #root .campaigns-library-page--simple .campaign-card-title-row h2 {
   min-width: 0 !important;
   margin: 0 !important;
-  color: #F7F1E7 !important;
+  color: var(--rqk-midnight-text) !important;
   font-family: inherit !important;
   font-size: 1.08rem !important;
   font-weight: 800 !important;
@@ -141,9 +141,9 @@
   align-items: center !important;
   justify-content: center !important;
   padding: 0 7px !important;
-  background: rgba(121,188,232,.10) !important;
-  color: #F7F1E7 !important;
-  border: 1px solid rgba(242, 137, 47,.28) !important;
+  background: var(--rqk-midnight-pill) !important;
+  color: var(--rqk-midnight-text) !important;
+  border: 1px solid var(--rqk-midnight-border) !important;
   border-radius: 5px !important;
   font-size: 9px !important;
   font-weight: 800 !important;
@@ -154,7 +154,7 @@
 #root .campaigns-library-page--simple .campaign-card-description,
 #root .campaigns-library-page--simple .campaign-card-meta-line {
   margin: 0 !important;
-  color: #F7F1E7 !important;
+  color: var(--rqk-midnight-text) !important;
 }
 
 #root .campaigns-library-page--simple .campaign-card-primary-line {
@@ -196,25 +196,25 @@
   justify-content: center !important;
   gap: 6px !important;
   padding: 0 10px !important;
-  background: #112A40 !important;
-  color: #F7F1E7 !important;
-  border: 1px solid #f2892f !important;
+  background: var(--rqk-midnight-raised) !important;
+  color: var(--rqk-midnight-text) !important;
+  border: 1px solid var(--rqk-midnight-magenta) !important;
   border-radius: 5px !important;
   font-size: 11px !important;
   font-weight: 800 !important;
   white-space: nowrap !important;
-  box-shadow: none !important;
+  box-shadow: var(--rqk-midnight-inset) !important;
 }
 
 #root .campaigns-library-page--simple .campaign-card-open:hover:not(:disabled),
 #root .campaigns-library-page--simple .campaign-card-open:focus-visible {
-  background: #17364F !important;
-  border-color: #f2892f !important;
+  background: var(--rqk-midnight-hover) !important;
+  border-color: var(--rqk-midnight-magenta) !important;
   outline: none !important;
 }
 
 #root .campaigns-library-page--simple .campaign-card-open svg {
-  color: #79BCE8 !important;
+  color: var(--rqk-midnight-magenta) !important;
 }
 
 #root .campaigns-library-page--simple .campaign-card-delete {
@@ -224,22 +224,22 @@
   padding: 0 !important;
   display: inline-grid !important;
   place-items: center !important;
-  background: #112A40 !important;
-  color: #F7F1E7 !important;
-  border: 1px solid rgba(242, 137, 47,.28) !important;
+  background: var(--rqk-midnight-raised) !important;
+  color: var(--rqk-midnight-text) !important;
+  border: 1px solid var(--rqk-midnight-border) !important;
   border-radius: 5px !important;
-  box-shadow: none !important;
+  box-shadow: var(--rqk-midnight-inset) !important;
 }
 
 #root .campaigns-library-page--simple .campaign-card-delete:hover,
 #root .campaigns-library-page--simple .campaign-card-delete:focus-visible {
-  background: #17364F !important;
-  border-color: #f2892f !important;
+  background: var(--rqk-midnight-hover) !important;
+  border-color: var(--rqk-midnight-magenta) !important;
   outline: none !important;
 }
 
 #root .campaigns-library-page--simple .campaign-card-delete svg {
-  color: #79BCE8 !important;
+  color: var(--rqk-midnight-magenta) !important;
 }
 
 #root .rqk-app-shell[data-rq-device='mobile'] .campaigns-library-page--simple .campaigns-library-hero {
@@ -295,4 +295,99 @@
 
 #root .rqk-app-shell[data-rq-device='desktop'] .campaigns-library-page--simple .campaigns-card-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+/* Midnight Magenta pilot: visual treatments only. Do not modify campaign
+   cards' grid, responsive breakpoints, button dimensions or DOM structure. */
+#root .campaigns-library-page--simple .campaign-library-card--simple:is(:hover, :focus-within) {
+  box-shadow: var(--rqk-midnight-inset-selected) !important;
+}
+#root .campaigns-library-page--simple .library-page-button-primary,
+#root .campaigns-library-page--simple .campaign-card-open {
+  box-shadow: var(--rqk-midnight-inset-selected) !important;
+}
+#root .campaigns-library-page--simple :is(.library-page-button, .library-page-button-secondary, .campaign-card-open, .campaign-card-delete):focus-visible {
+  outline: 2px solid var(--rqk-midnight-magenta) !important;
+  outline-offset: 2px !important;
+}
+/* Deletion keeps a distinct semantic danger affordance, not the brand accent. */
+#root .campaigns-library-page--simple .campaign-card-delete:is(:hover, :focus-visible) {
+  border-color: var(--rq-danger, #b94a4f) !important;
+}
+#root .campaigns-library-page--simple .campaign-card-delete:is(:hover, :focus-visible) svg {
+  color: var(--rq-danger, #b94a4f) !important;
+}
+
+/* Route-scoped colour authority within the app's existing important layer.
+   This is deliberately visual-only; the responsive geometry above is intact.
+   The generic important-layer reset would otherwise turn the cards/buttons
+   back to the retired blue/orange palette. */
+@layer rq-controls {
+  #root .campaigns-library-page--simple {
+    background: var(--rqk-midnight-stage) !important;
+    /* Until the app shell itself is themed, the dark page is a framed stage
+       panel on the existing sky, not an unframed slab: rounded corners and a
+       thin edge drawn as an inset shadow, so no size changes. */
+    border-radius: 18px !important;
+    box-shadow: inset 0 0 0 1px var(--rqk-midnight-border), var(--rqk-midnight-inset) !important;
+  }
+  /* The card's type badge kept the retired orange through the layered reset. */
+  #root .campaigns-library-page--simple .campaign-card-type {
+    color: var(--rqk-midnight-text) !important;
+    -webkit-text-fill-color: var(--rqk-midnight-text) !important;
+  }
+  #root .campaigns-library-page--simple .campaigns-library-hero {
+    background: var(--rqk-midnight-panel) !important;
+    border-color: var(--rqk-midnight-border) !important;
+    box-shadow: var(--rqk-midnight-inset) !important;
+  }
+  #root .campaigns-library-page--simple .campaign-library-card--simple {
+    background: var(--rqk-midnight-raised) !important;
+    border-color: var(--rqk-midnight-border) !important;
+    box-shadow: var(--rqk-midnight-inset) !important;
+  }
+  #root .campaigns-library-page--simple .campaign-library-card--simple:is(:hover, :focus-within) {
+    background: var(--rqk-midnight-hover) !important;
+    border-color: var(--rqk-midnight-magenta) !important;
+    box-shadow: var(--rqk-midnight-inset-selected) !important;
+  }
+  #root .campaigns-library-page--simple :is(
+    .library-page-button, .library-page-button-secondary, .campaign-card-open, .campaign-card-delete
+  ) {
+    background: var(--rqk-midnight-raised) !important;
+    border-color: var(--rqk-midnight-border) !important;
+    color: var(--rqk-midnight-text) !important;
+    box-shadow: var(--rqk-midnight-inset) !important;
+  }
+  #root .campaigns-library-page--simple :is(.library-page-button-primary, .campaign-card-open) {
+    border-color: var(--rqk-midnight-magenta) !important;
+    box-shadow: var(--rqk-midnight-inset-selected) !important;
+  }
+  #root .campaigns-library-page--simple :is(
+    .library-page-button, .library-page-button-secondary, .campaign-card-open
+  ):is(:hover, :focus-visible) {
+    background: var(--rqk-midnight-hover) !important;
+    border-color: var(--rqk-midnight-magenta) !important;
+  }
+  #root .campaigns-library-page--simple :is(
+    .library-page-button, .library-page-button-secondary, .campaign-card-open, .campaign-card-delete
+  ):focus-visible {
+    outline: 3px solid var(--rqk-midnight-magenta) !important;
+    outline-offset: 2px !important;
+  }
+  #root .campaigns-library-page--simple .campaign-card-delete:is(:hover, :focus-visible) {
+    background: var(--rqk-midnight-hover) !important;
+    border-color: var(--rq-danger, #b94a4f) !important;
+  }
+  #root .campaigns-library-page--simple :is(.campaigns-library-hero h1, .campaign-card-title-row h2) {
+    color: var(--rqk-midnight-text) !important;
+  }
+  #root .campaigns-library-page--simple :is(
+    .campaign-card-primary-line, .campaign-card-description, .campaign-card-meta-line
+  ) {
+    color: var(--rqk-midnight-muted) !important;
+  }
+  #root .campaigns-library-page--simple :is(.library-page-eyebrow, .campaign-card-open svg) {
+    color: var(--rqk-midnight-magenta) !important;
+  }
 }

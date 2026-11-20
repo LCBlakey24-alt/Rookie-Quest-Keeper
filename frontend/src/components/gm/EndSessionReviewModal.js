@@ -397,7 +397,7 @@ const subtitleStyle = { margin: '7px 0 0', color: rq.soft, lineHeight: 1.45 };
 const closeButtonStyle = { width: 40, height: 40, display: 'grid', placeItems: 'center', background: rq.card, color: rq.text, border: 0, cursor: 'pointer' };
 const loadingStyle = { minHeight: 180, display: 'grid', placeItems: 'center', color: rq.soft, background: rq.bg, border: `1px dashed ${rq.line}` };
 const metricGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8 };
-const metricStyle = (hot, muted) => ({ minHeight: 92, display: 'grid', alignContent: 'center', gap: 5, padding: 12, background: hot ? 'rgba(124,203,255,0.10)' : muted ? rq.bg : rq.card, border: `1px solid ${hot ? rq.pink : rq.line}`, color: rq.text, textAlign: 'center' });
+const metricStyle = (hot, muted) => ({ minHeight: 92, display: 'grid', alignContent: 'center', gap: 5, padding: 12, background: hot ? 'rgba(var(--guild-h3-rgb),0.10)' : muted ? rq.bg : rq.card, border: `1px solid ${hot ? rq.pink : rq.line}`, color: rq.text, textAlign: 'center' });
 const warningStyle = { background: rq.bg, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}`, padding: 12, color: rq.soft, marginTop: 12, lineHeight: 1.45 };
 const storyWrapStyle = { display: 'grid', gap: 12, background: rq.card, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}`, padding: 12, marginTop: 12 };
 const storyHeaderStyle = { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' };

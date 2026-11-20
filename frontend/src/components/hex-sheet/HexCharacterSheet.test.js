@@ -460,11 +460,11 @@ describe('the Combat wheel', () => {
 describe('colour themes', () => {
   afterEach(() => window.localStorage.removeItem('rqk.hexSheet.theme'));
 
-  test('Keeper Blue is the default', async () => {
+  test('Midnight Magenta, the app theme, is the default', async () => {
     window.localStorage.removeItem('rqk.hexSheet.theme');
     await openSheet({ ...PUNCH, id: 'char-theme-1' });
     expect(screen.getByTestId('hex-sheet')).toHaveAttribute('data-theme', 'keeper');
-    expect(screen.getByTestId('hex-sheet').style.getPropertyValue('--hex-orange')).toBe('#ff5fa0');
+    expect(screen.getByTestId('hex-sheet').style.getPropertyValue('--hex-orange')).toBe('#ff1976');
   });
 
   test('choosing a theme recolours the sheet and is remembered on this device', async () => {

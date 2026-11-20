@@ -5,19 +5,21 @@ import {
 import { deriveArmorClass } from './characterCombatDerivations';
 
 describe('body slots', () => {
-  test('one of each kind, and two rings', () => {
+  test('five slots: main hand, off hand, armour, boots and helmet', () => {
     const ids = BODY_SLOTS.map((slot) => slot.id);
-    expect(ids).toEqual(['head', 'neck', 'shoulders', 'armor', 'mainHand', 'offHand', 'gauntlets', 'wrists', 'waist', 'boots', 'ring1', 'ring2']);
+    expect(ids).toEqual(['mainHand', 'offHand', 'armor', 'boots', 'head']);
+    expect(BODY_SLOTS.find((slot) => slot.id === 'head').label).toBe('Helmet');
   });
 
   test.each([
-    ['Ring of Protection', ['ring1', 'ring2']],
-    ['Amulet of Health', ['neck']],
-    ['Cloak of Protection', ['shoulders']],
-    ['Bracers of Defense', ['wrists']],
-    ['Gauntlets of Ogre Power', ['gauntlets']],
+    // Accessories have no slot: they live in the equipment list.
+    ['Ring of Protection', []],
+    ['Amulet of Health', []],
+    ['Cloak of Protection', []],
+    ['Bracers of Defense', []],
+    ['Gauntlets of Ogre Power', []],
+    ['Belt of Giant Strength', []],
     ['Boots of Elvenkind', ['boots']],
-    ['Belt of Giant Strength', ['waist']],
     ['Circlet of Blasting', ['head']],
     ['Chain Mail', ['armor']],
     ['Shield', ['offHand']],
@@ -89,6 +91,6 @@ describe('armour whose name contains "ring"', () => {
   test('Ring Mail goes in the armour slot, not on a finger', () => {
     expect(slotsForItem({ name: 'Ring Mail', type: 'Armor' })).toEqual(['armor']);
     expect(slotsForItem('Ring Mail')).toEqual(['armor']);
-    expect(slotsForItem({ name: 'Ring of Protection', type: 'Ring' })).toEqual(['ring1', 'ring2']);
+    expect(slotsForItem({ name: 'Ring of Protection', type: 'Ring' })).toEqual([]);
   });
 });

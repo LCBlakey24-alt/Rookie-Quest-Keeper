@@ -1,8 +1,8 @@
 /* Floating dice roller — Guild Ledger flat surfaces.
  *
  * This panel was missed by the flat-single-surface pass and still stacked
- * five different blues (page #0a2342 behind a #071522 panel, #112A40 cards,
- * a #071A29 input and a #0C2234 toggle) with antique-gold borders. The
+ * five different blues (page var(--guild-bg) behind a var(--guild-bg-deep) panel, var(--guild-panel) cards,
+ * a var(--guild-bg-deep) input and a var(--guild-bg) toggle) with antique-gold borders. The
  * approved direction is one background colour everywhere, with structure
  * carried by hairlines and the citrus rule -- "rules only, no boxes".
  *
@@ -15,13 +15,13 @@
  */
 
 .rq-floating-dice {
-  --dice-bg: #0a2342;
-  --dice-panel: #0a2342;
-  --dice-card: #0a2342;
-  --dice-input: #0a2342;
+  --dice-bg: var(--guild-bg);
+  --dice-panel: var(--guild-bg);
+  --dice-card: var(--guild-bg);
+  --dice-input: var(--guild-bg);
   --dice-text: #F5F1E8;
   --dice-muted: rgba(255, 255, 255, 0.70);
-  --dice-blue: #3C92E0;
+  --dice-blue: var(--guild-hi);
   --dice-accent: rgba(255, 255, 255, 0.28);
   --dice-line: rgba(255, 255, 255, 0.14);
   --dice-line-strong: rgba(255, 255, 255, 0.22);
@@ -31,7 +31,7 @@
      on the same accent as the rest of the app instead of pinning a second
      copy of the ramp here. The fallback is a flat citrus so the rule still
      reads if the token is ever missing. */
-  --dice-rule: var(--rq-ledger-rule, #F4551F);
+  --dice-rule: var(--rq-ledger-rule, var(--guild-h1));
 
   position: fixed;
   left: max(18px, env(safe-area-inset-left));
@@ -353,7 +353,7 @@
 
 .rq-floating-dice.has-group-check-request .rq-floating-dice__toggle {
   border-color: var(--dice-accent);
-  background: rgba(60, 146, 224, 0.12);
+  background: rgba(var(--guild-c2-rgb), 0.12);
 }
 
 @media (max-width: 719px) {

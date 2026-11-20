@@ -9,7 +9,7 @@ describe('Guild Ledger player-display visual contract', () => {
     expect(source).toContain("panel: 'var(--rq-bg-panel, #0a2342)'");
     expect(source).toContain("card: 'var(--rq-card, #0a2342)'");
     expect(source).toContain("text: 'var(--rq-text-primary, #ffffff)'");
-    expect(source).toContain("red: 'var(--rq-primary, #f2892f)'");
+    expect(source).toContain("red: 'var(--rq-primary, var(--guild-c1))'");
     expect(source).not.toContain("'var(--rq-primary, #d00000)'");
     expect(source).not.toContain("'var(--rq-bg-deep, #080808)'");
   });

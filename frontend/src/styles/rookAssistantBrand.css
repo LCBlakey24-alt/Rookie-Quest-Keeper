@@ -1,16 +1,16 @@
 html:root {
   --rook-gold: #00AEEF !important;
-  --rook-gold-bright: #7CCBFF !important;
+  --rook-gold-bright: var(--guild-h3) !important;
   --rook-red: #FF2DAA !important;
   --rook-panel: rgba(7, 24, 40, 0.98) !important;
   --rook-panel-strong: rgba(8, 31, 50, 0.99) !important;
-  --rook-border: rgba(124, 203, 255, 0.34) !important;
+  --rook-border: rgba(var(--guild-h3-rgb), 0.34) !important;
   --rook-text: #FFFFFF !important;
   --rook-muted: #A9C6D9 !important;
 }
 
 body .rook-assistant-fab {
-  border-color: rgba(124, 203, 255, 0.5);
+  border-color: rgba(var(--guild-h3-rgb), 0.5);
   background: #0A2A43;
   color: #FFFFFF;
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45), 0 0 30px rgba(0, 174, 239, 0.2);
@@ -40,7 +40,7 @@ body .rook-assistant-fab::before {
 }
 
 body .rook-assistant-pill {
-  border-color: rgba(124, 203, 255, 0.3);
+  border-color: rgba(var(--guild-h3-rgb), 0.3);
   background: rgba(8, 31, 50, 0.99);
 }
 
@@ -63,13 +63,13 @@ body .rook-assistant-pill strong {
 }
 
 body .rook-assistant-panel {
-  border-color: rgba(124, 203, 255, 0.32);
+  border-color: rgba(var(--guild-h3-rgb), 0.32);
   background: #071828;
   box-shadow: 0 26px 90px rgba(0, 0, 0, 0.62), 0 0 42px rgba(0, 174, 239, 0.13);
 }
 
 body .rook-assistant-header {
-  border-bottom-color: rgba(124, 203, 255, 0.18);
+  border-bottom-color: rgba(var(--guild-h3-rgb), 0.18);
   background: #0A2236;
 }
 
@@ -78,7 +78,7 @@ body .rook-assistant-orb {
   height: 50px;
   padding: 2px;
   overflow: hidden;
-  border: 1px solid rgba(124, 203, 255, 0.38);
+  border: 1px solid rgba(var(--guild-h3-rgb), 0.38);
   background: #05090D;
   box-shadow: 0 0 20px rgba(0, 174, 239, 0.2);
 }
@@ -96,7 +96,7 @@ body .rook-assistant-orb::before {
 }
 
 body .rook-assistant-title span {
-  color: #7CCBFF;
+  color: var(--guild-h3);
 }
 
 body .rook-assistant-actions button:hover,
@@ -106,7 +106,7 @@ body .rook-assistant-copy:hover {
 }
 
 body .rook-assistant-chip-row button {
-  border-color: rgba(124, 203, 255, 0.24);
+  border-color: rgba(var(--guild-h3-rgb), 0.24);
   background: rgba(0, 174, 239, 0.08);
   color: #DDF4FF;
 }
@@ -115,7 +115,7 @@ body .rook-assistant-empty__icon {
   width: 104px;
   height: 104px;
   margin: 0 auto 12px;
-  border: 1px solid rgba(124, 203, 255, 0.25);
+  border: 1px solid rgba(var(--guild-h3-rgb), 0.25);
   border-radius: 18px;
   background: #05090D url('../assets/rook-mascot.webp') center / contain no-repeat;
   box-shadow: 0 0 30px rgba(0, 174, 239, 0.16);

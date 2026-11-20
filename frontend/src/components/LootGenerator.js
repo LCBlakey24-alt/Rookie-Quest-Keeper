@@ -389,7 +389,7 @@ function LootGenerator({ partyLevel = 5, enemiesDefeated = [] }) {
           // design system rules out glow-heavy chrome.
           background: 'var(--rq-citrus-control, #0a2342)',
           color: 'var(--rq-citrus-cream, #F5F1E8)',
-          border: '1px solid rgba(60, 146, 224, 0.32)'
+          border: '1px solid rgba(var(--guild-c2-rgb), 0.32)'
         }}
       >
         <Sparkles size={18} className={isGenerating ? 'animate-spin' : ''} />
@@ -529,13 +529,13 @@ function LootGenerator({ partyLevel = 5, enemiesDefeated = [] }) {
               edge instead of a gold gradient wash and gold border. */}
           <div style={{
             backgroundColor: 'var(--rq-citrus-panel, #0a2342)',
-            backgroundImage: 'var(--rq-citrus-gradient, linear-gradient(90deg, #FF8A1F 0%, #FF8A1F 28%, #F4551F 50%, #E03A2F 72%, #E03A2F 100%))',
+            backgroundImage: 'var(--rq-citrus-gradient, linear-gradient(90deg, var(--guild-c1) 0%, var(--guild-c1) 28%, var(--guild-h1) 50%, #E03A2F 72%, #E03A2F 100%))',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'left top',
             backgroundSize: '100% 3px',
             borderRadius: '10px',
             padding: '14px',
-            border: '1px solid rgba(60, 146, 224, 0.32)',
+            border: '1px solid rgba(var(--guild-c2-rgb), 0.32)',
             textAlign: 'center'
           }}>
             <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Total Value</div>

@@ -174,14 +174,14 @@ const titleStyle = { margin: '1px 0 3px', color: theme.text, fontSize: 18, fontW
 const subtitleStyle = { margin: 0, color: theme.soft, fontSize: 12, lineHeight: 1.35, maxWidth: 780 };
 const bodyStyle = { display: 'grid', gap: 9 };
 const checkGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(118px, 1fr))', gap: 7 };
-const checkButtonStyle = (active) => ({ minHeight: 46, display: 'grid', gap: 2, textAlign: 'left', border: `1px solid ${active ? theme.pink : theme.line}`, background: active ? 'rgba(124,203,255,0.10)' : theme.card, color: theme.text, padding: '7px 9px', cursor: 'pointer', fontFamily: fontStack, boxShadow: 'none' });
+const checkButtonStyle = (active) => ({ minHeight: 46, display: 'grid', gap: 2, textAlign: 'left', border: `1px solid ${active ? theme.pink : theme.line}`, background: active ? 'rgba(var(--guild-h3-rgb),0.10)' : theme.card, color: theme.text, padding: '7px 9px', cursor: 'pointer', fontFamily: fontStack, boxShadow: 'none' });
 const controlRowStyle = { display: 'grid', gridTemplateColumns: '120px minmax(180px, 1fr) auto', gap: 7, alignItems: 'end' };
 const fieldStyle = { display: 'grid', gap: 4, color: theme.muted, fontSize: 10, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.08em' };
 const inputStyle = { minHeight: 36, background: theme.bg, color: theme.text, border: `1px solid ${theme.lineStrong}`, padding: '0 8px', outline: 'none', fontFamily: fontStack };
 const primaryButtonStyle = { minHeight: 36, border: `1px solid ${theme.pink}`, background: theme.card, color: theme.text, padding: '0 11px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontWeight: 950, cursor: 'pointer', fontFamily: fontStack };
 const summaryStyle = { minHeight: 36, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 10px', background: theme.bg, border: `1px solid ${theme.line}`, color: theme.text, fontSize: 12, fontWeight: 950, textTransform: 'uppercase' };
 const playerGridStyle = { display: 'flex', gap: 6, flexWrap: 'wrap', maxHeight: 116, overflowY: 'auto', padding: 8, background: theme.bg, border: `1px solid ${theme.line}` };
-const playerPillStyle = (active) => ({ minHeight: 30, display: 'inline-flex', alignItems: 'center', gap: 6, border: `1px solid ${active ? theme.pink : theme.line}`, background: active ? 'rgba(124,203,255,0.10)' : theme.bg, color: theme.text, padding: '0 9px', fontSize: 12, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack });
+const playerPillStyle = (active) => ({ minHeight: 30, display: 'inline-flex', alignItems: 'center', gap: 6, border: `1px solid ${active ? theme.pink : theme.line}`, background: active ? 'rgba(var(--guild-h3-rgb),0.10)' : theme.bg, color: theme.text, padding: '0 9px', fontSize: 12, fontWeight: 900, cursor: 'pointer', fontFamily: fontStack });
 const mutedStyle = { margin: 0, color: theme.muted, fontSize: 12 };
 
 if (typeof document !== 'undefined' && !document.getElementById('rqk-group-check-request-css')) {

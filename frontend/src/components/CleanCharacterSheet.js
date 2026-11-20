@@ -1,6 +1,8 @@
 import RouteLoadingScreen from '@/components/RouteLoadingScreen';
+import { getSaveProficiencies } from '@/data/saveProficiencies';
 import { passiveScore } from '@/data/skillModifiers';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { applyDamage, damageOutcomeMessage, damageUpdatesForCharacter } from '@/data/damageTransitions';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -41,7 +43,6 @@ import { createCharacterSaveQueue } from '@/data/characterSaveQueue';
 import {
   PASSIVE_SKILLS,
   SHEET_TABS,
-  calculateHpDamage,
   calculateHpHealing,
   clampDeathCount,
   getCurrentHp,
@@ -167,7 +168,7 @@ export default function CleanCharacterSheet() {
   const speed = deriveWalkingSpeed(character);
   const initiative = getInitiativeModifier(character);
   const skillProficiencies = character?.skill_proficiencies || [];
-  const saveProficiencies = character?.saving_throw_proficiencies || [];
+  const saveProficiencies = getSaveProficiencies(character);
   const activeConditions = character?.conditions || [];
   const exhaustionLevel = Number(character?.exhaustion_level || 0);
   const deathSaveSuccesses = clampDeathCount(character?.death_saves_successes);
@@ -328,16 +329,25 @@ export default function CleanCharacterSheet() {
     if (!live) return;
     const liveMaxHp = getMaxHp(live);
     const amount = Math.abs(Number(delta) || 0);
-    const result = delta < 0
-      ? calculateHpDamage({ currentHp: Math.min(getCurrentHp(live), liveMaxHp), tempHp: getTempHp(live), maxHp: liveMaxHp, amount })
+    // Damage goes through the shared rules: dropping to 0 ends
+    // concentration, and damage at 0 is a failed death save.
+    const damageOutcome = delta < 0
+      ? applyDamage({
+        currentHp: Math.min(getCurrentHp(live), liveMaxHp),
+        tempHp: getTempHp(live),
+        maxHp: liveMaxHp,
+        amount,
+        successes: live.death_saves_successes,
+        failures: live.death_saves_failures,
+        concentrating: Boolean(live.concentrating_on || live.concentration),
+      })
+      : null;
+    const result = damageOutcome
+      ? { current_hit_points: damageOutcome.currentHp }
       : calculateHpHealing({ currentHp: Math.min(getCurrentHp(live), liveMaxHp), maxHp: liveMaxHp, amount });
     const nextHp = result.current_hit_points;
-    const updates = { current_hit_points: nextHp };
-    if (delta < 0) {
-      updates.temporary_hit_points = result.temporary_hit_points;
-      updates.temp_hp = result.temp_hp;
-    }
-    if (nextHp > 0 && (clampDeathCount(live.death_saves_successes) || clampDeathCount(live.death_saves_failures))) {
+    const updates = damageOutcome ? damageUpdatesForCharacter(live, damageOutcome) : { current_hit_points: nextHp };
+    if (!damageOutcome && nextHp > 0 && (clampDeathCount(live.death_saves_successes) || clampDeathCount(live.death_saves_failures))) {
       updates.death_saves_successes = 0;
       updates.death_saves_failures = 0;
     }
@@ -345,7 +355,9 @@ export default function CleanCharacterSheet() {
     const saved = await patchCharacter(updates, { error: 'Could not save HP' });
     setSavingHp(count => Math.max(0, count - 1));
 
-    if (saved !== false && isCurrentSheetSession() && delta < 0 && concentratingName && amount > 0) {
+    const outcomeLine = damageOutcome ? damageOutcomeMessage(live.name, damageOutcome) : null;
+    if (saved !== false && isCurrentSheetSession() && outcomeLine) toast.warning(outcomeLine, { duration: 8000 });
+    if (saved !== false && isCurrentSheetSession() && delta < 0 && concentratingName && amount > 0 && damageOutcome?.currentHp > 0) {
       const concentrationDC = getConcentrationSaveDc(amount);
       toast.warning(`You took ${amount} damage — concentration check`, {
         description: `You are concentrating on ${concentratingName}. Make a Constitution save, DC ${concentrationDC}, to keep the spell.`,

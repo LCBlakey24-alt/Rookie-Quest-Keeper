@@ -10,17 +10,17 @@
   --landing-card-hover: var(--rq-card-hover, #0a2342);
   --landing-input: var(--rq-bg-input, #0a2342);
   --landing-line: var(--rq-line, rgba(137, 157, 176, 0.14));
-  --landing-line-strong: var(--rq-line-strong, rgba(242, 137, 47, 0.30));
-  --landing-gold: var(--rq-primary, #f2892f);
-  --landing-gold-bright: var(--rq-primary-hover, #ffb066);
-  --landing-gold-soft: var(--rq-primary-soft, rgba(242, 137, 47, 0.12));
+  --landing-line-strong: var(--rq-line-strong, rgba(var(--guild-c1-rgb), 0.30));
+  --landing-gold: var(--rq-primary, var(--guild-c1));
+  --landing-gold-bright: var(--rq-primary-hover, var(--guild-hi));
+  --landing-gold-soft: var(--rq-primary-soft, rgba(var(--guild-c1-rgb), 0.12));
   /* Compatibility aliases retained for the shared professional-theme contract. */
-  --landing-red: #f2892f;
-  --landing-red-bright: #ffb066;
-  --landing-red-soft: rgba(242, 137, 47, 0.12);
+  --landing-red: var(--guild-c1);
+  --landing-red-bright: var(--guild-hi);
+  --landing-red-soft: rgba(var(--guild-c1-rgb),  0.12);
   --landing-blue: var(--rq-secondary, #3C92E0);
-  --landing-secondary: #3C92E0;
-  --landing-blue-soft: var(--rq-secondary-soft, rgba(60, 146, 224, 0.10));
+  --landing-secondary: var(--guild-hi);
+  --landing-blue-soft: var(--rq-secondary-soft, rgba(var(--guild-c2-rgb), 0.10));
   --landing-text: #ffffff;
   --landing-muted: var(--rq-text-secondary, rgba(255, 255, 255, 0.78));
   --landing-faint: var(--rq-text-muted, rgba(255, 255, 255, 0.58));
@@ -343,7 +343,7 @@
 
 #root .keeper-product-site .landing-product-stage::before {
   inset: 10px;
-  border: 1px solid rgba(242, 137, 47, 0.09);
+  border: 1px solid rgba(var(--guild-c1-rgb),  0.09);
 }
 
 #root .keeper-product-site .landing-product-stage::after {
@@ -702,7 +702,7 @@
   height: 100px;
   right: 16px;
   top: 16px;
-  border: 1px solid rgba(242, 137, 47, 0.08);
+  border: 1px solid rgba(var(--guild-c1-rgb),  0.08);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -866,7 +866,7 @@
   display: grid;
   place-items: center;
   background: #25384A;
-  color: #ffb066;
+  color: var(--guild-hi);
   border: 1px solid rgba(20, 32, 43, 0.42);
 }
 
@@ -1077,7 +1077,7 @@
   position: absolute;
   right: -16px;
   bottom: -16px;
-  color: rgba(242, 137, 47, 0.14);
+  color: rgba(var(--guild-c1-rgb),  0.14);
 }
 
 #root .keeper-product-site .landing-faq-list {

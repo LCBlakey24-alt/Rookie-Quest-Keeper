@@ -2,36 +2,35 @@
  * What a character wears and holds, by body slot, as plain rules so every
  * part can be tested.
  *
- * Slots follow the rule for wearing several magic items (the same in the
- * 2014 and 2024 Dungeon Master's Guides): one item of headwear, one cloak,
- * one suit of armour, one pair of gloves or gauntlets, one pair of bracers,
- * one pair of footwear, and up to two rings. Necklaces and belts are one
- * each. Hands hold weapons, a shield or other items; a two-handed weapon
- * takes both.
+ * The sheet shows only the five slots a character can fill once each and
+ * that matter most at the table (owner decision, November 2026): main hand,
+ * off hand, armour, boots and helmet. Hands hold weapons, a shield or other
+ * items; a two-handed weapon takes both. Rings, amulets, cloaks, bracers,
+ * gloves and belts live in the equipment list; a magic one works while the
+ * character is attuned to it (at most three at once).
  *
- * Slot ids keep the names the classic inventory already saves (mainHand,
- * offHand, armor, gauntlets, boots), so existing characters need no change.
+ * Slot ids keep the names the inventory already saves (mainHand, offHand,
+ * armor, boots, head). Items a character already wears in an older slot
+ * (ring1, neck...) are kept: the sheet lists them with the rest of the gear
+ * and they still count.
  */
 import { ADVENTURING_GEAR, ALL_ARMOR, ALL_TOOLS, ALL_WEAPONS } from '@/data/equipmentDatabase';
 
 export const BODY_SLOTS = [
-  { id: 'head', label: 'Head', hint: 'Helm, hat, circlet' },
-  { id: 'neck', label: 'Neck', hint: 'Amulet, necklace' },
-  { id: 'shoulders', label: 'Cloak', hint: 'Cloak, cape, mantle' },
-  { id: 'armor', label: 'Armour', hint: 'Body armour' },
   { id: 'mainHand', label: 'Main Hand', hint: 'Weapon or item' },
   { id: 'offHand', label: 'Off Hand', hint: 'Shield, weapon or item' },
-  { id: 'gauntlets', label: 'Hands', hint: 'Gloves, gauntlets' },
-  { id: 'wrists', label: 'Bracers', hint: 'Bracers' },
-  { id: 'waist', label: 'Belt', hint: 'Belt, girdle' },
-  { id: 'boots', label: 'Feet', hint: 'Boots, slippers' },
-  { id: 'ring1', label: 'Ring', hint: 'Ring' },
-  { id: 'ring2', label: 'Ring', hint: 'Ring' },
+  { id: 'armor', label: 'Armour', hint: 'Body armour' },
+  { id: 'boots', label: 'Boots', hint: 'Boots, slippers' },
+  { id: 'head', label: 'Helmet', hint: 'Helm, hat, circlet' },
 ];
+
+/** Slots older saves may still use; their items are listed with the gear. */
+export const LEGACY_WORN_SLOTS = ['neck', 'shoulders', 'gauntlets', 'wrists', 'waist', 'ring1', 'ring2'];
 
 export const ATTUNEMENT_LIMIT = 3;
 const HAND_SLOTS = ['mainHand', 'offHand'];
-const RINGS = ['ring1', 'ring2'];
+// Worn accessories with no slot of their own: kept in the equipment list.
+const ACCESSORY = /\bring\b|amulet|necklace|periapt|medallion|talisman|scarab|cloak|\bcape\b|mantle|bracer|glove|gauntlet|\bbelt\b|girdle/;
 
 const nameOf = (item) => String((typeof item === 'string' ? item : item?.name || item?.item_name) || '').trim();
 const textOf = (item) => `${typeof item === 'string' ? '' : `${item?.type || ''} ${item?.item_type || ''} ${item?.category || ''}`} ${nameOf(item)}`.toLowerCase();
@@ -56,19 +55,19 @@ export function isAttuned(item) {
 /** The body slots an item can go in, best first. Empty: carried, not worn. */
 export function slotsForItem(item) {
   if (!item) return [];
+  // Homebrew items say what they are; their names can be anything.
+  const kind = typeof item === 'object' ? item.homebrew_kind : '';
+  if (kind === 'weapon') return isTwoHanded(item) ? ['mainHand'] : HAND_SLOTS;
+  if (kind === 'armour') return ['armor'];
+  if (kind === 'shield') return ['offHand'];
   const text = textOf(item);
   const explicit = typeof item === 'object' ? (item.equip_slot || item.equipped_slot) : '';
   if (explicit === 'shield' || /\bshield\b/.test(text)) return ['offHand'];
   // Known armour first: "Ring Mail" is armour, not a ring.
   const isArmourName = ALL_ARMOR.some((armour) => armour.name.toLowerCase() === nameOf(item).toLowerCase() && !/shield/i.test(armour.name));
   if (isArmourName || /ring mail/.test(text)) return ['armor'];
-  if (/\bring\b/.test(text)) return RINGS;
-  if (/amulet|necklace|periapt|medallion|talisman|scarab/.test(text)) return ['neck'];
-  if (/cloak|cape|mantle/.test(text)) return ['shoulders'];
-  if (/bracer/.test(text)) return ['wrists'];
-  if (/glove|gauntlet/.test(text)) return ['gauntlets'];
+  if (ACCESSORY.test(text)) return [];
   if (/boot|slipper|shoe|sandal/.test(text)) return ['boots'];
-  if (/belt|girdle/.test(text)) return ['waist'];
   if (/helm|\bhat\b|circlet|headband|crown|diadem|\bcap\b|goggles/.test(text)) return ['head'];
   if (/\barmou?r\b|chain mail|plate|breastplate|splint|padded|studded|ring mail|scale mail|half plate|hide armou?r|leather armou?r/.test(text)) return ['armor'];
   const isWeapon = ALL_WEAPONS.some((weapon) => weapon.name.toLowerCase() === nameOf(item).toLowerCase())
@@ -143,19 +142,33 @@ const KNOWN_AC_ITEMS = {
   'bracers of defence': 2,
 };
 
-const WORN_ACCESSORY_SLOTS = ['head', 'neck', 'shoulders', 'gauntlets', 'wrists', 'waist', 'boots', 'ring1', 'ring2'];
+const WORN_ACCESSORY_SLOTS = ['head', 'boots', ...LEGACY_WORN_SLOTS];
+
+const itemKey = (item) => {
+  const id = item?.id || item?.item_id || item?.instance_id || '';
+  return id ? `id:${id}` : `name:${nameOf(item).toLowerCase()}`;
+};
 
 /**
  * AC added by worn magic accessories (not armour or a shield, which the
- * armour rules already count). An item that needs attunement only counts
- * while attuned; Bracers of Defense only without armour or a shield.
+ * armour rules already count): the helmet and boots slots, any older
+ * accessory slot, and -- since rings and cloaks now live in the equipment
+ * list -- any accessory in the list the character is attuned to. An item
+ * that needs attunement only counts while attuned; Bracers of Defense only
+ * without armour or a shield. Each item counts once.
  */
-export function wornMagicAcBonus(equipped = {}) {
+export function wornMagicAcBonus(equipped = {}, inventory = []) {
   const wearingArmour = Boolean(equipped.armor || equipped.armour);
   const holdingShield = [equipped.offHand, equipped.shield].some((item) => item && /shield/i.test(textOf(item)));
-  return WORN_ACCESSORY_SLOTS.reduce((sum, slot) => {
-    const item = equipped[slot];
-    if (!item || typeof item !== 'object') return sum;
+  const worn = WORN_ACCESSORY_SLOTS.map((slot) => equipped[slot]).filter((item) => item && typeof item === 'object');
+  const listed = (Array.isArray(inventory) ? inventory : []).filter((item) => (
+    item && typeof item === 'object' && isAttuned(item) && ACCESSORY.test(textOf(item)) && !/ring mail/.test(textOf(item))
+  ));
+  const seen = new Set();
+  return [...worn, ...listed].reduce((sum, item) => {
+    const key = itemKey(item);
+    if (seen.has(key)) return sum;
+    seen.add(key);
     if (requiresAttunement(item) && !isAttuned(item)) return sum;
     const name = nameOf(item).toLowerCase();
     const bonus = Number(item.ac_bonus ?? item.acBonus ?? KNOWN_AC_ITEMS[name] ?? 0) || 0;

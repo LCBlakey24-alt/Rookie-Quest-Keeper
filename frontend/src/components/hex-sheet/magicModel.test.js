@@ -1,4 +1,4 @@
-import { castOptionAt, castableSpells, magicLevels, spellsAtLevel, spellWithDetails } from './magicModel';
+import { castOptionAt, castableSpells, isUpcast, magicLevels, spellsAtLevel, spellWithDetails } from './magicModel';
 
 const wizard = {
   cantrips_known: [{ name: 'Fire Bolt' }, 'Light'],
@@ -48,12 +48,34 @@ test('a Warlock\'s lower-level spells sit under the Pact Magic wedge', () => {
   const spells = castableSpells(warlock);
   const levels = magicLevels(spells, pools).map((entry) => entry.level);
   expect(levels).toEqual([3]);
-  expect(spellsAtLevel(spells, 3, levels).map((spell) => spell.name)).toEqual(['Counterspell', 'Hex', 'Hold Person']);
+  expect(spellsAtLevel(spells, 3, levels).map((spell) => spell.name)).toEqual(['Counterspell', 'Hold Person', 'Hex']);
 });
 
-test('a spell with its own wedge is not repeated under higher wedges', () => {
+test('a higher wedge offers lower-level spells to upcast, own-level spells first (review finding 15)', () => {
   const spells = castableSpells(wizard);
-  expect(spellsAtLevel(spells, 3, [0, 1, 3]).map((spell) => spell.name)).toEqual(['Fireball']);
+  const third = spellsAtLevel(spells, 3, [0, 1, 3]);
+  expect(third[0].name).toBe('Fireball');
+  expect(third.map((spell) => spell.name)).toEqual(expect.arrayContaining(['Fireball', 'Magic Missile']));
+  expect(third.some((spell) => spell.level === 0)).toBe(false);
+  expect(isUpcast(third.find((spell) => spell.name === 'Magic Missile'), 3)).toBe(true);
+  expect(isUpcast(third[0], 3)).toBe(false);
+});
+
+test('the chosen wedge picks that slot level, even while lower slots remain', () => {
+  const options = [
+    { source: 'spell', level: 1, remaining: 2 },
+    { source: 'spell', level: 2, remaining: 1 },
+  ];
+  expect(castOptionAt(options, 2)).toMatchObject({ source: 'spell', level: 2 });
+});
+
+test('upcasting keeps Pact Magic separate: an ordinary slot at the wedge level comes first', () => {
+  const options = [
+    { source: 'pact', level: 2, remaining: 2 },
+    { source: 'spell', level: 2, remaining: 1 },
+  ];
+  expect(castOptionAt(options, 2)).toMatchObject({ source: 'spell' });
+  expect(castOptionAt([{ source: 'pact', level: 2, remaining: 2 }], 2)).toMatchObject({ source: 'pact' });
 });
 
 test('the same spell from two classes is kept once per class; untagged repeats are dropped', () => {

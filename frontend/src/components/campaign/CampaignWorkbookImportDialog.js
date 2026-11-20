@@ -5,6 +5,23 @@ import './CampaignWorkbookImportDialog.css';
 
 const MAX_FILE_BYTES = 2 * 1024 * 1024;
 
+// The workbook's section names, as a GM would say them.
+const SECTION_NAMES = {
+  CAMPAIGN: 'Campaign details',
+  NPC: 'People',
+  LOCATION: 'Places',
+  GOD: 'Gods',
+  LOOT: 'Loot',
+  HANDOUT: 'Handouts',
+  QUEST: 'Quests',
+  'STORY ARC': 'Story arcs',
+  CALENDAR: 'Calendar',
+  'CALENDAR EVENT': 'Calendar dates',
+  'SESSION NOTE': 'Session notes',
+  'TIMELINE EVENT': 'Timeline events',
+};
+export const sectionName = (section) => SECTION_NAMES[section] || section;
+
 function formData(file, campaignId) {
   const data = new FormData();
   data.append('file', file);
@@ -21,10 +38,14 @@ function readError(error, fallback) {
 
 export default function CampaignWorkbookImportDialog({
   campaigns = [],
+  campaignId = '',
+  campaignName = '',
   onClose,
   onImported,
 }) {
-  const [selectedCampaignId, setSelectedCampaignId] = useState('');
+  // Opened from inside a campaign, the document always goes to that campaign.
+  const lockedToCampaign = Boolean(campaignId);
+  const [selectedCampaignId, setSelectedCampaignId] = useState(campaignId || '');
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [busy, setBusy] = useState('');
@@ -158,7 +179,7 @@ export default function CampaignWorkbookImportDialog({
         <div className="rqk-workbook-steps">
           <section>
             <h3>1. Prepare your workbook</h3>
-            <p>Download the guild-branded template. Fill its right-hand table cells yourself or ask ChatGPT to do so using your campaign notes. To add more NPCs, duplicate the whole NPC heading and table, including its combat-stat rows. Keep section headings and field labels unchanged.</p>
+            <p>Download the template. Fill its right-hand cells yourself, or give it to ChatGPT, Claude or another assistant with your campaign notes. For more people, places, loot, handouts or quests, copy the whole section (heading and table). Keep section headings and field labels unchanged. Name a quest's giver, people, places, rewards and handouts exactly as elsewhere and Rookie links them.</p>
             <p className="rqk-workbook-hint">Rook suggestions for missing fields are being developed. This version imports what you provided; it does not invent missing abilities, lore, alignment or statistics automatically.</p>
             <button type="button" className="rqk-workbook-secondary" disabled={working} onClick={downloadTemplate}>
               <Download size={16} /> {busy === 'downloading' ? 'Downloading…' : 'Download Word template'}
@@ -166,7 +187,10 @@ export default function CampaignWorkbookImportDialog({
           </section>
 
           <section>
-            <h3>2. Choose where it goes</h3>
+            <h3>2. {lockedToCampaign ? 'Upload it' : 'Choose where it goes'}</h3>
+            {lockedToCampaign ? (
+              <p className="rqk-workbook-hint" data-testid="workbook-locked-target">Adds to: <strong>{campaignName || 'this campaign'}</strong></p>
+            ) : (<>
             <label htmlFor="rqk-workbook-target">Import destination</label>
             <select
               id="rqk-workbook-target"
@@ -179,6 +203,7 @@ export default function CampaignWorkbookImportDialog({
                 <option key={campaign.id} value={campaign.id}>Add to: {campaign.name || 'Untitled campaign'}</option>
               ))}
             </select>
+            </>)}
             <p className="rqk-workbook-hint">Existing campaigns are never replaced. Matching record names will be skipped, and existing calendar settings are kept.</p>
             <label htmlFor="rqk-workbook-file">Completed .docx workbook</label>
             <input
@@ -199,10 +224,10 @@ export default function CampaignWorkbookImportDialog({
             </button>
             {preview && (
               <div className="rqk-workbook-preview" aria-live="polite">
-                <strong>{preview.total_records} sections found</strong>
+                <strong>{preview.total_records} {preview.total_records === 1 ? 'record' : 'records'} found</strong>
                 <span>Destination: {preview.target === 'new' ? 'New campaign' : 'Existing campaign'}</span>
                 {Object.entries(preview.counts || {}).map(([section, count]) => (
-                  <span key={section}>{section}: {count}</span>
+                  <span key={section}>{sectionName(section)}: {count}</span>
                 ))}
                 {(preview.warnings || []).map((warning, i) => (
                   <p key={i} className="rqk-workbook-warning">{warning}</p>

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { applyDamage, damageOutcomeMessage } from '@/data/damageTransitions';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   CHECKPOINT_VERSION,
@@ -23,7 +24,9 @@ import { applyDeathSaveResult, resolveDeathSaveRoll } from '@/data/combatRollRul
 import { getInitiativeModifier, rollInitiative } from '@/data/initiativeRules';
 import { isPlayerVisibleCombatToken } from '@/data/playerDisplayCombatTokens';
 import { createGenericCombatMap, GENERIC_COMBAT_TERRAINS, normaliseCombatTerrain } from '@/data/genericCombatTerrain';
+import { combatantSide, startingSquares } from '@/data/encounterPlacement';
 import { createDisplayState, publishCampaignDisplayState, publishDisplayState } from '@/lib/liveDisplayBus';
+import { campaignCreationRoute } from '@/components/gm/dashboard/campaignModeNavigation';
 import {
   combatStateSnapshot,
   queueOfflineCombatClose,
@@ -84,6 +87,12 @@ function inventoryPayload(item = {}, round = 1) {
     properties: safeArray(item.properties),
     equip_slot: item.equip_slot || '',
   };
+}
+
+// A fight returns to where it was started: Live Play, or the Creation
+// Mode encounter tools (not the mode chooser, which costs an extra click).
+export function endOfCombatRoute(source, campaignId) {
+  return source === 'live-play' ? `/gm-screen/${campaignId}` : campaignCreationRoute(campaignId, 'combat');
 }
 
 function initialiseCombatant(source, index) {
@@ -229,6 +238,7 @@ export default function CombatPageTable() {
   const [terrainType, setTerrainType] = useState('stone');
   const [showBattleGrid, setShowBattleGrid] = useState(true);
   const [mapTokens, setMapTokens] = useState([]);
+  const [measuring, setMeasuring] = useState(false);
   const [mapZoom, setMapZoom] = useState(1);
   const [collectedLoot, setCollectedLoot] = useState([]);
   const [initialised, setInitialised] = useState(false);
@@ -448,19 +458,33 @@ export default function CombatPageTable() {
     // tokens. An empty initial render must never erase saved token cells.
     if (!initialised || !mapsLoaded || !combatants.length || mapTokens.length) return;
     const savedTokens = safeArray(displayedMap.tokens);
-    setMapTokens(combatants.map((combatant, index) => {
+    const cols = Number(displayedMap.width) || 30;
+    const rows = Number(displayedMap.height) || 20;
+    // Where each combatant starts: the encounter's own placements first,
+    // then tokens saved on the battle map, then a default square per side.
+    const mapPlacements = savedTokens
+      .filter(token => Number.isInteger(token?.x) && Number.isInteger(token?.y))
+      .map(token => ({ id: token.id, col: token.x, row: token.y }));
+    const encounterIds = new Set(safeArray(scenario?.placements).map(item => String(item.id)));
+    const squares = startingSquares(combatants, [
+      ...safeArray(scenario?.placements),
+      ...mapPlacements.filter(item => !encounterIds.has(String(item.id))),
+    ], cols, rows);
+    setMapTokens(combatants.map((combatant) => {
       const saved = savedTokens.find(token => token.id === combatant.id);
+      const side = combatantSide(combatant);
       return {
         ...saved,
         id: combatant.id,
         name: combatant.name,
-        x: saved?.x ?? (2 + (index % 6)),
-        y: saved?.y ?? (2 + Math.floor(index / 6)),
-        isEnemy: combatant.type !== 'player' && combatant.type !== 'npc',
-        isAlly: combatant.type === 'player' || combatant.type === 'npc',
+        x: squares[combatant.id].col,
+        y: squares[combatant.id].row,
+        isEnemy: side === 'enemy',
+        isAlly: side === 'ally',
+        speed: combatant.speed ?? saved?.speed,
       };
     }));
-  }, [combatants, mapTokens.length, displayedMap, initialised, mapsLoaded]);
+  }, [combatants, mapTokens.length, displayedMap, initialised, mapsLoaded, scenario?.placements]);
 
   useEffect(() => {
     if (!initialised || !scenario || !campaignId) return undefined;
@@ -569,20 +593,39 @@ export default function CombatPageTable() {
       let nextTemp = combatant.tempHp || 0;
 
       if (damage > 0) {
-        const absorbed = Math.min(nextTemp, damage);
-        nextTemp -= absorbed;
-        nextHp = Math.max(0, nextHp - (damage - absorbed));
-        if (combatant.concentrating_on || safeArray(combatant.conditions).includes('concentrating')) {
-          const dc = Math.max(10, Math.floor(damage / 2));
-          toast.warning(`${combatant.name}: concentration check DC ${dc}`);
-        }
-      } else if (change > 0) {
-        nextHp = Math.min(combatant.maxHp, nextHp + change);
+        // Shared rules (data/damageTransitions.js): dropping to 0 ends
+        // concentration instead of asking for a save, and damage at 0 is
+        // a failed death save. The GM can still adjust saves by hand.
+        const conditions = safeArray(combatant.conditions);
+        const concentrating = Boolean(combatant.concentrating_on || conditions.includes('concentrating'));
+        const saves = combatant.deathSaves || { successes: 0, failures: 0 };
+        const outcome = applyDamage({
+          currentHp: combatant.hp,
+          tempHp: nextTemp,
+          maxHp: combatant.maxHp,
+          amount: damage,
+          successes: saves.successes,
+          failures: saves.failures,
+          concentrating,
+        });
+        if (outcome.concentrationCheckDc) toast.warning(`${combatant.name}: concentration check DC ${outcome.concentrationCheckDc}`);
+        const outcomeLine = damageOutcomeMessage(combatant.name, outcome);
+        if (outcomeLine) toast.warning(outcomeLine);
+        return {
+          ...combatant,
+          hp: outcome.currentHp,
+          tempHp: outcome.tempHp,
+          deathSaves: { successes: outcome.successes, failures: outcome.failures },
+          ...(outcome.endsConcentration ? {
+            concentrating_on: null,
+            conditions: conditions.filter((condition) => condition !== 'concentrating'),
+          } : {}),
+        };
       }
+      if (change > 0) nextHp = Math.min(combatant.maxHp, nextHp + change);
 
       const wasDown = combatant.hp <= 0;
       const nowDown = nextHp <= 0;
-      if (!wasDown && nowDown) toast.warning(`${combatant.name} is down`);
       if (wasDown && !nowDown) toast.success(`${combatant.name} is back up`);
 
       return {
@@ -805,7 +848,7 @@ export default function CombatPageTable() {
     toast.success(details.length
       ? `Combat ended offline · ${details.join(' + ')} queued for sync`
       : 'Combat ended offline · reconnect cleanup queued');
-    navigate(source === 'live-play' ? `/gm-screen/${campaignId}` : `/campaign/${campaignId}`, { replace: true });
+    navigate(endOfCombatRoute(source, campaignId), { replace: true });
     return true;
   };
 
@@ -857,7 +900,7 @@ export default function CombatPageTable() {
       toast.success(cleanupQueued
         ? 'Combat ended and player state saved · display cleanup will retry automatically'
         : 'Combat ended and player state saved');
-      navigate(source === 'live-play' ? `/gm-screen/${campaignId}` : `/campaign/${campaignId}`, { replace: true });
+      navigate(endOfCombatRoute(source, campaignId), { replace: true });
     } catch (error) {
       toast.error(error?.response?.data?.detail || error?.message || 'Could not safely end combat. The fight is still open so you can retry.');
     }
@@ -1147,6 +1190,10 @@ export default function CombatPageTable() {
               onClick={() => setShowBattleGrid(value => !value)}>
               Grid {showBattleGrid ? 'on' : 'off'}
             </button>
+            <button type="button" aria-pressed={measuring} onClick={() => setMeasuring(value => !value)}
+              title="Click a square, then point at another to measure. Click again to clear.">
+              Ruler {measuring ? 'on' : 'off'}
+            </button>
             <button type="button" onClick={() => setMapZoom(value => Math.max(0.5, value - 0.2))}>−</button>
             <span>{Math.round(mapZoom * 100)}%</span>
             <button type="button" onClick={() => setMapZoom(value => Math.min(2, value + 0.2))}>+</button>
@@ -1167,6 +1214,9 @@ export default function CombatPageTable() {
               gridSize={scenario.grid_size || 40}
               zoom={mapZoom}
               onZoomChange={setMapZoom}
+              showMovement
+              measureMode={measuring}
+              feetPerSquare={Number(displayedMap?.feet_per_square || scenario.feet_per_square) || 5}
             />
           </div>
         </main>
@@ -1288,7 +1338,7 @@ const combatCss = `
   .combat-title-wrap { min-width: 0; display: grid; gap: 1px; }
   .combat-title-wrap strong { display: flex; align-items: center; gap: 6px; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .combat-title-wrap span { color: ${rq.muted}; font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .combat-round { min-width: 54px; height: 38px; border: 1px solid ${rq.red}; background: rgba(124,203,255,.10); display: grid; place-items: center; align-content: center; line-height: 1; }
+  .combat-round { min-width: 54px; height: 38px; border: 1px solid ${rq.red}; background: rgba(var(--guild-h3-rgb),.10); display: grid; place-items: center; align-content: center; line-height: 1; }
   .combat-round span { color: ${rq.muted}; text-transform: uppercase; font-size: 7px; letter-spacing: .08em; }
   .combat-round strong { font-size: 16px; }
   .combat-next-top { min-height: 38px; border: 1px solid ${rq.pink}; background: ${rq.card}; color: #fff; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: 950; cursor: pointer; }
@@ -1316,7 +1366,7 @@ const combatCss = `
   .combat-initiative-body, .combat-add-panel > div { padding: 7px; border-top: 1px solid ${rq.line}; display: grid; gap: 6px; }
   .combat-initiative-tools { display: flex; justify-content: space-between; align-items: center; gap: 7px; flex-wrap: wrap; }
   .combat-initiative-tools span { color: ${rq.muted}; font-size: 9px; }
-  .combat-initiative-tools button { min-height: 30px; border: 1px solid ${rq.red}; background: rgba(124,203,255,.10); color: ${rq.text}; padding: 0 8px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 9px; font-weight: 900; }
+  .combat-initiative-tools button { min-height: 30px; border: 1px solid ${rq.red}; background: rgba(var(--guild-h3-rgb),.10); color: ${rq.text}; padding: 0 8px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 9px; font-weight: 900; }
   .combat-initiative-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: 4px; }
   .combat-initiative-row { min-height: 38px; display: grid; grid-template-columns: minmax(0,1fr) 58px 32px; gap: 4px; align-items: center; background: ${rq.bg}; border: 1px solid ${rq.line}; padding: 4px; }
   .combat-initiative-row > span { min-width: 0; display: grid; gap: 1px; }
@@ -1356,15 +1406,22 @@ const combatCss = `
   .combat-death-saves strong { font-size: 10px; }
   .combat-death-saves .successes { color: ${rq.green}; } .combat-death-saves .failures { color: ${rq.danger}; }
   .combat-death-saves button, .combat-attack-button, .combat-collect-loot, .combat-loot-save { min-height: 40px; border: 1px solid ${rq.line}; background: ${rq.card}; color: ${rq.text}; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; font-size: 10px; font-weight: 900; }
-  .combat-attack-button { border-color: ${rq.red}; background: rgba(124,203,255,.10); }
-  .combat-collect-loot, .combat-loot-save { border-color: ${rq.pink}; background: rgba(124,203,255,.10); color: ${rq.text}; }
+  .combat-attack-button { border-color: ${rq.red}; background: rgba(var(--guild-h3-rgb),.10); }
+  .combat-collect-loot, .combat-loot-save { border-color: ${rq.pink}; background: rgba(var(--guild-h3-rgb),.10); color: ${rq.text}; }
   .combat-order-tools { display: grid; grid-template-columns: minmax(80px,1fr) auto auto auto; gap: 4px; align-items: end; }
   .combat-order-tools button { min-height: 34px; border: 1px solid ${rq.line}; background: ${rq.panel}; color: ${rq.soft}; padding: 0 7px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 9px; font-weight: 900; }
+  /* Fingers mid-fight: 44px targets on touch screens; desktop stays compact. */
+  @media (pointer: coarse) {
+    .combat-condition-grid button, .combat-order-tools button, .combat-order-tools input,
+    .combat-quick-hp button, .combat-quick-hp input, .combat-initiative-tools button { min-height: 44px; }
+    .combat-condition-grid button { font-size: 11px; }
+  }
   .combat-order-tools .remove { color: #fca5a5; }
-  .combat-map-toolbar { display: grid; grid-template-columns: minmax(0,1fr) 34px auto 34px; gap: 4px; align-items: center; }
-  .combat-map-toolbar select { min-height: 36px; min-width: 0; background: ${rq.panel}; border: 1px solid ${rq.line}; color: ${rq.text}; padding: 0 7px; }
-  .combat-map-toolbar button { height: 36px; border: 1px solid ${rq.line}; background: ${rq.panel}; color: ${rq.text}; cursor: pointer; }
-  .combat-map-toolbar span { color: ${rq.muted}; font-size: 10px; text-align: center; }
+  .combat-map-toolbar { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  .combat-map-toolbar select { flex: 1 1 160px; min-height: 44px; min-width: 0; background: ${rq.panel}; border: 1px solid ${rq.line}; color: ${rq.text}; padding: 0 7px; }
+  .combat-map-toolbar button { min-height: 44px; min-width: 44px; padding: 0 10px; white-space: nowrap; border: 1px solid ${rq.line}; background: ${rq.panel}; color: ${rq.text}; cursor: pointer; }
+  .combat-map-toolbar button[aria-pressed='true'] { border-color: ${rq.red}; }
+  .combat-map-toolbar span { min-width: 40px; color: ${rq.muted}; font-size: 11px; text-align: center; }
   .combat-map-canvas { height: min(68vh,700px); min-height: 420px; border: 1px solid ${rq.line}; background: #141414; overflow: hidden; }
   .combat-map-empty { min-height: 360px; display: grid; place-items: center; align-content: center; gap: 7px; border: 1px dashed ${rq.line}; color: ${rq.muted}; text-align: center; padding: 20px; }
   .combat-map-empty strong { color: ${rq.text}; }

@@ -142,7 +142,7 @@
 }
 .rqk-npc-expand-toggle:hover,
 .rqk-npc-expand-toggle:focus-visible {
-  border-color: var(--rq-primary, #f2892f);
+  border-color: var(--rq-primary, var(--guild-c1));
   outline-offset: 3px;
 }
 #root .rqk-npc-combat-summary {
@@ -156,7 +156,7 @@
 .rqk-npc-summary-title {
   display: inline-block;
   margin-right: 8px;
-  color: var(--rq-primary, #f2892f);
+  color: var(--rq-primary, var(--guild-c1));
 }
 .rqk-npc-summary-stats {
   display: inline-flex;
@@ -169,7 +169,7 @@
 .rqk-npc-summary-stats > span {
   display: inline-block;
   padding: 2px 6px;
-  border: 1px solid var(--rq-border-default, rgba(242, 137, 47,.25));
+  border: 1px solid var(--rq-border-default, rgba(var(--guild-c1-rgb), .25));
   border-radius: 4px;
   background: var(--rq-bg-main, #0a2342);
   color: var(--rq-text-secondary, #bec7d4);
@@ -245,8 +245,8 @@
   align-content: start;
   gap: 12px;
   padding: clamp(20px, 4vw, 36px);
-  border: 1px solid var(--rq-border-strong, rgba(242, 137, 47,.3));
-  border-top: 3px solid var(--rq-accent-primary, #f2892f);
+  border: 1px solid var(--rq-border-strong, rgba(var(--guild-c1-rgb), .3));
+  border-top: 3px solid var(--rq-accent-primary, var(--guild-c1));
   border-radius: 9px;
   background: var(--rq-bg-panel, #0a2342);
   box-shadow: none;
@@ -256,14 +256,14 @@
   place-items: center;
   width: 54px;
   height: 54px;
-  border: 1px solid var(--rq-border-strong, rgba(242, 137, 47,.3));
+  border: 1px solid var(--rq-border-strong, rgba(var(--guild-c1-rgb), .3));
   border-radius: 9px;
-  color: var(--rq-accent-primary, #f2892f);
+  color: var(--rq-accent-primary, var(--guild-c1));
   background: var(--rq-bg-deep, #0a2342);
 }
 #root .rqk-npc-onboarding__eyebrow {
   margin: 0;
-  color: var(--rq-accent-primary, #f2892f);
+  color: var(--rq-accent-primary, var(--guild-c1));
   text-transform: uppercase;
   letter-spacing: .1em;
   font-size: 11px;
@@ -303,18 +303,18 @@
   border-radius: 6px;
 }
 #root .rqk-npc-onboarding__actions .btn-primary {
-  color: #0a2342;
-  background: var(--rq-accent-primary, #f2892f);
-  border: 1px solid var(--rq-accent-primary, #f2892f);
+  color: var(--guild-bg);
+  background: var(--rq-accent-primary, var(--guild-c1));
+  border: 1px solid var(--rq-accent-primary, var(--guild-c1));
 }
 #root .rqk-npc-onboarding__actions .btn-secondary {
   color: var(--rq-text-primary, #ffffff);
   background: var(--rq-bg-deep, #0a2342);
-  border: 1px solid var(--rq-border-strong, rgba(242, 137, 47,.3));
+  border: 1px solid var(--rq-border-strong, rgba(var(--guild-c1-rgb), .3));
 }
 #root .rqk-npc-onboarding__actions button:is(:hover,:focus-visible) {
-  border-color: var(--rq-accent-hover, #ffb066);
-  outline: 2px solid var(--rq-accent-hover, #ffb066);
+  border-color: var(--rq-accent-hover, var(--guild-hi));
+  outline: 2px solid var(--rq-accent-hover, var(--guild-hi));
   outline-offset: 2px;
 }
 #root .rqk-npc-onboarding__intro > small {

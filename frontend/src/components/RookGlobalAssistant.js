@@ -333,7 +333,7 @@ const modeTabsStyle = {
 };
 const modeTabStyle = (active) => ({
   border: `1px solid ${active ? 'rgba(255,45,170,0.7)' : 'rgba(255,45,170,0.18)'}`,
-  background: active ? 'rgba(124,203,255,0.10)' : '#102B40',
+  background: active ? 'rgba(var(--guild-h3-rgb),0.10)' : '#102B40',
   color: '#FFFFFF',
   padding: '5px 9px', borderRadius: 5, fontWeight: 800, fontSize: 11,
   display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer',

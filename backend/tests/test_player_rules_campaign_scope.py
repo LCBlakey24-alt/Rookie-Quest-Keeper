@@ -84,3 +84,23 @@ def test_endpoint_hides_private_and_other_campaign_gm_content(monkeypatch):
     out = asyncio.run(player_rules.get_player_rules_options(edition=None, campaign_id=CAMPAIGN, username=PLAYER))
     assert sorted(race['name'] for race in out['races']) == ['My Own Race', 'Shared Here']
     assert [ruleset['name'] for ruleset in out['rulesets']] == ['Shared Book']
+
+
+def test_homebrew_items_follow_the_same_sharing_rule_and_ignore_edition(monkeypatch):
+    fake = _Db()
+    fake['user_magic_items'] = _Collection([
+        {'id': 'i1', 'user_id': GM, 'name': 'Table Blade', 'visibility': 'campaign', 'campaign_id': CAMPAIGN, 'edition': '2014'},
+        {'id': 'i2', 'user_id': GM, 'name': 'GM Secret Ring', 'visibility': 'private', 'edition': '2024'},
+        {'id': 'i3', 'user_id': GM, 'name': 'Other Table Bow', 'visibility': 'campaign', 'campaign_id': OTHER, 'edition': '2024'},
+        {'id': 'i4', 'user_id': PLAYER, 'name': 'My Own Charm', 'visibility': 'private', 'edition': '2014'},
+    ])
+    monkeypatch.setattr(player_rules, 'db', fake)
+
+    async def membership(campaign_id, username):
+        return {'id': campaign_id, 'dm_user_id': GM, 'name': 'Table'}
+    monkeypatch.setattr(player_rules, 'verify_campaign_membership', membership)
+
+    # A 2024 filter still returns the 2014-tagged items: items have no edition.
+    out = asyncio.run(player_rules.get_player_rules_options(edition='2024', campaign_id=CAMPAIGN, username=PLAYER))
+    assert [item['name'] for item in out['items']] == ['My Own Charm', 'Table Blade']
+    assert out['counts']['items'] == 2

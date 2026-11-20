@@ -7,6 +7,7 @@ import {
   Layers, PaintBucket, DoorOpen, Minus, Plus, RotateCcw, Image
 } from 'lucide-react';
 import { TERRAIN_TYPES, WALL_COLORS } from './MapCanvas';
+import { terrainSwatch } from './terrainTextures';
 
 const TOOLS = [
   { id: 'select', icon: MousePointer, name: 'Select', shortcut: 'V' },
@@ -158,7 +159,7 @@ function MapToolbar({
               width: '16px',
               height: '16px',
               borderRadius: '4px',
-              background: TERRAIN_TYPES[selectedTerrain]?.color,
+              background: terrainSwatch(selectedTerrain, TERRAIN_TYPES[selectedTerrain]?.color),
               border: '1px solid rgba(255,255,255,0.3)'
             }} />
             {TERRAIN_TYPES[selectedTerrain]?.name || 'Select Terrain'}
@@ -193,7 +194,7 @@ function MapToolbar({
                     height: '32px',
                     borderRadius: '6px',
                     border: selectedTerrain === key ? '2px solid #3b82f6' : '1px solid #374151',
-                    background: terrain.color,
+                    background: terrainSwatch(key, terrain.color),
                     cursor: 'pointer'
                   }}
                 />

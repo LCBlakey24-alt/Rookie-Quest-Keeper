@@ -68,5 +68,7 @@ describe('derivePlayerDisplayDeliveryStatus', () => {
     }, NOW);
 
     expect(status.state).toBe('unacknowledged');
+    expect(status.label).toBe('No player display open.');
+    expect(status.detail).toMatch(/optional/i);
   });
 });

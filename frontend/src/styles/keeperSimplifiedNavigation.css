@@ -48,7 +48,7 @@
   background: #10283d;
 }
 #root .rqk-app-shell .campaign-player-tools-actions button.is-active {
-  border-color: #ff8a1f;
+  border-color: var(--guild-c1);
   background: #17344a;
 }
 #root .rqk-app-shell .campaign-player-tools-panel {
@@ -56,7 +56,7 @@
   padding: clamp(8px, 2vw, 15px);
   border: 1px solid #284964;
   border-radius: 10px;
-  background: #0c2234;
+  background: var(--guild-bg);
 }
 #root .rqk-app-shell .campaigns-joined-section {
   min-width: 0;
@@ -82,9 +82,9 @@
 }
 #root .rqk-app-shell .dashboard-news-card {
   padding: 14px 16px;
-  border: 1px solid rgba(124,203,255,.2);
+  border: 1px solid rgba(var(--guild-h3-rgb),.2);
   border-radius: 12px;
-  background: #0c2234;
+  background: var(--guild-bg);
 }
 #root .rqk-app-shell .dashboard-news-card h3 {
   margin: 2px 0 8px;
@@ -105,7 +105,7 @@
   font-weight: 800;
   letter-spacing: .08em;
   text-transform: uppercase;
-  color: #7ccbff;
+  color: var(--guild-h3);
 }
 @media (max-width:719px) {
   /* Admins see five destinations directly; the More tools action moves to
@@ -122,9 +122,9 @@
     margin-left: auto;
     min-width: 44px;
     min-height: 44px;
-    border: 1px solid rgba(124,203,255,.3);
+    border: 1px solid rgba(var(--guild-h3-rgb),.3);
     border-radius: 10px;
-    color: #7ccbff;
+    color: var(--guild-h3);
     background: #102b40;
   }
   #root .rqk-app-shell .campaign-player-tools-actions > button {

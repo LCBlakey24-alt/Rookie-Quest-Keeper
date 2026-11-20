@@ -70,7 +70,7 @@ export default function CleanSheetOverviewTab({
         <h2>Saving Throws</h2>
         <div className="clean-sheet-readable-saves clean-sheet-saving-throw-strip">
           {ABILITIES.map(([key, label]) => {
-            const proficient = saveProficiencies.includes(label) || saveProficiencies.includes(key);
+            const proficient = saveProficiencies.includes(key);
             const modifier = mod(character?.[key]) + (proficient ? proficiencyBonus : 0);
             return (
               <div className={`clean-sheet-compact-save ${proficient ? 'is-proficient' : ''}`} key={key}>

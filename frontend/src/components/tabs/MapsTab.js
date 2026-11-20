@@ -3,6 +3,8 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Map, PlusCircle, Trash2, Edit, Grid } from 'lucide-react';
 import { MapBuilder } from '@/components/MapBuilder';
+import NewBattleMapDialog from '@/components/MapBuilder/NewBattleMapDialog';
+import TerrainPreview from '@/components/MapBuilder/TerrainPreview';
 import LiveMapsPanel from '@/components/gm/LiveMapsPanel';
 import apiClient from '@/lib/apiClient';
 import HexLoader from '@/components/guild-motif/HexLoader';
@@ -23,17 +25,22 @@ const rq = {
   radiusSm: 'var(--rq-radius-sm, 4px)',
 };
 
-function MapsTab({ campaignId }) {
+function MapsTab({ campaignId, newMapRequest = 0 }) {
   const liveMode = typeof window !== 'undefined' && window.location.pathname.includes('/gm-screen/');
   if (liveMode) return <LiveMapsPanel campaignId={campaignId} />;
-  return <EditableMapsTab campaignId={campaignId} />;
+  return <EditableMapsTab campaignId={campaignId} newMapRequest={newMapRequest} />;
 }
 
-function EditableMapsTab({ campaignId }) {
+function EditableMapsTab({ campaignId, newMapRequest = 0 }) {
   const [maps, setMaps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showMapBuilder, setShowMapBuilder] = useState(false);
   const [selectedMap, setSelectedMap] = useState(null);
+  // A new map is set up first (name, size, ground), then drawn.
+  const [newMapSetup, setNewMapSetup] = useState(null);
+  const [choosingNewMap, setChoosingNewMap] = useState(false);
+  // "Create map" > "Battle map" on Maps & Locations opens the setup here.
+  useEffect(() => { if (newMapRequest > 0) setChoosingNewMap(true); }, [newMapRequest]);
 
   useEffect(() => {
     fetchMaps();
@@ -52,10 +59,17 @@ function EditableMapsTab({ campaignId }) {
 
   const handleCreateMap = () => {
     setSelectedMap(null);
+    setChoosingNewMap(true);
+  };
+
+  const startNewMap = (setup) => {
+    setChoosingNewMap(false);
+    setNewMapSetup(setup);
     setShowMapBuilder(true);
   };
 
   const handleEditMap = (map) => {
+    setNewMapSetup(null);
     setSelectedMap(map);
     setShowMapBuilder(true);
   };
@@ -115,7 +129,7 @@ function EditableMapsTab({ campaignId }) {
           {maps.map(map => (
             <div key={map.id} data-testid={`map-card-${map.id}`} style={{ background: rq.panel, border: `1px solid ${rq.border}`, borderRadius: rq.radius, overflow: 'hidden', transition: 'all 0.2s ease' }}>
               <div style={{ height: '140px', background: `linear-gradient(135deg, ${rq.accentSoft} 0%, ${rq.input} 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', borderBottom: `1px solid ${rq.border}` }}>
-                <Map size={48} style={{ color: rq.accent, opacity: 0.45 }} />
+                {Array.isArray(map.terrain) && map.terrain.length ? <TerrainPreview terrain={map.terrain} width={map.width} height={map.height} label={`${map.name} preview`} /> : <Map size={48} style={{ color: rq.accent, opacity: 0.45 }} />}
                 <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '6px' }}>
                   <span style={{ background: rq.accentSoft, color: rq.text, padding: '4px 8px', borderRadius: rq.radiusSm, border: `1px solid ${rq.border}`, fontSize: '10px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '4px' }}><Grid size={10} />{map.width || 20}x{map.height || 15}</span>
                 </div>
@@ -134,7 +148,8 @@ function EditableMapsTab({ campaignId }) {
         </div>
       )}
 
-      {showMapBuilder && <MapBuilder campaignId={campaignId} existingMap={selectedMap} onClose={() => { setShowMapBuilder(false); setSelectedMap(null); }} onMapSaved={handleMapSaved} />}
+      {choosingNewMap && <NewBattleMapDialog onCancel={() => setChoosingNewMap(false)} onCreate={startNewMap} />}
+      {showMapBuilder && <MapBuilder campaignId={campaignId} existingMap={selectedMap} newMap={newMapSetup} onClose={() => { setShowMapBuilder(false); setSelectedMap(null); setNewMapSetup(null); }} onMapSaved={handleMapSaved} />}
     </div>
   );
 }

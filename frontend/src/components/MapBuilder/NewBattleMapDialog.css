@@ -1,0 +1,47 @@
+.rq-new-map__backdrop {
+  position: fixed; inset: 0; z-index: 2300; display: grid; place-items: center;
+  padding: 16px; background: rgba(5, 3, 18, 0.72);
+}
+.rq-new-map {
+  width: min(640px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto;
+  display: grid; gap: 14px; padding: 20px;
+  border: 1px solid var(--guild-edge, rgba(255, 255, 255, 0.16)); border-radius: 14px;
+  background: var(--guild-panel, #141032); color: var(--guild-text, #fff);
+  box-shadow: inset 0 0 40px rgba(var(--guild-c1-rgb, 255, 25, 118), 0.14);
+}
+.rq-new-map__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.rq-new-map__head h2 { margin: 0; font-family: var(--rq-font-display, Cinzel, serif); font-size: 22px; }
+.rq-new-map__close { min-width: 44px; min-height: 44px; display: grid; place-items: center; border: 1px solid var(--guild-edge, rgba(255,255,255,0.16)); border-radius: 8px; background: transparent; color: inherit; cursor: pointer; }
+.rq-new-map__label, .rq-new-map__group legend { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--guild-text-muted, #c9c3e6); }
+.rq-new-map__input { min-height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--guild-edge, rgba(255,255,255,0.2)); background: var(--guild-bg, #0b0a1c); color: inherit; font: inherit; }
+.rq-new-map__group { margin: 0; padding: 0; border: 0; display: grid; gap: 8px; min-width: 0; }
+.rq-new-map__options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.rq-new-map__option, .rq-new-map__ground {
+  position: relative; display: grid; gap: 3px; padding: 10px 12px; min-height: 44px;
+  border: 1px solid var(--guild-edge, rgba(255,255,255,0.16)); border-radius: 10px; cursor: pointer;
+}
+.rq-new-map__option span { font-size: 13px; }
+.rq-new-map__option small { font-size: 12px; color: var(--guild-text-muted, #c9c3e6); }
+.rq-new-map__option.is-selected, .rq-new-map__ground.is-selected {
+  border-color: var(--guild-c1, #ff1976); box-shadow: inset 0 0 18px rgba(var(--guild-c1-rgb, 255, 25, 118), 0.25);
+}
+.rq-new-map input[type='radio'] { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.rq-new-map__option:has(input:focus-visible), .rq-new-map__ground:has(input:focus-visible) { outline: 2px solid #fff; outline-offset: 2px; }
+.rq-new-map__grounds { display: flex; flex-wrap: wrap; gap: 8px; }
+.rq-new-map__ground { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
+.rq-new-map__swatch { width: 18px; height: 18px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.3); }
+.rq-new-map__foot { display: flex; justify-content: flex-end; gap: 8px; }
+.rq-new-map__foot .campaign-button { min-height: 44px; }
+@media (max-width: 560px) { .rq-new-map__options { grid-template-columns: 1fr; } }
+.rq-new-map__choice { text-align: left; background: transparent; color: inherit; font: inherit; align-content: start; gap: 6px; padding: 14px; }
+.rq-new-map__choice:hover, .rq-new-map__choice:focus-visible { border-color: var(--guild-c1, #ff1976); box-shadow: inset 0 0 18px rgba(var(--guild-c1-rgb, 255, 25, 118), 0.25); outline: none; }
+.rq-new-map__choice svg { color: var(--guild-c1, #ff1976); }
+.rq-new-map--wide { width: min(980px, 100%); }
+.rq-new-map__options--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.rq-new-map__group > .campaign-button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; justify-self: start; }
+.rq-new-map__hint, .rq-new-map__fit { margin: 0; font-size: 13px; color: var(--guild-text-muted, #c9c3e6); }
+.rq-new-map__fit { font-weight: 700; color: var(--guild-text, #fff); }
+.rq-new-map__error { margin: 0; color: var(--rq-danger, #ff6b6b); font-size: 13px; }
+.rq-new-map__artwork { position: relative; line-height: 0; border: 1px solid var(--guild-edge, rgba(255,255,255,0.16)); }
+.rq-new-map__artwork img { width: 100%; height: auto; display: block; }
+@media (max-width: 560px) { .rq-new-map__options--two { grid-template-columns: 1fr; } }

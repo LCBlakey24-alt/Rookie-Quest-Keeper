@@ -37,7 +37,7 @@
 }
 #root .loading-screen .loading-kicker {
   margin: 0;
-  color: var(--guild-hi, #ffb066) !important;
+  color: var(--guild-hi, var(--guild-hi)) !important;
   font-size: 0.75rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
 }
 #root .loading-screen :is(.loading-tip, p:not(.loading-title):not(.loading-kicker):not(.rq-hex-loader__label)) {

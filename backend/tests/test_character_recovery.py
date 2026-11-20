@@ -214,6 +214,42 @@ class TestCharacterRecoveryHelpers(unittest.TestCase):
         self.assertFalse(has_non_pact_spell_slots(character))
         self.assertTrue(spell_slots_are_pact_pool(character))
 
+    def test_2024_warlock_paladin_level_one_has_shared_slots(self):
+        """2024 half-casters cast from level 1: their slots are not Pact Magic."""
+        character = {
+            "character_class": "Warlock",
+            "level": 3,
+            "rules_edition": "2024",
+            "class_levels": {"Warlock": 2, "Paladin": 1},
+            "spell_slots": {"1": 2},
+            "resources": {"pact_magic": {"current": 0, "remaining": 0, "max": 2, "slot_level": 1}},
+        }
+        self.assertTrue(has_non_pact_spell_slots(character))
+        self.assertFalse(spell_slots_are_pact_pool(character))
+
+    def test_2024_warlock_ranger_level_one_has_shared_slots(self):
+        character = {
+            "character_class": "Warlock",
+            "level": 3,
+            "rules_edition": "2024",
+            "class_levels": {"Warlock": 2, "Ranger": 1},
+            "spell_slots": {"1": 2},
+            "resources": {"pact_magic": {"current": 0, "remaining": 0, "max": 2, "slot_level": 1}},
+        }
+        self.assertTrue(has_non_pact_spell_slots(character))
+        self.assertFalse(spell_slots_are_pact_pool(character))
+
+    def test_2024_pure_warlock_slots_are_still_the_pact_pool(self):
+        character = {
+            "character_class": "Warlock",
+            "level": 2,
+            "rules_edition": "2024",
+            "class_levels": {"Warlock": 2},
+            "spell_slots": {"1": 2},
+            "resources": {"pact_magic": {"current": 0, "remaining": 0, "max": 2, "slot_level": 1}},
+        }
+        self.assertTrue(spell_slots_are_pact_pool(character))
+
     def test_warlock_paladin_level_two_has_shared_slots(self):
         character = {
             "character_class": "Warlock",

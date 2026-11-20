@@ -1,0 +1,14 @@
+.rq-encounter-place { margin-top: 14px; border: 1px solid var(--guild-line, rgba(255,255,255,0.16)); background: var(--guild-box, #120a1f); padding: 10px 12px; color: var(--guild-text, #fff); }
+.rq-encounter-place > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 800; }
+.rq-encounter-place > summary:focus-visible, .rq-encounter-place button:focus-visible { outline: 2px solid var(--guild-focus-ring, #fff); outline-offset: 2px; }
+.rq-encounter-place__help { margin: 4px 0 10px; font-size: 13px; color: var(--guild-muted, rgba(255,255,255,0.72)); }
+.rq-encounter-place__list { list-style: none; margin: 0 0 10px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; }
+.rq-encounter-place__row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 4px 4px 10px; border: 1px solid var(--guild-line, rgba(255,255,255,0.16)); border-left: 3px solid #3b82f6; }
+.rq-encounter-place__row.is-enemy { border-left-color: #ef4444; }
+.rq-encounter-place__row > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 700; }
+.rq-encounter-place__row button, .rq-encounter-place__save { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 1px solid var(--guild-line, rgba(255,255,255,0.16)); background: var(--guild-bg, #0a0612); color: var(--guild-text, #fff); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.rq-encounter-place__row button[aria-pressed='true'] { border-color: #ef4444; }
+.rq-encounter-place__fixed { display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; min-height: 44px; font-size: 13px; color: var(--guild-muted, rgba(255,255,255,0.72)); }
+.rq-encounter-place__map { position: relative; max-height: 70vh; border: 1px solid var(--guild-line, rgba(255,255,255,0.16)); overflow: hidden; }
+.rq-encounter-place__actions { display: flex; justify-content: flex-end; margin-top: 10px; }
+.rq-encounter-place__save { border-color: var(--guild-line-hot, #ff4fa3); }

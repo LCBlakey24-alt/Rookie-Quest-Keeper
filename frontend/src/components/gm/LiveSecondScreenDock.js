@@ -6,6 +6,7 @@ import { getLiveBootstrapExtras } from '@/data/livePlayLoaders';
 import { createDisplayState, loadDisplayState, subscribeDisplayState, subscribeRemoteDisplayState } from '@/lib/liveDisplayBus';
 import { publishCampaignDisplayStateWithStatus } from '@/lib/liveDisplayPublishStatus';
 import genericSecondScreenPresets from '@/data/genericSecondScreenPresets';
+import { openDisplayAndReport } from '@/lib/openDisplayWindow';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const theme = {
@@ -185,8 +186,7 @@ export default function LiveSecondScreenDock({ campaignId }) {
 
   const openDisplay = () => {
     const url = `${window.location.origin}/player-display/${campaignId}?target=${encodeURIComponent(currentTarget)}`;
-    const opened = window.open(url, '_blank', 'noopener,noreferrer');
-    if (!opened) toast.error('Pop-up blocked. Copy the display link instead.');
+    openDisplayAndReport(url, toast);
   };
 
   const copyDisplayLink = async () => {
@@ -268,7 +268,9 @@ export default function LiveSecondScreenDock({ campaignId }) {
   );
 }
 
-const dockStyle = { width: 320, minWidth: 280, maxHeight: 'calc(100dvh - 106px)', position: 'sticky', top: 86, alignSelf: 'start', overflowY: 'auto', display: 'grid', gap: 8, background: theme.panel, border: `1px solid ${theme.line}`, borderLeft: `1px solid ${theme.pink}`, padding: 9, color: theme.text, fontFamily: fontStack };
+// The extra bottom padding lets the last row scroll clear of the fixed
+// Feedback button in the bottom-right corner.
+const dockStyle = { width: 320, minWidth: 280, maxHeight: 'calc(100dvh - 106px)', position: 'sticky', top: 86, alignSelf: 'start', overflowY: 'auto', display: 'grid', gap: 8, background: theme.panel, border: `1px solid ${theme.line}`, borderLeft: `1px solid ${theme.pink}`, padding: '9px 9px 64px', color: theme.text, fontFamily: fontStack };
 const dockHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 };
 const eyebrowStyle = { margin: '0 0 3px', color: theme.muted, fontSize: 10, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' };
 const titleStyle = { margin: 0, color: theme.text, fontSize: 16, fontWeight: 950, display: 'flex', alignItems: 'center', gap: 6 };

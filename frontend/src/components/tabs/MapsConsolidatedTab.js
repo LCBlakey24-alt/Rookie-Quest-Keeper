@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Building, Globe, Map as MapIcon, MapPin } from 'lucide-react';
+import { Building, Globe, Map as MapIcon, MapPin, PlusCircle } from 'lucide-react';
+import CreateMapChooser from '@/components/MapBuilder/CreateMapChooser';
 import WorldMapTab from './WorldMapTab';
 import LocalMapTab from './LocalMapTab';
 import LocationsTab from './LocationsTab';
@@ -17,6 +18,19 @@ const rq = {
 
 function MapsConsolidatedTab({ campaignId }) {
   const [activeSubTab, setActiveSubTab] = useState('world');
+  const [choosing, setChoosing] = useState(false);
+  // Bumped to ask the Battle Maps tab to open its new-map dialog.
+  const [newBattleRequest, setNewBattleRequest] = useState(0);
+
+  const chooseMap = ({ type }) => {
+    setChoosing(false);
+    if (type === 'world') setActiveSubTab('world');
+    else if (type === 'settlement') setActiveSubTab('local');
+    else {
+      setActiveSubTab('battle');
+      setNewBattleRequest((value) => value + 1);
+    }
+  };
 
   const subTabs = [
     { id: 'world', label: 'World Map', icon: Globe },
@@ -44,13 +58,18 @@ function MapsConsolidatedTab({ campaignId }) {
             </button>
           );
         })}
+        <button type="button" onClick={() => setChoosing(true)} data-testid="maps-create-map" style={{ ...subTabStyle(false), marginLeft: 'auto' }}>
+          <PlusCircle size={17} />
+          <strong>Create map</strong>
+        </button>
       </nav>
+      {choosing && <CreateMapChooser onCancel={() => setChoosing(false)} onChoose={chooseMap} />}
 
       <section style={contentStyle}>
         {activeSubTab === 'world' && <WorldMapTab campaignId={campaignId} />}
         {activeSubTab === 'local' && <LocalMapTab campaignId={campaignId} />}
         {activeSubTab === 'locations' && <LocationsTab campaignId={campaignId} />}
-        {activeSubTab === 'battle' && <MapsTab campaignId={campaignId} />}
+        {activeSubTab === 'battle' && <MapsTab campaignId={campaignId} newMapRequest={newBattleRequest} />}
       </section>
     </section>
   );

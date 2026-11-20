@@ -8,16 +8,16 @@ const ACTIVE_POLL_MS = 4000;
 const IDLE_POLL_MS = 15000;
 
 const theme = {
-  bg: '#071522',
-  panel: '#0C2234',
-  card: '#112A40',
-  cardHover: '#17364F',
-  input: '#071A29',
+  bg: 'var(--guild-bg-deep)',
+  panel: 'var(--guild-bg)',
+  card: 'var(--guild-panel)',
+  cardHover: 'var(--guild-panel)',
+  input: 'var(--guild-bg-deep)',
   text: '#F7F1E7',
-  line: 'rgba(242, 137, 47,.18)',
-  lineStrong: '#f2892f',
-  blue: '#79BCE8',
-  blueSoft: 'rgba(121,188,232,.10)',
+  line: 'rgba(var(--guild-c1-rgb), .18)',
+  lineStrong: 'var(--guild-c1)',
+  blue: 'var(--guild-h3)',
+  blueSoft: 'rgba(var(--guild-c2-rgb), .10)',
 };
 
 export default function CombatInitiativeSubmitter({ campaignId, compact = false }) {
@@ -189,11 +189,11 @@ const shellStyle = {
 const unavailableShellStyle = { borderLeft: `1px solid ${theme.blue}` };
 const headerStyle = { display: 'flex', gap: 8, alignItems: 'center' };
 const iconWrapStyle = { width: 32, height: 32, background: theme.blueSoft, border: `1px solid ${theme.line}`, borderRadius: 5, display: 'grid', placeItems: 'center', flex: '0 0 32px' };
-const warningIconWrapStyle = { ...iconWrapStyle, border: '1px solid rgba(121,188,232,.34)' };
+const warningIconWrapStyle = { ...iconWrapStyle, border: '1px solid rgba(var(--guild-c2-rgb), .34)' };
 const titleStyle = { display: 'block', color: theme.text, fontSize: 13, fontWeight: 900 };
 const subtitleStyle = { display: 'block', marginTop: 1, color: theme.text, fontSize: 11, lineHeight: 1.3 };
 const iconButtonStyle = { width: 32, height: 32, border: `1px solid ${theme.line}`, borderRadius: 5, background: theme.card, color: theme.text, display: 'grid', placeItems: 'center', cursor: 'pointer', boxShadow: 'none' };
-const inlineWarningStyle = { display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', background: theme.blueSoft, border: '1px solid rgba(121,188,232,.24)', borderRadius: 5, color: theme.text, fontSize: 10, fontWeight: 800 };
+const inlineWarningStyle = { display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', background: theme.blueSoft, border: '1px solid rgba(var(--guild-c2-rgb), .24)', borderRadius: 5, color: theme.text, fontSize: 10, fontWeight: 800 };
 const controlsStyle = { display: 'grid', gridTemplateColumns: 'minmax(72px, 1fr) auto auto', gap: 5, alignItems: 'end' };
 const fieldStyle = { display: 'grid', gap: 3, color: theme.text, fontSize: 9, fontWeight: 900, letterSpacing: '.06em', textTransform: 'uppercase' };
 const inputStyle = { width: '100%', minWidth: 0, height: 38, boxSizing: 'border-box', background: theme.input, border: `1px solid ${theme.line}`, borderRadius: 5, color: theme.text, padding: '0 8px', fontSize: 13, outline: 'none', boxShadow: 'none' };

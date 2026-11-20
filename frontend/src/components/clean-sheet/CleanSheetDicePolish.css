@@ -23,7 +23,7 @@
 .clean-sheet-roll-chip:hover,
 .clean-sheet-roll-chip:focus-visible {
   border-color: var(--cs-accent) !important;
-  background: #17364F !important;
+  background: var(--guild-panel) !important;
   color: var(--cs-text) !important;
   box-shadow: none !important;
   text-shadow: none !important;
