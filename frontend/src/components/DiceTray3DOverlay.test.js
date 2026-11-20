@@ -153,3 +153,39 @@ describe('a re-render does not restart a throw in mid-air', () => {
     expect(specForDie.mock.calls.length).toBeGreaterThan(afterFirst);
   });
 });
+
+describe('the dice tower plays in the same window as the tray', () => {
+  beforeEach(() => {
+    const actual = jest.requireActual('@/components/dice3d/diceTrayScene');
+    specForDie.mockImplementation((...args) => actual.specForDie(...args));
+    getContext.mockReturnValue({});
+    createDiceTray.mockImplementation(() => ({ resize: jest.fn(), roll: jest.fn(() => true), dispose: jest.fn() }));
+  });
+
+  test.each(['tray', 'tower'])('a %s roll from the wheel stays in the hexagon window', (rig) => {
+    const view = render(<DiceTray3DOverlay {...baseProps} isRevealed={false} shape="hex" rig={rig} rollId={`hex-${rig}`} rolls={[{ id: 'a', sides: 20, result: 12 }]} />);
+    expect(screen.getByTestId('dice-tray-hex')).toBeInTheDocument();
+    expect(createDiceTray).toHaveBeenLastCalledWith(expect.objectContaining({ rig }));
+    view.unmount();
+  });
+});
+
+describe('a tower throw that cannot land every die', () => {
+  beforeEach(() => {
+    const actual = jest.requireActual('@/components/dice3d/diceTrayScene');
+    specForDie.mockImplementation((...args) => actual.specForDie(...args));
+    getContext.mockReturnValue({});
+  });
+
+  test('falls back to the ordinary tray in the same window', () => {
+    createDiceTray.mockImplementation(({ rig }) => ({
+      resize: jest.fn(),
+      dispose: jest.fn(),
+      roll: jest.fn((specs, { onFailed }) => { if (rig !== 'tray') onFailed(); return true; }),
+    }));
+    const view = render(<DiceTray3DOverlay {...baseProps} isRevealed={false} shape="hex" rig="tower" rollId="tower-fallback" rolls={[{ id: 'a', sides: 20, result: 12 }]} />);
+    expect(screen.getByTestId('dice-tray-hex')).toBeInTheDocument();
+    expect(createDiceTray).toHaveBeenLastCalledWith(expect.objectContaining({ rig: 'tray' }));
+    view.unmount();
+  });
+});

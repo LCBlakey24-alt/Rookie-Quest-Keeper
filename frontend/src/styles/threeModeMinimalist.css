@@ -26,7 +26,10 @@
     -webkit-text-fill-color: currentColor !important;
     text-shadow: none !important;
   }
-  :where(#root, [role='dialog'], [role='alertdialog']) :where([style*='linear-gradient('], [style*='radial-gradient('], [class*='bg-gradient-']) {
+  /* Decorative gradients are flattened. Battlefield terrain previews opt out
+     with data-rq-texture: their gradients draw the stone/grass texture the
+     GM is choosing, not decoration. */
+  :where(#root, [role='dialog'], [role='alertdialog']) :where([style*='linear-gradient('], [style*='radial-gradient('], [class*='bg-gradient-']):not([data-rq-texture]) {
     background-image: none !important;
     background-color: var(--rq-bg-panel) !important;
   }
@@ -39,7 +42,7 @@
   }
   :where(button, [role='button'], [role='tab']):not([data-rq-colour-swatch]) {
     background-color: var(--rq-control-blue, #0a2342) !important;
-    border-color: rgba(60,146,224,.36) !important;
+    border-color: rgba(var(--guild-c2-rgb),.36) !important;
   }
   :where(button, [role='button'], [role='tab']):not([data-rq-colour-swatch]):hover {
     background-color: var(--rq-control-blue, #0a2342) !important;
@@ -72,31 +75,31 @@
 :root,
 html[data-theme='gm'],
 html[data-theme='player'] {
-  --rq-bg: #0a2342;
-  --rq-bg-main: #0a2342;
-  --rq-bg-deep: #0a2342;
-  --rq-bg-rail: #0a2342;
-  --rq-surface: #0a2342;
-  --rq-bg-panel: #0a2342;
-  --rq-card: #0a2342;
-  --rq-bg-card: #0a2342;
-  --rq-card-hover: #0a2342;
-  --rq-bg-input: #0a2342;
+  --rq-bg: var(--guild-bg);
+  --rq-bg-main: var(--guild-bg);
+  --rq-bg-deep: var(--guild-bg);
+  --rq-bg-rail: var(--guild-bg);
+  --rq-surface: var(--guild-bg);
+  --rq-bg-panel: var(--guild-bg);
+  --rq-card: var(--guild-bg);
+  --rq-bg-card: var(--guild-bg);
+  --rq-card-hover: var(--guild-bg);
+  --rq-bg-input: var(--guild-bg);
   --rq-button: #123764;
   --rq-bg-button: #123764;
   --rq-button-hover: #17427a;
 
-  --rq-secondary: #3C92E0;
-  --rq-secondary-soft: rgba(60, 146, 224, 0.10);
-  --rq-secondary-border: rgba(121, 188, 232, 0.28);
+  --rq-secondary: var(--guild-hi);
+  --rq-secondary-soft: rgba(var(--guild-c2-rgb), 0.10);
+  --rq-secondary-border: rgba(var(--guild-c2-rgb), 0.28);
 
-  --rq-primary: #f2892f;
-  --rq-primary-hover: #ffb066;
-  --rq-primary-soft: rgba(242, 137, 47, 0.14);
-  --rq-accent-primary: #f2892f;
-  --rq-accent-hover: #ffb066;
-  --rq-accent-soft: rgba(242, 137, 47, 0.14);
-  --rq-accent-border: rgba(60, 146, 224, 0.36);
+  --rq-primary: var(--guild-c1);
+  --rq-primary-hover: var(--guild-hi);
+  --rq-primary-soft: rgba(var(--guild-c1-rgb),  0.14);
+  --rq-accent-primary: var(--guild-c1);
+  --rq-accent-hover: var(--guild-hi);
+  --rq-accent-soft: rgba(var(--guild-c1-rgb), 0.14);
+  --rq-accent-border: rgba(var(--guild-c2-rgb), 0.36);
 
   --rq-text: #ffffff;
   --rq-text-primary: #ffffff;
@@ -106,16 +109,16 @@ html[data-theme='player'] {
   --rq-faint: rgba(255, 255, 255, 0.46);
 
   --rq-line: rgba(111, 184, 255, 0.18);
-  --rq-line-strong: rgba(60, 146, 224, 0.36);
+  --rq-line-strong: rgba(var(--guild-c2-rgb), 0.36);
   --rq-border-default: rgba(111, 184, 255, 0.18);
-  --rq-border-strong: rgba(60, 146, 224, 0.36);
+  --rq-border-strong: rgba(var(--guild-c2-rgb), 0.36);
 
   --rq-seal: #7F2D2D;
   --rq-seal-soft: rgba(127, 45, 45, 0.14);
   --rq-success: #5FA67A;
   --rq-warning: #D39A43;
   --rq-danger: #B94A4F;
-  --rq-info: #3C92E0;
+  --rq-info: #3C92E0; /* semantic status colour: stays blue */
 
   --rq-radius: 7px;
   --rq-inner-radius: 5px;
@@ -1037,7 +1040,7 @@ body,
 #root :where(input,textarea,select) {
   background: var(--rq-bg-input) !important;
   background-image: none !important;
-  border: 1px solid rgba(242, 137, 47,.22) !important;
+  border: 1px solid rgba(var(--guild-c1-rgb), .22) !important;
   color: var(--rq-text-primary) !important;
   -webkit-text-fill-color: var(--rq-text-primary) !important;
   box-shadow: none !important;
@@ -1185,7 +1188,7 @@ body,
   [aria-selected='true'],
   [aria-pressed='true']
 ) {
-  background-color: rgba(124,203,255,.10) !important;
+  background-color: rgba(var(--guild-h3-rgb),.10) !important;
   border-color: var(--rq-primary) !important;
 }
 

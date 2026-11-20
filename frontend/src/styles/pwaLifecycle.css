@@ -13,7 +13,7 @@
   padding: 8px 10px;
   box-sizing: border-box;
   border: 1px solid rgba(255,255,255,.16);
-  border-left: 3px solid #4fb3ff;
+  border-left: 3px solid var(--guild-c3);
   border-radius: 14px;
   background: rgba(10, 35, 66, .97);
   color: #fff;
@@ -22,8 +22,8 @@
 }
 
 .rqk-pwa-banner--offline { border-left-color: #f59e0b; }
-.rqk-pwa-banner--update { border-left-color: #4fb3ff; }
-.rqk-pwa-banner--install { border-left-color: #ffb066; }
+.rqk-pwa-banner--update { border-left-color: var(--guild-c3); }
+.rqk-pwa-banner--install { border-left-color: var(--guild-hi); }
 
 .rqk-pwa-banner__icon {
   width: 30px;

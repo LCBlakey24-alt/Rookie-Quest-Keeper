@@ -18,7 +18,7 @@
 .rq-hex-loader__stop-c1 { stop-color: var(--guild-c1, #ff3d8b); }
 .rq-hex-loader__stop-c2 { stop-color: var(--guild-c2, #b04dff); }
 .rq-hex-loader__stop-c3 { stop-color: var(--guild-c3, #4fb3ff); }
-.rq-hex-loader__stop-h1 { stop-color: var(--guild-h1, #ffb066); }
+.rq-hex-loader__stop-h1 { stop-color: var(--guild-h1, var(--guild-hi)); }
 .rq-hex-loader__stop-h2 { stop-color: var(--guild-h2, #ff5fa0); }
 .rq-hex-loader__stop-h3 { stop-color: var(--guild-h3, #ffd27a); }
 

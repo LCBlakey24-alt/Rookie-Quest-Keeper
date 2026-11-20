@@ -16,7 +16,12 @@ CONTENT_COLLECTIONS = {
     "backgrounds": "user_backgrounds",
     "feats": "user_feats",
     "spells": "user_spells",
+    # Homebrew items (Workshop "Items & Equipment"). Shared exactly like the
+    # rest: the player's own, and the GM's when shared with this campaign.
+    "items": "user_magic_items",
 }
+# Items are not tied to a rules edition, so an edition filter never hides them.
+EDITIONLESS = {"items"}
 
 
 def clean_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
@@ -99,7 +104,7 @@ async def get_player_rules_options(
 
     # Content first: the GM's rulesets are listed only when shared content uses them.
     content: Dict[str, List[Dict[str, Any]]] = {
-        key: await find_docs(collection, owners, edition, username, campaign_id)
+        key: await find_docs(collection, owners, None if key in EDITIONLESS else edition, username, campaign_id)
         for key, collection in CONTENT_COLLECTIONS.items()
     }
     used_rulesets = {item.get("ruleset_id") for items in content.values() for item in items if item.get("ruleset_id")}

@@ -41,7 +41,7 @@ function ChronicleConsolidatedTab({ campaignId }) {
 
 const shellStyle = { display: 'grid', gap: 8, minWidth: 0, fontFamily: fontStack };
 const tabsStyle = { display: 'flex', gap: 1, overflowX: 'auto', background: theme.border, border: `1px solid ${theme.border}` };
-const tabButtonStyle = active => ({ minWidth: 118, minHeight: 44, padding: '0 11px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: active ? 'rgba(124,203,255,0.10)' : theme.card, border: `1px solid ${active ? theme.primary : theme.border}`, color: theme.text, cursor: 'pointer', fontFamily: fontStack, whiteSpace: 'nowrap' });
+const tabButtonStyle = active => ({ minWidth: 118, minHeight: 44, padding: '0 11px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: active ? 'rgba(var(--guild-h3-rgb),0.10)' : theme.card, border: `1px solid ${active ? theme.primary : theme.border}`, color: theme.text, cursor: 'pointer', fontFamily: fontStack, whiteSpace: 'nowrap' });
 const contentStyle = { minWidth: 0, background: theme.bg };
 
 export default ChronicleConsolidatedTab;

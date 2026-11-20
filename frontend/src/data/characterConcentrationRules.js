@@ -1,3 +1,5 @@
+import { isSaveProficient } from '@/data/saveProficiencies';
+
 const normaliseText = (value = '') => String(value || '').trim().toLowerCase();
 
 export function getConcentrationName(value) {
@@ -14,13 +16,7 @@ export function getConcentrationSaveDc(damage = 0) {
 export function getConcentrationSaveModifier(character = {}, proficiencyBonus = 0) {
   const constitution = Number(character?.constitution ?? 10) || 10;
   const constitutionMod = Math.floor((constitution - 10) / 2);
-  const saves = Array.isArray(character?.saving_throw_proficiencies)
-    ? character.saving_throw_proficiencies
-    : [];
-  const proficient = saves.some((save) => {
-    const key = normaliseText(save).replace(/[^a-z]/g, '');
-    return key === 'con' || key.startsWith('constitution') || key.startsWith('consav');
-  });
+  const proficient = isSaveProficient(character, 'constitution');
   return constitutionMod + (proficient ? Number(proficiencyBonus || 0) : 0);
 }
 

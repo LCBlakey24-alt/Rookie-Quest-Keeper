@@ -450,7 +450,7 @@
 
 .rook-assistant-fab,
 .rook-assistant-pill {
-  background: #0C2234 !important;
+  background: var(--guild-bg) !important;
   color: #FFFFFF !important;
 }
 
@@ -463,21 +463,21 @@
 }
 
 .rook-assistant-panel {
-  background: #071522 !important;
+  background: var(--guild-bg-deep) !important;
   border-radius: 9px !important;
   backdrop-filter: none !important;
 }
 
 .rook-assistant-header,
 .rook-assistant-compose {
-  background: #0C2234 !important;
+  background: var(--guild-bg) !important;
   border-color: rgba(255, 45, 170, 0.18) !important;
 }
 
 .rook-assistant-orb,
 .rook-assistant-compose button {
   background: #102B40 !important;
-  color: #7CCBFF !important;
+  color: var(--guild-h3) !important;
   border: 1px solid #FF2DAA !important;
   border-radius: 5px !important;
 }
@@ -497,7 +497,7 @@
 }
 
 .rook-assistant-message.is-user .rook-assistant-message__bubble {
-  background: rgba(124, 203, 255, 0.10) !important;
+  background: rgba(var(--guild-h3-rgb), 0.10) !important;
   border-color: #FF2DAA !important;
   color: #FFFFFF !important;
 }
@@ -523,7 +523,7 @@
 .rook-assistant-empty__icon,
 .rook-assistant-orb svg,
 .rook-assistant-compose button svg {
-  color: #7CCBFF !important;
+  color: var(--guild-h3) !important;
 }
 
 .rook-assistant-compose textarea:focus,

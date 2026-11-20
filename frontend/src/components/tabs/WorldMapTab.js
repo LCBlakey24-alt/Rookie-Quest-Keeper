@@ -1,7 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import { toast } from 'sonner';
-import { Building, Castle, Home, Map, MapPin, Mountain, Plus, Save, Trees, Trash2, Upload, Waves, X } from 'lucide-react';
+import { Building, Castle, Grid3x3, Home, Map, MapPin, Mountain, Plus, Save, Route, Trees, Trash2, Upload, Waves, X, ZoomIn } from 'lucide-react';
+import WorldRoads, { ROAD_TYPES, travelEstimates } from '@/components/maps/WorldRoads';
+import CityMapView from '@/components/maps/CityMapView';
+import MapGridOverlay from '@/components/maps/MapGridOverlay';
+import MapGridControls from '@/components/maps/MapGridControls';
+import { normaliseGrid } from '@/components/maps/mapGrid';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
@@ -31,7 +36,19 @@ const PIN_TYPES = [
 ];
 
 const EMPTY_MAP = { name: '', scale_value: 50, scale_unit: 'miles', image_data: '' };
-const EMPTY_PIN = { name: '', pin_type: 'city', description: '', linked_location_id: '', x: 50, y: 50 };
+const EMPTY_PIN = { name: '', pin_type: 'city', description: '', linked_location_id: '', linked_local_map_id: '', x: 50, y: 50 };
+const ZOOM_MS = 650;
+const EMPTY_ROAD = { from_pin_id: '', to_pin_id: '', distance_value: '', distance_unit: 'miles', terrain_type: 'road', notes: '' };
+
+const prefersReducedMotion = () => typeof window !== 'undefined'
+  && typeof window.matchMedia === 'function'
+  && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/** The town/city map a world pin opens, if it links one that still exists. */
+export function linkedLocalMap(pin, localMaps) {
+  if (!pin?.linked_local_map_id) return null;
+  return (localMaps || []).find(map => map.id === pin.linked_local_map_id) || null;
+}
 
 export function mapImageSource(map) {
   if (!map || typeof map !== 'object') return '';
@@ -92,13 +109,149 @@ export default function WorldMapTab({ campaignId }) {
   const [showPinEditor, setShowPinEditor] = useState(false);
   const [pinForm, setPinForm] = useState(EMPTY_PIN);
   const [saving, setSaving] = useState(false);
+  const [gridDraft, setGridDraft] = useState(null);
+  const [imageAspect, setImageAspect] = useState(0);
+  const [localMaps, setLocalMaps] = useState([]);
+  const [zoomPin, setZoomPin] = useState(null); // pin being zoomed into
+  const [openCity, setOpenCity] = useState(null); // { map, pin } once zoomed in
+  const zoomTimer = useRef(null);
+  const [roadStart, setRoadStart] = useState(null); // first pin picked with the Road tool
+  const [roadForm, setRoadForm] = useState(null); // road being added or edited
+  const [editingRoad, setEditingRoad] = useState(null);
   const fileInputRef = useRef(null);
   const mapRef = useRef(null);
 
   useEffect(() => {
     fetchWorldMaps();
     fetchLocations();
+    fetchLocalMaps();
   }, [campaignId]);
+
+  useEffect(() => () => window.clearTimeout(zoomTimer.current), []);
+
+  // A half-picked road is dropped when the Road tool is put down.
+  useEffect(() => { if (mode !== 'road') setRoadStart(null); }, [mode]);
+
+  const fetchLocalMaps = async () => {
+    try {
+      const response = await apiClient.get(`/campaigns/${campaignId}/local-maps`);
+      setLocalMaps(Array.isArray(response.data) ? response.data : []);
+    } catch {
+      setLocalMaps([]);
+    }
+  };
+
+  // Click a pin that links a town or city map: zoom in on it, then open it.
+  const zoomInto = (pin, map) => {
+    window.clearTimeout(zoomTimer.current);
+    if (prefersReducedMotion()) { setOpenCity({ map, pin }); return; }
+    setZoomPin(pin);
+    zoomTimer.current = window.setTimeout(() => { setOpenCity({ map, pin }); setZoomPin(null); }, ZOOM_MS);
+  };
+
+  const leaveCity = () => {
+    window.clearTimeout(zoomTimer.current);
+    setOpenCity(null);
+    setZoomPin(null);
+  };
+
+  const updateMapPaths = (mapId, change) => {
+    setSelectedMap(prev => (prev?.id === mapId ? { ...prev, paths: change(prev.paths || []) } : prev));
+    setWorldMaps(prev => prev.map(map => (map.id === mapId ? { ...map, paths: change(map.paths || []) } : map)));
+  };
+
+  // Road tool: pick one pin, then another, then describe the road.
+  const pickRoadPin = pin => {
+    if (!roadStart) { setRoadStart(pin); return; }
+    if (roadStart.id === pin.id) { setRoadStart(null); return; }
+    setEditingRoad(null);
+    setRoadForm({ ...EMPTY_ROAD, from_pin_id: roadStart.id, to_pin_id: pin.id, distance_unit: selectedMap?.scale_unit || 'miles' });
+    setRoadStart(null);
+  };
+
+  const openRoad = path => {
+    setEditingRoad(path);
+    setRoadForm({
+      ...EMPTY_ROAD,
+      ...path,
+      distance_value: Number(path.distance_value) > 0 ? String(path.distance_value) : '',
+      notes: path.notes || '',
+    });
+  };
+
+  const closeRoad = () => { setRoadForm(null); setEditingRoad(null); };
+
+  const saveRoad = async () => {
+    if (!selectedMap || !roadForm) return;
+    const mapId = selectedMap.id;
+    const payload = {
+      from_pin_id: roadForm.from_pin_id,
+      to_pin_id: roadForm.to_pin_id,
+      distance_value: Number(roadForm.distance_value) > 0 ? Number(roadForm.distance_value) : 0,
+      distance_unit: roadForm.distance_unit || 'miles',
+      terrain_type: roadForm.terrain_type || 'road',
+      notes: roadForm.notes || '',
+    };
+    setSaving(true);
+    try {
+      if (editingRoad) {
+        const changes = Object.fromEntries(Object.entries(payload).filter(([key, value]) =>
+          !['from_pin_id', 'to_pin_id'].includes(key) && value !== (editingRoad[key] ?? (key === 'notes' ? '' : undefined))));
+        if (!Object.keys(changes).length) { closeRoad(); setSaving(false); return; }
+        await apiClient.put(`/campaigns/${campaignId}/world-maps/${mapId}/paths/${editingRoad.id}`, changes);
+        updateMapPaths(mapId, paths => paths.map(path => (path.id === editingRoad.id ? { ...path, ...payload } : path)));
+        toast.success('Road updated');
+      } else {
+        const response = await apiClient.post(`/campaigns/${campaignId}/world-maps/${mapId}/paths`, payload);
+        updateMapPaths(mapId, paths => [...paths, response.data]);
+        toast.success('Road added');
+      }
+      closeRoad();
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not save the road');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteRoad = async () => {
+    if (!selectedMap || !editingRoad) return;
+    const mapId = selectedMap.id;
+    setSaving(true);
+    try {
+      await apiClient.delete(`/campaigns/${campaignId}/world-maps/${mapId}/paths/${editingRoad.id}`);
+      updateMapPaths(mapId, paths => paths.filter(path => path.id !== editingRoad.id));
+      closeRoad();
+      toast.success('Road removed');
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not remove the road');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePinClick = pin => {
+    if (mode === 'road') { pickRoadPin(pin); return; }
+    const map = mode === 'view' ? linkedLocalMap(pin, localMaps) : null;
+    if (map) zoomInto(pin, map);
+    else openPin(pin);
+  };
+
+  // Linking a saved town map fills in what it can: name, type and location.
+  const chooseLinkedMap = mapId => {
+    const map = localMaps.find(item => item.id === mapId);
+    setPinForm(prev => {
+      if (!map) return { ...prev, linked_local_map_id: '' };
+      const location = locations.find(item => item.id === map.location_id);
+      return {
+        ...prev,
+        linked_local_map_id: map.id,
+        name: prev.name.trim() ? prev.name : (location?.name || map.name || ''),
+        pin_type: ['city', 'town', 'village'].includes(map.map_type) ? map.map_type : prev.pin_type,
+        linked_location_id: prev.linked_location_id || map.location_id || '',
+      };
+    });
+  };
 
   const fetchWorldMaps = async () => {
     setLoading(true);
@@ -164,6 +317,8 @@ export default function WorldMapTab({ campaignId }) {
       const created = response.data;
       setWorldMaps(prev => [...prev, created]);
       setSelectedMap(created);
+      setGridDraft(normaliseGrid(created?.grid));
+      setMode('grid');
       setShowUpload(false);
       setNewMapData(EMPTY_MAP);
       setUploadFileName('');
@@ -200,6 +355,7 @@ export default function WorldMapTab({ campaignId }) {
       pin_type: pin.pin_type || 'city',
       description: pin.description || '',
       linked_location_id: pin.linked_location_id || '',
+      linked_local_map_id: pin.linked_local_map_id || '',
       x: pin.x ?? 50,
       y: pin.y ?? 50,
     });
@@ -245,13 +401,39 @@ export default function WorldMapTab({ campaignId }) {
     setSaving(true);
     try {
       await apiClient.delete(`/campaigns/${campaignId}/world-maps/${selectedMap.id}/pins/${selectedPin.id}`);
-      setSelectedMap(prev => ({ ...prev, pins: (prev.pins || []).filter(pin => pin.id !== selectedPin.id) }));
+      setSelectedMap(prev => ({
+        ...prev,
+        pins: (prev.pins || []).filter(pin => pin.id !== selectedPin.id),
+        paths: (prev.paths || []).filter(path => path.from_pin_id !== selectedPin.id && path.to_pin_id !== selectedPin.id),
+      }));
       setWorldMaps(prev => prev.map(map => map.id === selectedMap.id ? { ...map, pins: (map.pins || []).filter(pin => pin.id !== selectedPin.id) } : map));
       setShowPinEditor(false);
       setSelectedPin(null);
       toast.success('Map pin removed');
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Could not delete pin');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const startGrid = () => {
+    setGridDraft(normaliseGrid(selectedMap?.grid));
+    setMode('grid');
+  };
+
+  const saveGrid = async (grid) => {
+    if (!selectedMap) return;
+    setSaving(true);
+    try {
+      await apiClient.put(`/campaigns/${campaignId}/world-maps/${selectedMap.id}`, { grid });
+      setSelectedMap(prev => ({ ...prev, grid }));
+      setWorldMaps(prev => prev.map(map => map.id === selectedMap.id ? { ...map, grid } : map));
+      setMode('view');
+      setGridDraft(null);
+      toast.success(grid.type === 'none' ? 'Grid removed' : 'Grid saved');
+    } catch (error) {
+      toast.error(error?.response?.data?.detail || 'Could not save the grid');
     } finally {
       setSaving(false);
     }
@@ -285,7 +467,7 @@ export default function WorldMapTab({ campaignId }) {
         </div>
         <div style={headerActionsStyle}>
           {worldMaps.length > 0 && (
-            <select value={selectedMap?.id || ''} onChange={event => setSelectedMap(worldMaps.find(map => map.id === event.target.value) || null)} style={selectStyle}>
+            <select value={selectedMap?.id || ''} onChange={event => { setSelectedMap(worldMaps.find(map => map.id === event.target.value) || null); setMode('view'); setGridDraft(null); leaveCity(); }} style={selectStyle}>
               {worldMaps.map(map => <option key={map.id} value={map.id}>{map.name}</option>)}
             </select>
           )}
@@ -294,19 +476,58 @@ export default function WorldMapTab({ campaignId }) {
         </div>
       </header>
 
-      {selectedMap && (
+      {selectedMap && !openCity && (
         <nav style={toolbarStyle}>
           <button type="button" onClick={() => setMode('view')} style={toolButtonStyle(mode === 'view')}><Map size={15} /> View</button>
           <button type="button" onClick={() => setMode('addPin')} style={toolButtonStyle(mode === 'addPin')}><Plus size={15} /> Add Pin</button>
-          <span style={hintStyle}>{mode === 'addPin' ? 'Click the map to place a new pin.' : 'Click an existing pin to edit it.'}</span>
+          <button type="button" onClick={() => { setMode('road'); setRoadStart(null); }} style={toolButtonStyle(mode === 'road')} data-testid="world-map-road-button"><Route size={15} /> Road</button>
+          <button type="button" onClick={startGrid} style={toolButtonStyle(mode === 'grid')} data-testid="world-map-grid-button"><Grid3x3 size={15} /> Grid</button>
+          <span style={hintStyle}>{mode === 'addPin' ? 'Click the map to place a new pin.' : mode === 'road' ? (roadStart ? `From ${roadStart.name}: now click where the road goes.` : 'Click the pin a road starts from.') : mode === 'grid' ? 'Choose squares or hexes, then line them up with your map.' : 'Click a pin to edit it. Pins with a magnifier open their town or city map.'}</span>
         </nav>
       )}
 
-      <main style={mapStageStyle}>
-        {selectedMap ? (
-          <div ref={mapRef} onClick={handleMapClick} style={mapCanvasStyle(mode === 'addPin')}>
-            <img src={mapImageSource(selectedMap)} alt={selectedMap.name} style={mapImageStyle} />
-            {(selectedMap.pins || []).map(pin => <MapPinMarker key={pin.id} pin={pin} onClick={openPin} />)}
+      {selectedMap && mode === 'grid' && (
+        <div style={{ padding: 10, background: rq.bg, borderBottom: `1px solid ${rq.line}` }}>
+          <MapGridControls
+            grid={gridDraft}
+            onChange={setGridDraft}
+            onSave={saveGrid}
+            onCancel={() => { setMode('view'); setGridDraft(null); }}
+            saving={saving}
+          />
+        </div>
+      )}
+
+      <main style={{ ...mapStageStyle, overflow: zoomPin ? 'hidden' : mapStageStyle.overflow, padding: openCity ? 0 : mapStageStyle.padding }}>
+        {openCity ? (
+          <CityMapView
+            map={openCity.map}
+            worldName={selectedMap?.name}
+            onBack={leaveCity}
+            onEditPin={() => { const pin = openCity.pin; leaveCity(); openPin(pin); }}
+          />
+        ) : selectedMap ? (
+          <div
+            ref={mapRef}
+            onClick={handleMapClick}
+            data-testid="world-map-canvas"
+            style={{
+              ...mapCanvasStyle(mode === 'addPin'),
+              transformOrigin: zoomPin ? `${zoomPin.x}% ${zoomPin.y}%` : 'center',
+              transform: zoomPin ? 'scale(4)' : 'none',
+              opacity: zoomPin ? 0.15 : 1,
+              transition: `transform ${ZOOM_MS}ms cubic-bezier(0.55, 0, 0.75, 0.3), opacity ${ZOOM_MS}ms ease-in`,
+            }}
+          >
+            <img
+              src={mapImageSource(selectedMap)}
+              alt={selectedMap.name}
+              style={mapImageStyle}
+              onLoad={event => setImageAspect(event.currentTarget.naturalWidth ? event.currentTarget.naturalHeight / event.currentTarget.naturalWidth : 0)}
+            />
+            <MapGridOverlay grid={mode === 'grid' ? gridDraft : selectedMap.grid} aspect={imageAspect} />
+            <WorldRoads paths={selectedMap.paths} pins={selectedMap.pins} onSelect={mode === 'grid' ? undefined : openRoad} highlightPinId={roadStart?.id} />
+            {(selectedMap.pins || []).map(pin => <MapPinMarker key={pin.id} pin={pin} opensMap={Boolean(linkedLocalMap(pin, localMaps))} onClick={handlePinClick} />)}
           </div>
         ) : (
           <div style={emptyStateStyle}>
@@ -371,6 +592,39 @@ export default function WorldMapTab({ campaignId }) {
         </div>
       )}
 
+      {roadForm && selectedMap && (
+        <div style={overlayStyle} role="presentation">
+          <section style={modalStyle} role="dialog" aria-modal="true" aria-label="Road editor" data-testid="road-editor">
+            <header style={modalHeaderStyle}>
+              <div>
+                <p style={eyebrowStyle}>{editingRoad ? 'Edit Road' : 'New Road'}</p>
+                <h3 style={modalTitleStyle}>
+                  {(selectedMap.pins || []).find(pin => pin.id === roadForm.from_pin_id)?.name || '?'} to {(selectedMap.pins || []).find(pin => pin.id === roadForm.to_pin_id)?.name || '?'}
+                </h3>
+              </div>
+              <button type="button" onClick={closeRoad} style={iconButtonStyle} aria-label="Close road editor"><X size={18} /></button>
+            </header>
+            <div style={formGridStyle}>
+              <Field label="Distance"><input type="number" min="0" step="0.5" value={roadForm.distance_value} onChange={event => setRoadForm(prev => ({ ...prev, distance_value: event.target.value }))} placeholder="Optional" style={inputStyle} data-testid="road-distance" /></Field>
+              <Field label="Unit"><select value={roadForm.distance_unit} onChange={event => setRoadForm(prev => ({ ...prev, distance_unit: event.target.value }))} style={selectStyle}><option value="miles">Miles</option><option value="km">Kilometres</option><option value="leagues">Leagues</option></select></Field>
+              <Field label="Kind"><select value={roadForm.terrain_type} onChange={event => setRoadForm(prev => ({ ...prev, terrain_type: event.target.value }))} style={selectStyle} data-testid="road-kind">{ROAD_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}</select></Field>
+            </div>
+            {travelEstimates({ ...roadForm, terrain_modifier: editingRoad?.terrain_modifier }, selectedMap.travel_speeds).length > 0 && (
+              <p style={modalTextStyle} data-testid="road-travel">
+                {travelEstimates({ ...roadForm, terrain_modifier: editingRoad?.terrain_modifier }, selectedMap.travel_speeds).map(({ label, days }) => `${label}: ${days} ${days === 1 ? 'day' : 'days'}`).join(' · ')}
+              </p>
+            )}
+            <Field label="Notes"><textarea value={roadForm.notes} onChange={event => setRoadForm(prev => ({ ...prev, notes: event.target.value }))} placeholder="Toll bridge, bandits after dark…" style={textareaStyle} /></Field>
+            <footer style={modalActionsStyle}>
+              {editingRoad && <button type="button" onClick={deleteRoad} disabled={saving} style={dangerButtonStyle}><Trash2 size={15} /> Remove road</button>}
+              <span style={{ flex: 1 }} />
+              <button type="button" onClick={closeRoad} style={secondaryButtonStyle}>Cancel</button>
+              <button type="button" onClick={saveRoad} disabled={saving} style={primaryButtonStyle} data-testid="road-save"><Save size={15} /> {editingRoad ? 'Save Road' : 'Add Road'}</button>
+            </footer>
+          </section>
+        </div>
+      )}
+
       {showPinEditor && selectedMap && (
         <div style={overlayStyle} role="presentation">
           <section style={modalStyle} role="dialog" aria-modal="true" aria-label="Map pin editor">
@@ -384,6 +638,12 @@ export default function WorldMapTab({ campaignId }) {
             <div style={formGridStyle}>
               <Field label="Name"><input value={pinForm.name} onChange={event => setPinForm(prev => ({ ...prev, name: event.target.value }))} style={inputStyle} /></Field>
               <Field label="Type"><select value={pinForm.pin_type} onChange={event => setPinForm(prev => ({ ...prev, pin_type: event.target.value }))} style={selectStyle}>{PIN_TYPES.map(type => <option key={type.id} value={type.id}>{type.label}</option>)}</select></Field>
+              <Field label="Opens town or city map">
+                <select value={pinForm.linked_local_map_id} onChange={event => chooseLinkedMap(event.target.value)} style={selectStyle} data-testid="pin-linked-local-map">
+                  <option value="">No map</option>
+                  {localMaps.map(map => <option key={map.id} value={map.id}>{map.name}</option>)}
+                </select>
+              </Field>
               <Field label="Link location"><select value={pinForm.linked_location_id} onChange={event => setPinForm(prev => ({ ...prev, linked_location_id: event.target.value }))} style={selectStyle}><option value="">No linked location</option>{locations.map(location => <option key={location.id} value={location.id}>{location.name}</option>)}</select></Field>
             </div>
             <Field label="Description"><textarea value={pinForm.description} onChange={event => setPinForm(prev => ({ ...prev, description: event.target.value }))} style={textareaStyle} /></Field>
@@ -400,13 +660,21 @@ export default function WorldMapTab({ campaignId }) {
   );
 }
 
-function MapPinMarker({ pin, onClick }) {
+function MapPinMarker({ pin, onClick, opensMap = false }) {
   const type = pinTypeFor(pin.pin_type);
   const Icon = type.icon;
   return (
-    <button type="button" onClick={event => { event.stopPropagation(); onClick(pin); }} style={pinMarkerStyle(pin, type)} title={pin.name}>
+    <button
+      type="button"
+      onClick={event => { event.stopPropagation(); onClick(pin); }}
+      style={pinMarkerStyle(pin, type)}
+      title={opensMap ? `Open ${pin.name}` : pin.name}
+      aria-label={opensMap ? `Open the ${pin.name} map` : `Edit pin ${pin.name}`}
+      data-testid={`world-pin-${pin.id}`}
+    >
       <Icon size={16} />
       <span>{pin.name}</span>
+      {opensMap && <ZoomIn size={13} aria-hidden="true" />}
     </button>
   );
 }
@@ -426,7 +694,7 @@ const toolbarStyle = { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 
 const hintStyle = { color: rq.muted, fontSize: 12, marginLeft: 4 };
 const mapStageStyle = { flex: 1, minHeight: 0, overflow: 'auto', background: rq.bg, padding: 12 };
 const mapCanvasStyle = (adding) => ({ position: 'relative', width: '100%', minWidth: 280, maxWidth: '100%', margin: '0 auto', cursor: adding ? 'crosshair' : 'default' });
-const mapImageStyle = { width: '100%', height: 'auto', display: 'block', userSelect: 'none', border: `1px solid ${rq.line}` };
+const mapImageStyle = { width: '100%', height: 'auto', display: 'block', userSelect: 'none', outline: `1px solid ${rq.line}` };
 const emptyStateStyle = { minHeight: 380, display: 'grid', placeItems: 'center', alignContent: 'center', textAlign: 'center', gap: 10, color: rq.soft, background: rq.card, border: `1px dashed ${rq.line}`, padding: 28 };
 const overlayStyle = { position: 'fixed', inset: 0, zIndex: 5000, background: 'rgba(0,0,0,0.78)', display: 'grid', placeItems: 'center', padding: 14 };
 const modalStyle = { width: 'min(560px, calc(100vw - 28px))', maxHeight: 'calc(100dvh - 28px)', overflowY: 'auto', background: rq.panel, border: `1px solid ${rq.line}`, borderLeft: `7px solid ${rq.red}`, color: rq.text, padding: 16, fontFamily: fontStack };

@@ -198,14 +198,7 @@ export default function PlayerDashboard() {
   };
 
   const openJoinFlow = () => {
-    if (characters.length === 0) {
-      toast.info('Create a character first', {
-        description: 'You need a character before joining a campaign.',
-      });
-      navigate('/characters/new');
-      return;
-    }
-
+    // No characters yet is fine: the GM may have one waiting to claim.
     setJoinOpen(true);
   };
 
@@ -299,6 +292,7 @@ export default function PlayerDashboard() {
       <JoinCampaignModal
         characterId={selectedCharacter?.id}
         characterName={selectedCharacter?.name || 'Selected character'}
+        characters={characters}
         open={joinOpen}
         onOpenChange={setJoinOpen}
         onSuccess={refreshAfterJoin}
@@ -322,7 +316,7 @@ const loadWarningStyle = {
 const handoutWarningStyle = {
   ...loadWarningStyle,
   marginTop: 8,
-  border: '1px solid rgba(60, 146, 224, 0.32)',
+  border: '1px solid rgba(var(--guild-c2-rgb), 0.32)',
   borderLeft: '3px solid var(--rq-info, #3C92E0)',
 };
 

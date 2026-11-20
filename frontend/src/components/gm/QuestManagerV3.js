@@ -204,8 +204,8 @@ export default function QuestManagerV3({ campaignId, onOpenTab }) {
       </header>
 
       <div style={toolbarStyle}>
-        <label style={searchStyle}><Search size={15} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search quests" style={searchInputStyle} /></label>
-        <select value={filter} onChange={event => setFilter(event.target.value)} style={selectStyle}>
+        <label style={searchStyle}><Search size={15} /><input aria-label="Search quests" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search quests" style={searchInputStyle} /></label>
+        <select aria-label="Show quests" value={filter} onChange={event => setFilter(event.target.value)} style={selectStyle}>
           <option value="open">Open</option><option value="all">All</option>
           {STATUS_OPTIONS.map(status => <option key={status} value={status}>{nice(status)}</option>)}
         </select>
@@ -215,7 +215,7 @@ export default function QuestManagerV3({ campaignId, onOpenTab }) {
         <section style={createStyle}>
           <div style={twoColumnStyle}>
             <input value={draft.title} onChange={event => setDraft(prev => ({ ...prev, title: event.target.value }))} placeholder="Quest title" style={inputStyle} />
-            <select value={draft.status} onChange={event => setDraft(prev => ({ ...prev, status: event.target.value }))} style={selectStyle}>{STATUS_OPTIONS.map(status => <option key={status} value={status}>{nice(status)}</option>)}</select>
+            <select aria-label="New quest status" value={draft.status} onChange={event => setDraft(prev => ({ ...prev, status: event.target.value }))} style={selectStyle}>{STATUS_OPTIONS.map(status => <option key={status} value={status}>{nice(status)}</option>)}</select>
           </div>
           <input value={draft.summary} onChange={event => setDraft(prev => ({ ...prev, summary: event.target.value }))} placeholder="Short GM summary" style={inputStyle} />
           <input value={draft.hook} onChange={event => setDraft(prev => ({ ...prev, hook: event.target.value }))} placeholder="Hook / how players find it" style={inputStyle} />
@@ -244,7 +244,7 @@ export default function QuestManagerV3({ campaignId, onOpenTab }) {
               {isOpen && (
                 <div style={questBodyStyle}>
                   <div style={compactActionsStyle}>
-                    <select value={quest.status || 'draft'} onChange={event => updateQuest(quest.id, { status: event.target.value })} style={smallSelectStyle}>{STATUS_OPTIONS.map(status => <option key={status} value={status}>{nice(status)}</option>)}</select>
+                    <select aria-label={`Status of ${quest.title || 'quest'}`} value={quest.status || 'draft'} onChange={event => updateQuest(quest.id, { status: event.target.value })} style={smallSelectStyle}>{STATUS_OPTIONS.map(status => <option key={status} value={status}>{nice(status)}</option>)}</select>
                     <button type="button" onClick={() => updateQuest(quest.id, { is_pinned: !quest.is_pinned })} style={compactButtonStyle}><Pin size={13} /> {quest.is_pinned ? 'Unpin' : 'Pin'}</button>
                     <button type="button" onClick={() => deleteQuest(quest)} style={dangerButtonStyle}><Trash2 size={13} /> Delete</button>
                   </div>
@@ -308,7 +308,7 @@ function QuestLinks({ quest, resources, onPatch, onOpen }) {
                 {!linked.length && <span style={emptyChipStyle}>None</span>}
               </div>
               <div style={linkAddRowStyle}>
-                <select defaultValue="" onChange={event => { const value = event.target.value; if (value) { onPatch(quest, type, value, true); event.target.value = ''; } }} style={linkSelectStyle} disabled={!available.length}>
+                <select aria-label={`Link ${String(type.label || 'item').toLowerCase()} to ${quest.title || 'this quest'}`} defaultValue="" onChange={event => { const value = event.target.value; if (value) { onPatch(quest, type, value, true); event.target.value = ''; } }} style={linkSelectStyle} disabled={!available.length}>
                   <option value="">{available.length ? `+ Link ${type.label}` : `No more ${type.label}`}</option>
                   {available.map(item => <option key={item.id} value={item.id}>{type.name(item) || 'Untitled'}</option>)}
                 </select>

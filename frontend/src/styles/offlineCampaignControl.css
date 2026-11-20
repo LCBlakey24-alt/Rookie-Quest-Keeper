@@ -300,17 +300,17 @@
 .rqk-offline-control[data-audience='player'] .rqk-offline-launcher {
   min-height: 40px;
   padding: 0 11px;
-  border: 1px solid #f2892f;
+  border: 1px solid var(--guild-c1);
   border-left-width: 1px;
   border-radius: 5px;
-  background: #112A40;
+  background: var(--guild-panel);
   color: #F7F1E7;
   box-shadow: none;
   backdrop-filter: none;
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-launcher svg {
-  color: #79BCE8;
+  color: var(--guild-h3);
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-launcher[data-tone='ready'] {
@@ -322,9 +322,9 @@
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-card {
-  border: 1px solid rgba(242, 137, 47,.28);
+  border: 1px solid rgba(var(--guild-c1-rgb), .28);
   border-radius: 7px;
-  background: #071522;
+  background: var(--guild-bg-deep);
   color: #F7F1E7;
   box-shadow: none;
   backdrop-filter: none;
@@ -332,8 +332,8 @@
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-card__header {
   min-height: 44px;
-  background: #0C2234;
-  border-bottom: 1px solid rgba(242, 137, 47,.18);
+  background: var(--guild-bg);
+  border-bottom: 1px solid rgba(var(--guild-c1-rgb), .18);
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-card__title,
@@ -352,22 +352,22 @@
 .rqk-offline-control[data-audience='player'] .rqk-offline-card__title svg,
 .rqk-offline-control[data-audience='player'] .rqk-offline-icon-button svg,
 .rqk-offline-control[data-audience='player'] .rqk-offline-primary svg {
-  color: #79BCE8;
+  color: var(--guild-h3);
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-icon-button {
   width: 34px;
   height: 34px;
-  border: 1px solid rgba(242, 137, 47,.18);
+  border: 1px solid rgba(var(--guild-c1-rgb), .18);
   border-radius: 5px;
-  background: #112A40;
+  background: var(--guild-panel);
   color: #F7F1E7;
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-status {
-  border: 1px solid rgba(242, 137, 47,.18);
+  border: 1px solid rgba(var(--guild-c1-rgb), .18);
   border-radius: 4px;
-  background: #112A40;
+  background: var(--guild-panel);
   color: #F7F1E7;
 }
 
@@ -382,25 +382,25 @@
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-status--working {
-  border-color: rgba(242, 137, 47,.42);
+  border-color: rgba(var(--guild-c1-rgb), .42);
   color: #F7F1E7;
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-note {
-  border: 1px solid rgba(242, 137, 47,.18);
+  border: 1px solid rgba(var(--guild-c1-rgb), .18);
   border-radius: 5px;
-  background: #112A40;
+  background: var(--guild-panel);
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-progress > div {
   height: 5px;
-  background: #071A29;
-  border: 1px solid rgba(242, 137, 47,.18);
+  background: var(--guild-bg-deep);
+  border: 1px solid rgba(var(--guild-c1-rgb), .18);
   border-radius: 3px;
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-progress i {
-  background: #79BCE8;
+  background: var(--guild-h3);
   background-image: none;
   border-radius: inherit;
 }
@@ -411,16 +411,16 @@
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-metrics span {
   min-height: 48px;
-  border: 1px solid rgba(242, 137, 47,.18);
+  border: 1px solid rgba(var(--guild-c1-rgb), .18);
   border-radius: 5px;
-  background: #112A40;
+  background: var(--guild-panel);
 }
 
 .rqk-offline-control[data-audience='player'] .rqk-offline-primary {
   min-height: 40px;
-  border: 1px solid #f2892f;
+  border: 1px solid var(--guild-c1);
   border-radius: 5px;
-  background: #112A40;
+  background: var(--guild-panel);
   background-image: none;
   color: #F7F1E7;
 }
@@ -429,8 +429,8 @@
 .rqk-offline-control[data-audience='player'] .rqk-offline-primary:focus-visible,
 .rqk-offline-control[data-audience='player'] .rqk-offline-icon-button:hover,
 .rqk-offline-control[data-audience='player'] .rqk-offline-icon-button:focus-visible {
-  background: #17364F;
-  border-color: #f2892f;
+  background: var(--guild-panel);
+  border-color: var(--guild-c1);
   outline: none;
 }
 

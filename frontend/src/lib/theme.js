@@ -17,20 +17,20 @@ export const theme = {
     primary: 'var(--rq-text-primary, #ffffff)',
     secondary: 'var(--rq-text-secondary, rgba(255, 255, 255,0.78))',
     muted: 'var(--rq-text-muted, rgba(255, 255, 255,0.60))',
-    accent: 'var(--rq-accent-hover, #ffb066)',
+    accent: 'var(--rq-accent-hover, var(--guild-hi))',
   },
   accent: {
-    primary: 'var(--rq-accent-primary, #f2892f)',
-    hover: 'var(--rq-accent-hover, #ffb066)',
-    soft: 'var(--rq-accent-soft, rgba(242, 137, 47,0.12))',
-    line: 'var(--rq-accent-border, rgba(242, 137, 47,0.30))',
+    primary: 'var(--rq-accent-primary, var(--guild-c1))',
+    hover: 'var(--rq-accent-hover, var(--guild-hi))',
+    soft: 'var(--rq-accent-soft, rgba(var(--guild-c1-rgb), 0.12))',
+    line: 'var(--rq-accent-border, rgba(var(--guild-c1-rgb), 0.30))',
     secondary: 'var(--rq-secondary, #3C92E0)',
     highlight: 'var(--rq-secondary, #3C92E0)',
     // Legacy property name retained for older components.
-    pink: 'var(--rq-accent-primary, #f2892f)',
+    pink: 'var(--rq-accent-primary, var(--guild-c1))',
   },
   border: 'var(--rq-border-default, rgba(137,157,176,0.14))',
-  borderActive: 'var(--rq-accent-primary, #f2892f)',
+  borderActive: 'var(--rq-accent-primary, var(--guild-c1))',
   success: 'var(--rq-success, #5FA67A)',
   danger: 'var(--rq-danger, #B94A4F)',
   warning: 'var(--rq-warning, #D39A43)',
@@ -39,19 +39,19 @@ export const theme = {
   // Compatibility aliases deliberately resolve to the current flat system.
   sunset: {
     purple: 'var(--rq-secondary, #3C92E0)',
-    pink: 'var(--rq-accent-primary, #f2892f)',
-    gold: 'var(--rq-accent-primary, #f2892f)',
+    pink: 'var(--rq-accent-primary, var(--guild-c1))',
+    gold: 'var(--rq-accent-primary, var(--guild-c1))',
   },
-  gradient: 'var(--rq-accent-primary, #f2892f)',
+  gradient: 'var(--rq-accent-primary, var(--guild-c1))',
   glow: 'none',
   player: {
     primary: 'var(--rq-secondary, #3C92E0)',
-    hover: 'var(--rq-accent-hover, #ffb066)',
+    hover: 'var(--rq-accent-hover, var(--guild-hi))',
     secondary: 'var(--rq-secondary, #3C92E0)',
   },
   gm: {
-    primary: 'var(--rq-accent-primary, #f2892f)',
-    hover: 'var(--rq-accent-hover, #ffb066)',
+    primary: 'var(--rq-accent-primary, var(--guild-c1))',
+    hover: 'var(--rq-accent-hover, var(--guild-hi))',
     secondary: 'var(--rq-secondary, #3C92E0)',
   },
 };
@@ -75,8 +75,8 @@ export const buttonStyle = {
   boxShadow: 'none',
 };
 
-const BLUE = { tint: 'rgba(121,188,232,0.18)', icon: '#3C92E0' };
-const GOLD = { tint: 'rgba(242, 137, 47,0.18)', icon: '#f2892f' };
+const BLUE = { tint: 'rgba(var(--guild-c2-rgb), 0.18)', icon: '#3C92E0' };
+const GOLD = { tint: 'rgba(var(--guild-c1-rgb), 0.18)', icon: 'var(--guild-c1)' };
 
 export const CLASS_ACCENTS = {
   Barbarian: { ...GOLD, label: 'Barbarian' },

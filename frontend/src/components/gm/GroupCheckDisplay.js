@@ -1,19 +1,33 @@
 import React, { useMemo } from 'react';
 import { CheckCircle2, Dice6, Sparkles, Timer, Users } from 'lucide-react';
+import DisplayHexPortrait from '@/components/gm/DisplayHexPortrait';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
-const titleFont = 'var(--rq-title-font, "Germania One", Georgia, serif)';
+const titleFont = 'var(--rq-font-display, Cinzel, Georgia, serif)';
 
+// The display's own palette (the --guild-* tokens), with semantic colours
+// kept for success and failure.
 const theme = {
-  panel: 'var(--rq-surface, #242424)',
-  card: 'var(--rq-card, #3a3a3a)',
-  red: 'var(--rq-primary, #d00000)',
-  text: 'var(--rq-text, #ffffff)',
-  soft: 'var(--rq-muted, rgba(255,255,255,0.76))',
-  muted: 'var(--rq-faint, rgba(255,255,255,0.52))',
-  line: 'var(--rq-line, rgba(255,255,255,0.16))',
-  lineStrong: 'var(--rq-line-strong, rgba(255,255,255,0.28))',
+  panel: 'var(--guild-panel, #141032)',
+  card: 'var(--guild-bg, #0b0a1c)',
+  red: 'var(--guild-c1, #ff1976)',
+  text: 'var(--guild-text, #ffffff)',
+  soft: 'var(--guild-text-muted, rgba(255,255,255,0.76))',
+  muted: 'rgba(255,255,255,0.58)',
+  line: 'rgba(var(--guild-c1-rgb, 255, 25, 118), 0.24)',
+  lineStrong: 'rgba(var(--guild-c1-rgb, 255, 25, 118), 0.5)',
+  success: 'var(--rq-success, #5FA67A)',
+  danger: 'var(--rq-danger, #B94A4F)',
 };
+
+// Each card's colour says its state: waiting, success, failed, or rolled with no DC.
+const statusTone = {
+  pending: { edge: theme.line, top: theme.lineStrong, wash: 'transparent', glow: 'rgba(var(--guild-c1-rgb, 255, 25, 118), 0.10)' },
+  success: { edge: theme.success, top: theme.success, wash: 'rgba(95,166,122,0.16)', glow: 'rgba(95,166,122,0.30)' },
+  failed: { edge: theme.danger, top: theme.danger, wash: 'rgba(185,74,79,0.16)', glow: 'rgba(185,74,79,0.30)' },
+  rolled: { edge: theme.lineStrong, top: theme.red, wash: 'rgba(var(--guild-c1-rgb, 255, 25, 118), 0.10)', glow: 'rgba(var(--guild-c1-rgb, 255, 25, 118), 0.26)' },
+};
+const toneFor = (status) => statusTone[status] || statusTone.pending;
 
 function isTable(target) {
   return target === 'virtual-table';
@@ -127,9 +141,12 @@ function GroupCheckCard({ row, target, hasDc, dc }) {
   const success = row.status === 'success';
   return (
     <article style={cardStyle(target, row.status)} data-testid="group-check-player-card">
-      <div style={portraitStyle(target, row.status)}>
-        {row.imageUrl ? <img src={row.imageUrl} alt={row.name} style={portraitImageStyle} /> : <span>{String(row.name || '?').slice(0, 1).toUpperCase()}</span>}
-      </div>
+      <DisplayHexPortrait
+        imageUrl={row.imageUrl}
+        name={row.name}
+        tone={row.status === 'failed' ? 'danger' : pending ? 'cool' : 'hot'}
+        size={isTable(target) ? 44 : 72}
+      />
       <div style={cardInfoStyle(target)}>
         <strong>{row.name}</strong>
         <span>{row.className || 'Adventurer'}</span>
@@ -147,19 +164,18 @@ function GroupCheckCard({ row, target, hasDc, dc }) {
 }
 
 const shellStyle = (target) => ({ minHeight: 0, height: '100%', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr) auto', gap: isTable(target) ? 8 : 14, padding: isTable(target) ? 10 : 'clamp(18px, 3vw, 40px)', animation: 'rqkGroupCheckReveal 700ms ease both', overflow: 'hidden', fontFamily: fontStack });
-const heroStyle = (target) => ({ display: 'grid', justifyItems: 'center', gap: isTable(target) ? 5 : 10, textAlign: 'center', padding: isTable(target) ? '8px 10px' : '14px 18px', background: 'rgba(0,0,0,0.42)', border: `1px solid ${theme.line}`, borderTop: `${isTable(target) ? 5 : 8}px solid ${theme.red}`, boxShadow: '0 26px 100px rgba(0,0,0,0.42)' });
+const heroStyle = (target) => ({ display: 'grid', justifyItems: 'center', gap: isTable(target) ? 5 : 10, textAlign: 'center', padding: isTable(target) ? '8px 10px' : '14px 18px', background: theme.panel, border: `1px solid ${theme.line}`, borderTop: `${isTable(target) ? 3 : 4}px solid ${theme.red}`, borderRadius: 12, boxShadow: `inset 0 0 40px rgba(var(--guild-c1-rgb, 255, 25, 118), 0.14)` });
 const eyebrowStyle = (target) => ({ margin: 0, color: theme.red, fontSize: isTable(target) ? 10 : 13, fontWeight: 950, letterSpacing: '0.16em', textTransform: 'uppercase' });
 const titleStyle = (target) => ({ margin: 0, color: theme.text, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(30px, 5vw, 70px)' : 'clamp(54px, 8vw, 124px)', lineHeight: 0.9, letterSpacing: '0.03em' });
 const subtitleStyle = (target) => ({ margin: 0, color: theme.soft, fontSize: isTable(target) ? 'clamp(12px, 1.6vw, 18px)' : 'clamp(17px, 2vw, 28px)', lineHeight: 1.25, maxWidth: 1100 });
 const metaRowStyle = (target) => ({ display: 'flex', gap: isTable(target) ? 5 : 8, flexWrap: 'wrap', justifyContent: 'center', marginTop: isTable(target) ? 2 : 6, color: theme.text, fontSize: isTable(target) ? 10 : 13, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' });
 const boardStyle = (target, count) => ({ minHeight: 0, display: 'grid', gridTemplateColumns: isTable(target) ? 'repeat(auto-fit, minmax(128px, 1fr))' : count <= 4 ? `repeat(${Math.max(1, count)}, minmax(0, 1fr))` : 'repeat(auto-fit, minmax(210px, 1fr))', gap: isTable(target) ? 8 : 14, alignContent: 'center', overflow: 'hidden' });
-const cardStyle = (target, status) => ({ minHeight: isTable(target) ? 150 : 248, display: 'grid', gridTemplateRows: `${isTable(target) ? 46 : 76}px auto minmax(42px, 1fr) auto`, justifyItems: 'center', gap: isTable(target) ? 5 : 9, padding: isTable(target) ? 8 : 14, background: status === 'pending' ? 'rgba(58,58,58,0.82)' : status === 'success' ? 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(208,0,0,0.36))' : 'linear-gradient(135deg, rgba(12,0,0,0.74), rgba(58,58,58,0.9))', border: `1px solid ${status === 'pending' ? theme.line : theme.lineStrong}`, borderTop: `${isTable(target) ? 4 : 7}px solid ${status === 'pending' ? theme.lineStrong : theme.red}`, boxShadow: status === 'pending' ? '0 16px 42px rgba(0,0,0,0.24)' : '0 22px 72px rgba(208,0,0,0.22)', textAlign: 'center', overflow: 'hidden' });
-const portraitStyle = (target, status) => ({ width: isTable(target) ? 46 : 76, height: isTable(target) ? 46 : 76, display: 'grid', placeItems: 'center', overflow: 'hidden', background: status === 'pending' ? theme.panel : theme.red, color: theme.text, border: `1px solid ${theme.lineStrong}`, fontFamily: titleFont, fontSize: isTable(target) ? 23 : 42, boxShadow: status === 'pending' ? 'none' : '0 0 34px rgba(208,0,0,0.34)' });
-const portraitImageStyle = { width: '100%', height: '100%', objectFit: 'cover' };
+const cardStyle = (target, status) => { const tone = toneFor(status); return ({ minHeight: isTable(target) ? 150 : 248, display: 'grid', gridTemplateRows: `${isTable(target) ? 52 : 84}px auto minmax(42px, 1fr) auto`, justifyItems: 'center', alignItems: 'center', gap: isTable(target) ? 5 : 9, padding: isTable(target) ? 8 : 14, background: `linear-gradient(180deg, ${tone.wash}, transparent 70%), ${theme.panel}`, border: `1px solid ${tone.edge}`, borderTop: `${isTable(target) ? 3 : 4}px solid ${tone.top}`, borderRadius: 12, boxShadow: `inset 0 0 34px ${tone.glow}`, textAlign: 'center', overflow: 'hidden' }); };
+
 const cardInfoStyle = (target) => ({ minWidth: 0, display: 'grid', gap: 2, color: theme.text, fontSize: isTable(target) ? 12 : 18, fontWeight: 950 });
-const rollTotalStyle = (target, status) => ({ display: 'grid', placeItems: 'center', color: status === 'pending' ? theme.muted : theme.text, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(34px, 6vw, 68px)' : 'clamp(58px, 8vw, 132px)', lineHeight: 0.9, textShadow: status === 'pending' ? 'none' : '0 0 28px rgba(208,0,0,0.38)' });
-const cardFooterStyle = (target, status) => ({ minHeight: isTable(target) ? 24 : 34, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, flexWrap: 'wrap', color: theme.text, background: status === 'pending' ? 'rgba(0,0,0,0.34)' : theme.red, border: `1px solid ${theme.line}`, padding: isTable(target) ? '3px 6px' : '5px 9px', fontSize: isTable(target) ? 9 : 12, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' });
-const statusBarStyle = (target, done) => ({ minHeight: isTable(target) ? 34 : 46, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', padding: isTable(target) ? '6px 8px' : '9px 12px', background: done ? 'rgba(208,0,0,0.72)' : 'rgba(0,0,0,0.58)', border: `1px solid ${done ? theme.red : theme.line}`, color: theme.text, fontSize: isTable(target) ? 10 : 13, fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.06em' });
+const rollTotalStyle = (target, status) => ({ display: 'grid', placeItems: 'center', color: status === 'pending' ? theme.muted : status === 'success' ? theme.success : status === 'failed' ? theme.danger : theme.text, fontFamily: titleFont, fontSize: isTable(target) ? 'clamp(34px, 6vw, 68px)' : 'clamp(58px, 8vw, 132px)', lineHeight: 0.9, textShadow: status === 'pending' ? 'none' : `0 0 26px ${toneFor(status).glow}` });
+const cardFooterStyle = (target, status) => ({ minHeight: isTable(target) ? 24 : 34, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, flexWrap: 'wrap', color: theme.text, background: theme.card, border: `1px solid ${toneFor(status).edge}`, borderRadius: 999, padding: isTable(target) ? '3px 8px' : '5px 12px', fontSize: isTable(target) ? 9 : 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.06em' });
+const statusBarStyle = (target, done) => ({ minHeight: isTable(target) ? 34 : 46, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', padding: isTable(target) ? '6px 10px' : '9px 16px', background: theme.panel, border: `1px solid ${done ? theme.lineStrong : theme.line}`, borderRadius: 10, boxShadow: done ? `inset 0 0 28px rgba(var(--guild-c1-rgb, 255, 25, 118), 0.22)` : 'none', color: theme.text, fontSize: isTable(target) ? 10 : 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.06em' });
 const emptyStyle = (target) => ({ color: theme.soft, fontSize: isTable(target) ? 16 : 24, textAlign: 'center', padding: 24, border: `1px dashed ${theme.line}`, background: 'rgba(0,0,0,0.32)' });
 
 if (typeof document !== 'undefined' && !document.getElementById('rqk-group-check-display-css')) {

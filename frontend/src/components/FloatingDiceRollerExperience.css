@@ -125,12 +125,12 @@
   inset: 0;
   z-index: 2800;
   pointer-events: none;
-  --dice-bg: #0a2342;
-  --dice-card: #0a2342;
+  --dice-bg: var(--guild-bg);
+  --dice-card: var(--guild-bg);
   --dice-text: #fff;
-  --dice-muted: #c9d2e6;
-  --dice-blue: #4fb3ff;
-  --dice-accent: #ffb066;
+  --dice-muted: var(--guild-muted);
+  --dice-blue: var(--guild-c3);
+  --dice-accent: var(--guild-hi);
   --dice-line: rgba(201,210,230,.25);
   --dice-line-strong: rgba(201,210,230,.35);
   color: var(--dice-text);
@@ -182,6 +182,9 @@
   color: var(--dice-text);
 }
 .rq-dice-wheel-overlay .rq-floating-dice__title span { display: none; }
+/* While a throw is on screen the dice hexagon has its own close button;
+   a second one beside it read as two different ways out. */
+.rq-dice-wheel-overlay.has-roll .rq-floating-dice__close { visibility: hidden; }
 .rq-dice-wheel-overlay .rq-floating-dice__close {
   width: 40px !important;
   height: 40px !important;
@@ -191,6 +194,9 @@
   display: block;
   width: 100%;
   position: relative;
+  /* Room for the step line, which hangs just below the wheel, so the
+     custom-roll link never runs into the Change style button. */
+  margin-bottom: 46px;
 }
 .rq-dice-wheel-overlay .rq-floating-dice__journey-header {
   position: absolute;
@@ -265,7 +271,7 @@
 .rq-dice-wheel-overlay .rq-dice-wheel__extras {
   position: relative;
   display: block;
-  margin: 22px auto 0;
+  margin: 4px auto 0;
   max-width: 320px;
   color: var(--dice-muted);
 }

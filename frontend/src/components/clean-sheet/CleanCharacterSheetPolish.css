@@ -7,7 +7,7 @@
   --cs-bg: var(--cs-bg);
   --cs-panel: var(--cs-panel);
   --cs-card: var(--cs-card);
-  --cs-card-hover: #17364F;
+  --cs-card-hover: var(--guild-panel);
   --cs-input: var(--cs-input);
   --cs-text: var(--cs-text);
   --cs-text-soft: var(--cs-text);

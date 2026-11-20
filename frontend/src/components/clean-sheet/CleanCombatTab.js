@@ -198,21 +198,12 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
     return draft === undefined ? resource : { ...resource, current: Math.min(resource.max, draft) };
   }), [character, resourceDrafts]);
 
+  // Only real attacks: equipped weapons and the unarmed strike. A made-up
+  // "1d8 weapon" for a character with nothing in hand misled new players.
   const attackOptions = useMemo(() => ([
-    ...(equippedWeaponAttacks.length > 0 ? equippedWeaponAttacks : [{
-      id: 'main-attack',
-      title: 'Weapon Attack',
-      type: 'Action',
-      attackLabel: 'Weapon Attack',
-      details: 'Fallback weapon attack',
-      attackMod: bestAttackMod,
-      saveText: null,
-      damageText: `1d8 ${fmt(bestAbilityMod)}`,
-      damageType: 'weapon',
-      damage: { label: 'Weapon Damage', count: 1, sides: 8, modifier: bestAbilityMod, damageType: 'weapon' },
-    }]),
+    ...equippedWeaponAttacks,
     unarmedAttack,
-  ]), [bestAbilityMod, bestAttackMod, equippedWeaponAttacks, unarmedAttack]);
+  ]), [equippedWeaponAttacks, unarmedAttack]);
 
   const groupedSpells = useMemo(() => ({
     action: spells.filter((spell) => actionTypeFromText(spell.castingTime, 'action') === 'action'),
@@ -375,20 +366,34 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
       toast.error('Open a saved character before using consumables.');
       return;
     }
+    // Only healing items heal. Anything else is used up and its effect is
+    // left to the table: the sheet does not pretend it is a healing potion.
     const heal = getPotionHealing(item);
-    const result = rollDice(heal.count, heal.sides, heal.modifier);
-    const updates = buildConsumableUseUpdate(character, item, result.total);
+    const result = heal ? rollDice(heal.count, heal.sides, heal.modifier) : null;
+    const updates = buildConsumableUseUpdate(character, item, result ? result.total : 0);
     if (!updates.consumed) {
       toast.error(`Could not find ${getItemName(item)} in this character's inventory.`);
       return;
     }
-    const ok = await onCharacterUpdate({
-      current_hit_points: updates.current_hit_points,
-      inventory: updates.inventory,
-      equipment: updates.equipment,
-    }, { error: 'Could not use consumable' });
+    const patch = { inventory: updates.inventory, equipment: updates.equipment };
+    if (heal) {
+      patch.current_hit_points = updates.current_hit_points;
+      if ('death_saves_successes' in updates) {
+        patch.death_saves_successes = 0;
+        patch.death_saves_failures = 0;
+      }
+    }
+    const ok = await onCharacterUpdate(patch, { error: 'Could not use consumable' });
     if (ok === false) return;
-    toast.success(`${getItemName(item)} heals ${result.total} HP`);
+    if (heal) {
+      toast.success(`${getItemName(item)} heals ${result.total} HP`);
+      return;
+    }
+    const effect = typeof item === 'object' ? (item.effect || item.description || '') : '';
+    toast.info(`${getItemName(item)} used`, {
+      description: `${effect ? `${String(effect).slice(0, 220)} ` : ''}Its effect is not applied automatically: resolve it with your GM.`,
+      duration: 10000,
+    });
   };
 
   const featureCards = (features) => features.map((feature) => (
@@ -446,6 +451,11 @@ export default function CleanCombatTab({ character, proficiencyBonus, onRoll, on
           title="Actions"
           summary={`Attack action: ${attacksPerAction} attack${attacksPerAction === 1 ? '' : 's'}`}
         >
+          {equippedWeaponAttacks.length === 0 && (
+            <p className="clean-sheet-no-weapon" data-testid="combat-no-weapon">
+              No weapon equipped. Equip one from Equipment to see its attack here.
+            </p>
+          )}
           {attackOptions.map(attack => (
             <AttackCard
               key={attack.id}

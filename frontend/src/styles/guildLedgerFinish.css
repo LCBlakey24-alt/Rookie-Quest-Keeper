@@ -4,7 +4,7 @@
    Status/danger/success colours and visible keyboard focus are preserved. */
 :root {
   --rq-font-display: 'Cinzel', 'Fraunces', Georgia, 'Times New Roman', serif;
-  --rq-guild-heading: #ffb066;
+  --rq-guild-heading: var(--guild-hi);
   --rq-guild-copy: #F1EEE7;
   --rq-guild-muted: #C9C6BF;
   --rq-guild-wine: #7E2D2D;
@@ -281,7 +281,7 @@
    brown gradient cards. A muted blue sheen indicates activity without
    claiming progress toward completion. */
 #root .rq-loading-skeleton {
-  background: #0a2342 !important;
+  background: var(--guild-bg) !important;
   background-image: none !important;
   border: 0 !important;
   border-left: 0 !important;
@@ -297,11 +297,11 @@
   box-shadow: none !important;
   background: linear-gradient(90deg,
     rgba(255, 255, 255, .07) 0%,
-    rgba(60, 146, 224, .17) 48%,
+    rgba(var(--guild-c2-rgb), .17) 48%,
     rgba(255, 255, 255, .07) 100%) !important;
 }
 #root .rq-loading-skeleton::after {
-  background: linear-gradient(90deg, transparent, rgba(60, 146, 224, .11), transparent) !important;
+  background: linear-gradient(90deg, transparent, rgba(var(--guild-c2-rgb), .11), transparent) !important;
 }
 @media (prefers-reduced-motion: reduce) {
   #root .rq-loading-skeleton,
@@ -355,7 +355,7 @@
     .player-campaign-card h2
   ) {
     font-family: var(--rq-font-display, Georgia, serif) !important;
-    color: var(--rq-guild-heading, #ffb066) !important;
+    color: var(--rq-guild-heading, var(--guild-hi)) !important;
     -webkit-text-fill-color: currentColor !important;
     line-height: 1.18 !important;
     overflow-wrap: anywhere !important;
@@ -445,10 +445,10 @@
     padding: 18px !important;
     background: var(--rq-bg-panel, #0a2342) !important;
     border-radius: 9px !important;
-    border-left: 3px solid var(--rq-guild-heading, #ffb066) !important;
+    border-left: 3px solid var(--rq-guild-heading, var(--guild-hi)) !important;
   }
   #root .rqk-app-shell .player-dashboard-unavailable strong {
-    color: var(--rq-guild-heading, #ffb066) !important;
+    color: var(--rq-guild-heading, var(--guild-hi)) !important;
   }
   #root .rqk-app-shell .player-dashboard-unavailable p { margin: 0 !important; line-height: 1.5 !important; }
   #root .rqk-app-shell .player-campaign-tabs {

@@ -236,13 +236,20 @@ def _subclass_for(character: Dict[str, Any], class_name: str) -> str:
 
 
 def has_non_pact_spell_slots(character: Dict[str, Any]) -> bool:
-    """Whether any class contributes ordinary shared spellcasting slots."""
+    """Whether any class contributes ordinary shared spellcasting slots.
+
+    Paladins and Rangers gain Spellcasting at level 2 under the 2014 rules
+    and at level 1 under the 2024 rules. Using the 2014 threshold for a 2024
+    Warlock 2 / Paladin 1 mistook the Paladin's ordinary slots for the
+    Pact Magic pool, so a Short Rest refilled them.
+    """
+    half_caster_from = 1 if _edition(character) == "2024" else 2
     for class_name, level in _class_levels(character).items():
         if class_name == "warlock":
             continue
         if class_name in FULL_CASTERS and level > 0:
             return True
-        if class_name in HALF_CASTERS and level >= 2:
+        if class_name in HALF_CASTERS and level >= half_caster_from:
             return True
         if class_name == "fighter" and level >= 3 and _class_key(_subclass_for(character, class_name)) == "eldritch_knight":
             return True

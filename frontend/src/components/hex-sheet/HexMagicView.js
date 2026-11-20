@@ -168,7 +168,7 @@ export default function HexMagicView({ character, proficiencyBonus = 2, onRollAt
                 )}
                 <button type="button" className="hex-spell__name" onClick={() => setOpenSpell(isOpen ? null : id)} aria-expanded={isOpen}>
                   <strong>{spell.name}</strong>
-                  <small>{[sourceNote, spell.level > 0 && spell.level !== current.level ? `${ordinal(spell.level)} level` : null, spell.school, roll?.type, roll?.label].filter(Boolean).join(' · ') || (spell.level === 0 ? 'Cantrip' : `${ordinal(spell.level)} level`)}</small>
+                  <small>{[sourceNote, spell.level > 0 && spell.level !== current.level ? `${ordinal(spell.level)} level, upcast` : null, spell.school, roll?.type, roll?.label].filter(Boolean).join(' · ') || (spell.level === 0 ? 'Cantrip' : `${ordinal(spell.level)} level`)}</small>
                 </button>
                 <div className="hex-spell__rolls">
                   {roll?.kind === 'attack' && (

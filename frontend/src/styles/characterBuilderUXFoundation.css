@@ -2,15 +2,15 @@
    Adds stronger phone/tablet layout rules while the builder is being refactored. */
 
 @media (max-width: 1180px) {
-  div[style*="max-width: 1100px"],
-  div[style*="maxWidth: 1100px"] {
+  .full-creator-page div[style*="max-width: 1100px"],
+  .full-creator-page div[style*="maxWidth: 1100px"] {
     width: 100% !important;
     max-width: 100% !important;
   }
 
-  div[style*="repeat(auto-fit"],
-  div[style*="grid-template-columns"],
-  div[style*="gridTemplateColumns"] {
+  .full-creator-page div[style*="repeat(auto-fit"],
+  .full-creator-page div[style*="grid-template-columns"],
+  .full-creator-page div[style*="gridTemplateColumns"] {
     gap: 14px !important;
   }
 }
@@ -23,102 +23,102 @@
     overflow-x: hidden !important;
   }
 
-  div[style*="grid-template-columns"],
-  div[style*="gridTemplateColumns"] {
+  .full-creator-page div[style*="grid-template-columns"],
+  .full-creator-page div[style*="gridTemplateColumns"] {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
 
-  div[style*="minmax(120px"],
-  div[style*="minmax(140px"],
-  div[style*="minmax(160px"],
-  div[style*="minmax(180px"],
-  div[style*="minmax(200px"],
-  div[style*="minmax(220px"],
-  div[style*="minmax(240px"] {
+  .full-creator-page div[style*="minmax(120px"],
+  .full-creator-page div[style*="minmax(140px"],
+  .full-creator-page div[style*="minmax(160px"],
+  .full-creator-page div[style*="minmax(180px"],
+  .full-creator-page div[style*="minmax(200px"],
+  .full-creator-page div[style*="minmax(220px"],
+  .full-creator-page div[style*="minmax(240px"] {
     grid-template-columns: 1fr !important;
   }
 
-  div[style*="padding: 28px"] {
+  .full-creator-page div[style*="padding: 28px"] {
     padding: 16px !important;
   }
 
-  div[style*="justify-content: space-between"],
-  div[style*="justifyContent: space-between"] {
+  .full-creator-page div[style*="justify-content: space-between"],
+  .full-creator-page div[style*="justifyContent: space-between"] {
     flex-direction: column !important;
     align-items: stretch !important;
     gap: 10px !important;
   }
 
-  button {
+  .full-creator-page button {
     min-height: 44px !important;
     white-space: normal !important;
     line-height: 1.25 !important;
   }
 
-  button[style*="flex: 1"],
-  button[style*="min-width"],
-  button[style*="minWidth"] {
+  .full-creator-page button[style*="flex: 1"],
+  .full-creator-page button[style*="min-width"],
+  .full-creator-page button[style*="minWidth"] {
     min-width: 100% !important;
     width: 100% !important;
     justify-content: center !important;
   }
 
-  button[aria-label],
-  button[data-testid*="clear"],
-  button[data-testid*="dec"],
-  button[data-testid*="inc"] {
+  .full-creator-page button[aria-label],
+  .full-creator-page button[data-testid*="clear"],
+  .full-creator-page button[data-testid*="dec"],
+  .full-creator-page button[data-testid*="inc"] {
     min-width: 44px !important;
     width: auto !important;
   }
 
-  input,
-  select,
-  textarea {
+  .full-creator-page input,
+  .full-creator-page select,
+  .full-creator-page textarea {
     min-height: 44px !important;
     font-size: 16px !important;
     max-width: 100% !important;
   }
 
-  label,
-  small,
-  p {
+  .full-creator-page label,
+  .full-creator-page small,
+  .full-creator-page p {
     line-height: 1.45 !important;
   }
 
-  div[data-testid^="ability-slot-"] {
+  .full-creator-page div[data-testid^="ability-slot-"] {
     min-height: 128px !important;
     padding: 14px !important;
   }
 
-  div[data-testid="score-pool"] {
+  .full-creator-page div[data-testid="score-pool"] {
     align-items: stretch !important;
     gap: 8px !important;
   }
 
-  p,
-  span,
-  div,
-  label,
-  button {
+  .full-creator-page p,
+  .full-creator-page span,
+  .full-creator-page div,
+  .full-creator-page label,
+  .full-creator-page button {
     overflow-wrap: anywhere;
   }
 
   /* Character builder stepper/progress rescue.
      The builder uses inline styles, so this targets the visual step row without
      crushing every step button to full width. */
-  div[style*="overflow-x: auto"],
-  div[style*="overflowX: auto"],
-  div[style*="overflow: auto"] {
+  .full-creator-page div[style*="overflow-x: auto"],
+  .full-creator-page div[style*="overflowX: auto"],
+  .full-creator-page div[style*="overflow: auto"] {
     max-width: 100% !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
     -webkit-overflow-scrolling: touch;
   }
 
-  div[style*="overflow-x: auto"] button,
-  div[style*="overflowX: auto"] button,
-  div[style*="overflow: auto"] button {
+  .full-creator-page div[style*="overflow-x: auto"] button,
+  .full-creator-page div[style*="overflowX: auto"] button,
+  .full-creator-page div[style*="overflow: auto"] button {
     width: auto !important;
     min-width: 150px !important;
     flex: 0 0 auto !important;
@@ -126,48 +126,48 @@
     white-space: nowrap !important;
   }
 
-  div[style*="overflow-x: auto"]::-webkit-scrollbar,
-  div[style*="overflowX: auto"]::-webkit-scrollbar,
-  div[style*="overflow: auto"]::-webkit-scrollbar {
+  .full-creator-page div[style*="overflow-x: auto"]::-webkit-scrollbar,
+  .full-creator-page div[style*="overflowX: auto"]::-webkit-scrollbar,
+  .full-creator-page div[style*="overflow: auto"]::-webkit-scrollbar {
     height: 5px;
   }
 
-  div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb,
-  div[style*="overflowX: auto"]::-webkit-scrollbar-thumb,
-  div[style*="overflow: auto"]::-webkit-scrollbar-thumb {
+  .full-creator-page div[style*="overflow-x: auto"]::-webkit-scrollbar-thumb,
+  .full-creator-page div[style*="overflowX: auto"]::-webkit-scrollbar-thumb,
+  .full-creator-page div[style*="overflow: auto"]::-webkit-scrollbar-thumb {
     background: rgba(239, 68, 68, 0.45);
     border-radius: 999px;
   }
 }
 
 @media (max-width: 520px) {
-  div[style*="padding: 28px"] {
+  .full-creator-page div[style*="padding: 28px"] {
     padding: 12px !important;
   }
 
-  h1,
-  h2,
-  h3 {
+  .full-creator-page h1,
+  .full-creator-page h2,
+  .full-creator-page h3 {
     line-height: 1.15 !important;
     overflow-wrap: anywhere;
   }
 
-  div[style*="display: grid"] {
+  .full-creator-page div[style*="display: grid"] {
     grid-template-columns: 1fr !important;
   }
 
-  .card,
-  .glow-card,
-  .rq-card,
-  .wizard-step,
-  .wizard-option,
-  .item-box {
+  .full-creator-page .card,
+  .full-creator-page .glow-card,
+  .full-creator-page .rq-card,
+  .full-creator-page .wizard-step,
+  .full-creator-page .wizard-option,
+  .full-creator-page .item-box {
     padding: 12px !important;
   }
 
-  div[style*="overflow-x: auto"] button,
-  div[style*="overflowX: auto"] button,
-  div[style*="overflow: auto"] button {
+  .full-creator-page div[style*="overflow-x: auto"] button,
+  .full-creator-page div[style*="overflowX: auto"] button,
+  .full-creator-page div[style*="overflow: auto"] button {
     min-width: 136px !important;
     font-size: 13px !important;
   }

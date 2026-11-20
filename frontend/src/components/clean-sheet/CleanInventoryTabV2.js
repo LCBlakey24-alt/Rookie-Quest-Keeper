@@ -31,8 +31,8 @@ const EQUIP_SLOTS = [
   ['mainHand', 'Main Hand'],
   ['offHand', 'Off Hand'],
   ['armor', 'Armour'],
-  ['gauntlets', 'Gauntlets'],
   ['boots', 'Boots'],
+  ['head', 'Helmet'],
 ];
 
 const SLOT_LABELS = {
@@ -41,6 +41,7 @@ const SLOT_LABELS = {
   armor: 'Armour',
   gauntlets: 'Gauntlets',
   boots: 'Boots',
+  head: 'Helmet',
   shield: 'Off Hand',
 };
 
@@ -103,7 +104,9 @@ function inferEquipSlot(item) {
   if (explicit) return explicit === 'shield' ? 'offHand' : explicit;
   const text = `${item?.type || ''} ${item?.item_type || ''} ${itemName(item)}`.toLowerCase();
   if (text.includes('shield')) return 'offHand';
-  if (/gauntlet|glove|bracer/.test(text)) return 'gauntlets';
+  // Gloves, bracers, rings and cloaks have no slot: they stay in the list.
+  if (/gauntlet|glove|bracer|\bring\b|amulet|necklace|cloak|\bbelt\b/.test(text) && !/ring mail/.test(text)) return '';
+  if (/helm|\bhat\b|circlet|headband|crown|diadem/.test(text)) return 'head';
   if (/boot|shoe|sandal/.test(text)) return 'boots';
   if (/armour|armor|mail|plate|leather|scale|chain|hide/.test(text)) return 'armor';
   if (/off hand|offhand/.test(text)) return 'offHand';

@@ -98,7 +98,7 @@ describe('choosing a dice colour', () => {
     await openPanel();
     const swatch = screen.getByTestId('dice-dye-garnet');
     expect(swatch).toHaveTextContent('20');
-    expect(swatch).toHaveAttribute('aria-label', 'Garnet');
+    expect(swatch).toHaveAttribute('aria-label', 'Crimson');
   });
 
   test('choosing a dye saves it and moves the selection', async () => {

@@ -85,6 +85,13 @@ async def cleanup_campaign_data(campaign_id: str) -> Dict[str, Any]:
         )
         if result.modified_count:
             detached['player_characters'] = result.modified_count
+        # Characters the GM offered to this campaign go back to being free.
+        offered = await player_characters.update_many(
+            {'prepared_for_campaign_id': campaign_id},
+            {'$set': {'prepared_for_campaign_id': None, 'claim_pending_by': None, 'claim_pending_at': None, 'updated_at': now}},
+        )
+        if getattr(offered, 'modified_count', 0):
+            detached['prepared_characters'] = offered.modified_count
 
     for collection_name in PERSONAL_CAMPAIGN_REFERENCES:
         collection = _db_collection(collection_name)

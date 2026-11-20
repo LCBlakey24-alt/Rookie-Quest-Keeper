@@ -3,14 +3,13 @@ import { rollDiceNotation } from '@/data/diceRoller';
 import { canonicalInventorySlot, getCanonicalEquippedItem } from '@/data/characterInventoryState';
 import { getMonkClassLevel } from '@/data/monkCharacterShape';
 import { getMonkMartialArtsDie } from '@/data/monkProgression';
+import { isSaveProficient } from '@/data/saveProficiencies';
 
 export const mod = (score = 10) => Math.floor((Number(score || 10) - 10) / 2);
 export const fmt = (value) => (value >= 0 ? `+${value}` : `${value}`);
 
 export function hasSaveProficiency(character, ability) {
-  const saves = character?.saving_throw_proficiencies || [];
-  const short = ability.slice(0, 3).toLowerCase();
-  return saves.some(save => String(save).toLowerCase() === ability || String(save).toLowerCase() === short);
+  return isSaveProficient(character, ability);
 }
 
 export function rollDice(count = 1, sides = 8, modifier = 0, rng = Math.random) {
@@ -238,12 +237,16 @@ export function buildConsumableUseUpdate(character = {}, item, healingTotal = 0)
     ? maxHp
     : Math.max(0, Math.min(maxHp, Number(rawCurrent) || 0));
   const healing = Math.max(0, Number(healingTotal) || 0);
+  const nextHp = Math.min(maxHp, currentHp + healing);
+  // Any healing brings a dying character back: their death saves clear.
+  const revived = currentHp <= 0 && nextHp > 0;
 
   return {
-    current_hit_points: Math.min(maxHp, currentHp + healing),
+    current_hit_points: nextHp,
     inventory: consumed.inventory,
     equipment: consumed.equipment,
     consumed: consumed.consumed,
+    ...(revived ? { death_saves_successes: 0, death_saves_failures: 0 } : {}),
   };
 }
 
@@ -265,11 +268,32 @@ function isConsumableLike(item) {
   return type.includes('consumable') || type.includes('potion') || name.includes('potion') || name.includes('healing');
 }
 
+/** "2d4+2" style healing dice, or null. */
+function parseHealingDice(value) {
+  const match = String(value || '').replace(/\s+/g, '').match(/^(\d+)d(\d+)([+-]\d+)?$/i);
+  if (!match) return null;
+  return { count: Number(match[1]), sides: Number(match[2]), modifier: Number(match[3] || 0) };
+}
+
+/**
+ * The healing a consumable gives, or null when it is not a healing item.
+ *
+ * Only an item that is plainly a healing potion (Potion of Healing and its
+ * Greater, Superior and Supreme tiers) or one that carries its own healing
+ * dice heals. Every other consumable -- a Potion of Invisibility, an
+ * antitoxin, a custom item -- returns null, so using it never quietly adds
+ * hit points (review finding 14).
+ */
 export function getPotionHealing(item) {
-  const text = `${getItemName(item)} ${item?.description || ''} ${item?.effect || ''}`.toLowerCase();
-  if (text.includes('supreme')) return { count: 10, sides: 4, modifier: 20 };
-  if (text.includes('superior')) return { count: 8, sides: 4, modifier: 8 };
-  if (text.includes('greater')) return { count: 4, sides: 4, modifier: 4 };
+  const own = typeof item === 'object' && item
+    ? parseHealingDice(item.healing_dice || item.heal_dice || item.healing || (item.effect_type === 'healing' ? item.dice : ''))
+    : null;
+  if (own) return own;
+  const name = String(getItemName(item) || '').toLowerCase();
+  if (!/potion of (?:(?:greater|superior|supreme) )?healing\b/.test(name)) return null;
+  if (name.includes('supreme')) return { count: 10, sides: 4, modifier: 20 };
+  if (name.includes('superior')) return { count: 8, sides: 4, modifier: 8 };
+  if (name.includes('greater')) return { count: 4, sides: 4, modifier: 4 };
   return { count: 2, sides: 4, modifier: 2 };
 }
 
@@ -326,7 +350,9 @@ function getWeaponProfile(character, item, strengthMod, dexterityMod, bestAbilit
     ? { count: 1, sides: martialArts.sides }
     : weaponDice;
   const explicitAbility = String(item?.ability || item?.attack_ability || '').toLowerCase();
-  const abilityMod = explicitAbility.includes('dex')
+  const abilityMod = explicitAbility.includes('finesse')
+    ? Math.max(strengthMod, dexterityMod)
+    : explicitAbility.includes('dex')
     ? dexterityMod
     : explicitAbility.includes('str')
       ? strengthMod
@@ -345,6 +371,10 @@ function getWeaponProfile(character, item, strengthMod, dexterityMod, bestAbilit
   const damageText = dice.sides === 1
     ? `${dice.count}${totalDamageMod ? ` ${fmt(totalDamageMod)}` : ''}`
     : `${dice.count}d${dice.sides}${totalDamageMod ? ` ${fmt(totalDamageMod)}` : ''}`;
+  const extraDamage = (Array.isArray(item?.extra_damage) ? item.extra_damage : [])
+    .filter(row => row && /^\d+d\d+/i.test(String(row.dice || '')))
+    .map(row => ({ dice: String(row.dice).replace(/\s+/g, ''), type: String(row.type || '') }));
+  const versatile = parseDamageDice(item?.versatile_damage || item?.versatileDamage);
   const category = normaliseName(rule?.category || item?.weapon_category || item?.category || '');
   const isMelee = category.includes('melee') || /^\s*(melee|reach)\b/i.test(String(range || ''));
   const detailParts = [range, properties, martialArts ? `Martial Arts ${martialArts.die}` : null, proficient ? null : 'Not proficient'].filter(Boolean);
@@ -359,9 +389,12 @@ function getWeaponProfile(character, item, strengthMod, dexterityMod, bestAbilit
     proficient,
     isMelee,
     saveText: null,
-    damageText,
+    damageText: extraDamage.length ? `${damageText} ${extraDamage.map(row => `+ ${row.dice}${row.type ? ` ${row.type}` : ''}`).join(' ')}` : damageText,
     damageType,
-    damage: { label: `${name} Damage`, count: dice.count, sides: dice.sides, modifier: totalDamageMod, damageType }
+    damage: { label: `${name} Damage`, count: dice.count, sides: dice.sides, modifier: totalDamageMod, damageType },
+    // Homebrew extras: rolled alongside the main damage, each with its own type.
+    extraDamage,
+    versatileDamage: versatile ? { label: `${name} Damage (two hands)`, count: versatile.count, sides: versatile.sides, modifier: totalDamageMod, damageType } : null
   };
 }
 

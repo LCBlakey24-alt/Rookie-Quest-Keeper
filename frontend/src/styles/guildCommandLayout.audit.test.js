@@ -48,6 +48,6 @@ describe('Guild Command UI audit: desktop sidebar and input states', () => {
     // The focus outline itself is the accessibility guarantee; its colour
     // moved to the approved support blue when the flat Guild Ledger palette
     // replaced #6E91B4, which no longer appears anywhere in the app.
-    expect(citrus).toContain('outline: 3px solid #3C92E0 !important;');
+    expect(citrus).toContain('outline: 3px solid var(--guild-hi) !important;');
   });
 });

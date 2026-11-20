@@ -10,7 +10,7 @@
 .rqk-display-hex--cool .rqk-display-hex__stop-1 { stop-color: var(--guild-c1, #ff3d8b); }
 .rqk-display-hex--cool .rqk-display-hex__stop-2 { stop-color: var(--guild-c2, #b04dff); }
 .rqk-display-hex--cool .rqk-display-hex__stop-3 { stop-color: var(--guild-c3, #4fb3ff); }
-.rqk-display-hex--hot .rqk-display-hex__stop-1 { stop-color: var(--guild-h1, #ffb066); }
+.rqk-display-hex--hot .rqk-display-hex__stop-1 { stop-color: var(--guild-h1, var(--guild-hi)); }
 .rqk-display-hex--hot .rqk-display-hex__stop-2 { stop-color: var(--guild-h2, #ff5fa0); }
 .rqk-display-hex--hot .rqk-display-hex__stop-3 { stop-color: var(--guild-h3, #ffd27a); }
 .rqk-display-hex--hot .rqk-display-hex__glow { opacity: 0.55; }
@@ -26,6 +26,8 @@
 @media (prefers-reduced-motion: reduce) { .rqk-display-hex__ring { transition: none; } }
 
 /* Only the decorative rim rotates. Portrait, initials and HP remain upright. */
-.rqk-display-hex__rotating-frame { transform-box: view-box; transform-origin: 50% 50%; animation: rqk-display-hex-orbit 24s linear infinite; }
+/* fill-box: the frame's own box, centred on the hexagon. view-box measured
+   50% from the viewBox's top-left corner, so the frame orbited off to one side. */
+.rqk-display-hex__rotating-frame { transform-box: fill-box; transform-origin: center; animation: rqk-display-hex-orbit 24s linear infinite; }
 @keyframes rqk-display-hex-orbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .rqk-display-hex__rotating-frame { animation: none; } }

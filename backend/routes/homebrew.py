@@ -14,7 +14,7 @@ import re
 import uuid
 from datetime import datetime, timezone
 
-from utils.auth import check_ai_access, get_current_user, record_ai_usage
+from utils.auth import check_ai_access, get_current_user, record_ai_usage, verify_campaign_ownership
 from config import db, logger
 from utils.llm_provider import LlmChat, UserMessage, get_llm_api_key
 
@@ -745,15 +745,44 @@ class HomebrewSaveRequest(BaseModel):
     homebrew_id: Optional[str] = None
     visibility: str = "private"
     campaign_id: Optional[str] = None
+    # Where the content comes from: 'original' (the user's own), 'free_licence'
+    # (SRD or other openly licensed text) or 'published_book' (copied from a
+    # book the user owns). Published-book content stays private to the user
+    # and their campaigns: it can never be listed publicly or handed out.
+    content_source: Optional[str] = None
+
+
+CONTENT_SOURCES = {"original", "free_licence", "published_book"}
+SHAREABLE_VISIBILITIES = {"public", "shared_copy"}
+
+
+def homebrew_visibility(visibility: Optional[str], content_source: Optional[str]) -> str:
+    """The stored visibility, refusing to share published-book content beyond a table."""
+    chosen = visibility if visibility in {"private", "campaign", "shared_copy", "public"} else "private"
+    if content_source == "published_book" and chosen in SHAREABLE_VISIBILITIES:
+        raise HTTPException(
+            status_code=400,
+            detail="Content from a published book can only be kept private or shared with your own campaign.",
+        )
+    return chosen
 
 
 @router.post("/homebrew/save")
 async def save_homebrew(req: HomebrewSaveRequest, username: str = Depends(get_current_user)):
     normalised_type = _normalise_content_type(req.content_type)
     normalised_edition = _normalise_edition(req.edition)
-    visibility = req.visibility if req.visibility in {"private", "campaign", "shared_copy", "public"} else "private"
+    content_source = req.content_source if req.content_source in CONTENT_SOURCES else None
+    if req.homebrew_id and content_source is None:
+        # Editing keeps what the item already says about its source.
+        coll = COLLECTION.get(normalised_type)
+        previous = await db[coll].find_one({"id": req.homebrew_id, "user_id": username}, {"_id": 0, "content_source": 1}) if coll else None
+        content_source = (previous or {}).get("content_source")
+    visibility = homebrew_visibility(req.visibility, content_source)
     if visibility == "campaign" and not req.campaign_id:
         raise HTTPException(status_code=400, detail="campaign_id is required for campaign homebrew")
+    if visibility == "campaign":
+        # Only a campaign's own GM may share homebrew with its table.
+        await verify_campaign_ownership(req.campaign_id, username)
 
     coll_name = COLLECTION[normalised_type]
     ruleset_id = req.ruleset_id
@@ -782,14 +811,16 @@ async def save_homebrew(req: HomebrewSaveRequest, username: str = Depends(get_cu
         "ruleset_id": ruleset_id,
         "edition": normalised_edition,
         "visibility": visibility,
+        "content_source": content_source or "original",
         "campaign_id": req.campaign_id if visibility == "campaign" else req.campaign_id,
         "source": "Homebrew Workshop",
         "source_type": "user_homebrew",
         "license": doc.get("license") or "user_provided_private_use",
-        "share_policy": doc.get("share_policy") or {
-            "allowPrivateShare": True,
+        # Always set here, never taken from the client's data.
+        "share_policy": {
+            "allowPrivateShare": content_source != "published_book",
             "allowCampaignUse": True,
-            "allowPublicListing": visibility == "public",
+            "allowPublicListing": visibility == "public" and content_source != "published_book",
         },
         "updated_at": _now(),
     })
