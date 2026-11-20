@@ -17,7 +17,7 @@ describe('recoveryState', () => {
 
 describe('Hit Dice', () => {
   test('heal the roll plus CON, capped at max HP, and spend one die', () => {
-    expect(hitDieUpdates(recoveryState(fighter), 7)).toEqual({ healed: 9, total: 9, updates: { current_hit_points: 29, hit_dice_remaining: 2 } });
+    expect(hitDieUpdates(recoveryState(fighter), 7)).toEqual({ healed: 9, total: 9, updates: { current_hit_points: 29, hit_dice_remaining: 2, hit_dice_remaining_by_die: { 10: 2 } } });
     expect(hitDieUpdates(recoveryState({ ...fighter, current_hit_points: 40 }), 10).updates.current_hit_points).toBe(44);
   });
 
@@ -72,3 +72,21 @@ describe('death saves in the dice tray and after healing', () => {
   });
 });
 
+
+describe('multiclass Hit Dice (review finding 10)', () => {
+  const fighterWizard = { class_levels: { Fighter: 1, Wizard: 1 }, hit_dice: '1d10 + 1d6', hit_dice_remaining: 2, constitution: 10, max_hit_points: 20, current_hit_points: 5 };
+
+  test('shows each die size as its own pool, not "2 of 1 left"', () => {
+    const state = recoveryState(fighterWizard);
+    expect(state.pools).toEqual([{ sides: 10, total: 1, remaining: 1 }, { sides: 6, total: 1, remaining: 1 }]);
+    expect(state.hitDiceTotal).toBe(2);
+  });
+
+  test('spending the d10 leaves only the d6', () => {
+    const spent = hitDieUpdates(recoveryState(fighterWizard), 4, 10);
+    expect(spent.updates).toMatchObject({ hit_dice_remaining: 1, hit_dice_remaining_by_die: { 10: 0, 6: 1 } });
+    const after = recoveryState({ ...fighterWizard, ...spent.updates });
+    expect(after.pools.find((pool) => pool.sides === 10).remaining).toBe(0);
+    expect(after.hitDieSides).toBe(6);
+  });
+});

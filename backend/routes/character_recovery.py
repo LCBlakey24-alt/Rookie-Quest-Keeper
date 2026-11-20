@@ -17,6 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from config import db
 from data.character_resources import merge_character_resources
 from utils.auth import get_current_user
+from utils.hit_dice_pools import long_rest_hit_dice as pooled_long_rest_hit_dice, spend_hit_die
 
 
 router = APIRouter()
@@ -297,31 +298,43 @@ async def _save(character_id: str, username: str, updates: Dict[str, Any]) -> Di
     return await _owned_character(character_id, username)
 
 
-def _spend_hit_dice(character: Dict[str, Any], requested: int) -> Dict[str, Any]:
-    """Optional backwards-compatible short-rest Hit Dice spending."""
+def _spend_hit_dice(character: Dict[str, Any], requested: int, die_sides: Optional[int] = None) -> Dict[str, Any]:
+    """Optional short-rest Hit Dice spending, one pool per die size.
+
+    Each die is rolled at its own size: a Fighter 1 / Wizard 1 spends a d10
+    and a d6, never the d10 twice (review finding 10). ``die_sides`` picks
+    the pool; without it the largest die left is spent first.
+    """
     requested = max(0, requested)
     if requested <= 0:
         return {}
 
-    remaining = max(0, _int(character.get("hit_dice_remaining"), _total_hit_dice(character)))
-    spend = min(requested, remaining)
-    if spend <= 0:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No Hit Dice remaining")
+    working = dict(character)
+    rolled_sides = []
+    for _ in range(requested):
+        spent = spend_hit_die(working, die_sides)
+        if not spent:
+            break
+        rolled_sides.append(spent["sides"])
+        working.update(spent["updates"])
+    if not rolled_sides:
+        detail = f"No d{die_sides} Hit Dice remaining" if die_sides else "No Hit Dice remaining"
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
 
     max_hp = max(1, _int(character.get("max_hit_points"), 1))
     current_hp = max(0, min(max_hp, _int(character.get("current_hit_points"), max_hp)))
-    die = _hit_die_sides(character)
     con_mod = _ability_mod(character.get("constitution"))
     minimum = 1 if _edition(character) == "2024" else 0
 
     healed = 0
-    for _ in range(spend):
+    for die in rolled_sides:
         healed += max(minimum, random.randint(1, die) + con_mod)
 
     return {
         "current_hit_points": min(max_hp, current_hp + healed),
-        "hit_dice_remaining": remaining - spend,
-        "last_rest_hit_dice_spent": spend,
+        "hit_dice_remaining": working["hit_dice_remaining"],
+        "hit_dice_remaining_by_die": working["hit_dice_remaining_by_die"],
+        "last_rest_hit_dice_spent": len(rolled_sides),
         "last_rest_hit_points_recovered": min(max_hp, current_hp + healed) - current_hp,
     }
 
@@ -330,6 +343,7 @@ def _spend_hit_dice(character: Dict[str, Any], requested: int) -> Dict[str, Any]
 async def short_rest_character(
     character_id: str,
     hit_dice_to_spend: int = Query(default=0, ge=0, le=20),
+    hit_die_sides: Optional[int] = Query(default=None, ge=4, le=12),
     username: str = Depends(get_current_user),
 ):
     """Restore short-rest resources and optionally spend Hit Dice."""
@@ -350,7 +364,7 @@ async def short_rest_character(
         updates["spell_slots_remaining"] = dict(spell_slots)
         updates["used_spell_slots"] = {}
 
-    updates.update(_spend_hit_dice(character, hit_dice_to_spend))
+    updates.update(_spend_hit_dice(character, hit_dice_to_spend, hit_die_sides))
     return await _save(character_id, username, updates)
 
 
@@ -381,7 +395,7 @@ async def long_rest_character(
         "concentration": None,
         "spell_slots_remaining": dict(spell_slots),
         "used_spell_slots": {},
-        "hit_dice_remaining": long_rest_hit_dice(character),
+        **pooled_long_rest_hit_dice(character, _edition(character)),
         "resources": restored_resources,
         "exhaustion_level": max(0, _int(character.get("exhaustion_level"), 0) - 1),
         "last_rest_type": "long-rest",

@@ -49,18 +49,39 @@ export default function HexRecovery({ character, busy = false, onRest, onSpendHi
         </button>
       )}
 
-      <button
-        type="button"
-        className="hex-recovery__button hex-recovery__button--wide"
-        disabled={busy || Boolean(hitDieReason)}
-        title={hitDieReason || undefined}
-        onClick={onSpendHitDie}
-        data-testid="hex-spend-hit-die"
-      >
-        <span className="hex-glass" aria-hidden="true" />
-        <span>Spend Hit Die</span>
-        <small>d{state.hitDieSides} · {state.hitDiceRemaining} of {state.hitDiceTotal} left</small>
-      </button>
+      {state.pools.length > 1 ? (
+        // A multiclass character picks which die to spend: each size is its own pool.
+        <div className="hex-recovery__row" role="group" aria-label="Spend a Hit Die">
+          {state.pools.map((pool) => (
+            <button
+              key={pool.sides}
+              type="button"
+              className="hex-recovery__button"
+              disabled={busy || Boolean(hitDieReason) || pool.remaining <= 0}
+              title={hitDieReason || (pool.remaining <= 0 ? `No d${pool.sides} left` : undefined)}
+              onClick={() => onSpendHitDie(pool.sides)}
+              data-testid={`hex-spend-hit-die-d${pool.sides}`}
+            >
+              <span className="hex-glass" aria-hidden="true" />
+              <span>Spend d{pool.sides}</span>
+              <small>{pool.remaining} of {pool.total} left</small>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="hex-recovery__button hex-recovery__button--wide"
+          disabled={busy || Boolean(hitDieReason)}
+          title={hitDieReason || undefined}
+          onClick={() => onSpendHitDie(state.hitDieSides)}
+          data-testid="hex-spend-hit-die"
+        >
+          <span className="hex-glass" aria-hidden="true" />
+          <span>Spend Hit Die</span>
+          <small>d{state.hitDieSides} · {state.hitDiceRemaining} of {state.hitDiceTotal} left</small>
+        </button>
+      )}
       {hitDieReason && <p className="hex-recovery__hint">{hitDieReason}</p>}
 
       <div className="hex-recovery__row">

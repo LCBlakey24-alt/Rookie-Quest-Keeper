@@ -86,7 +86,7 @@ def test_paused_signups_still_let_existing_google_players_in():
     with patch.object(login_routes, 'db', SimpleNamespace(users=SimpleNamespace(find_one=AsyncMock(return_value=existing)))), \
          patch.object(login_routes, 'run_in_threadpool', AsyncMock(return_value=claims)), \
          patch.object(login_routes, 'require_signups_enabled', paused), \
-         patch.object(login_routes, 'create_token', return_value='token-1'), \
+         patch.object(login_routes, 'create_user_token', return_value='token-1'), \
          patch.object(login_routes, 'GOOGLE_CLIENT_ID', 'client'):
         result = run(login_routes.login_google(login_routes.GoogleLoginRequest(credential='c')))
     assert result['username'] == 'Rook'

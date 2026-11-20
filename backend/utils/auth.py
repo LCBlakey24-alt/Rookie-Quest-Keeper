@@ -11,7 +11,7 @@ from config import (
     AI_MONTHLY_LIMIT, AI_CONSENT_ENFORCEMENT, AI_CONSENT_POLICY_VERSION,
 )
 from utils.admin_identity import is_admin_username
-from utils.child_access import ACCOUNT_TYPE_CLAIM, ADULT_ACCOUNT_TYPE
+from utils.child_access import ACCOUNT_TYPE_CLAIM, ACCOUNT_TYPE_FIELD, ADULT_ACCOUNT_TYPE
 
 
 def session_version(user: Optional[dict]) -> int:
@@ -39,6 +39,19 @@ def create_token(username: str, token_version: int = 0, account_type: Optional[s
     if account_type and account_type != ADULT_ACCOUNT_TYPE:
         payload[ACCOUNT_TYPE_CLAIM] = account_type
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+def create_user_token(user: Optional[dict], token_version: Optional[int] = None) -> str:
+    """Mint a session token for a stored user record.
+
+    Every sign-in path goes through this, so the account-type claim is
+    copied from the record each time. Minting from a bare username (as the
+    sign-in routes used to) silently dropped it, and a child account would
+    then have been treated as an adult by the access gate.
+    """
+    user = user or {}
+    version = session_version(user) if token_version is None else token_version
+    return create_token(user['username'], version, user.get(ACCOUNT_TYPE_FIELD))
 
 
 def verify_token(token: str) -> str:
