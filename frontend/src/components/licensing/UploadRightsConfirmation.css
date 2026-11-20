@@ -1,0 +1,59 @@
+.rqk-upload-rights {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--guild-line);
+  border-radius: 10px;
+  background: var(--guild-box);
+  box-shadow: inset 0 0 14px var(--guild-box-glow);
+}
+
+.rqk-upload-rights__guide {
+  margin: 0;
+  color: var(--guild-muted);
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+#root .rqk-upload-rights .rqk-upload-rights__check,
+.rqk-upload-rights .rqk-upload-rights__check {
+  display: flex;
+  margin: 0;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  color: var(--guild-text);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+/* Pages size their form fields broadly (for example every input in the
+   homebrew workshop is full width); the checkbox keeps its own size. */
+#root .rqk-upload-rights .rqk-upload-rights__check input[type='checkbox'],
+.rqk-upload-rights .rqk-upload-rights__check input[type='checkbox'] {
+  flex: 0 0 20px;
+  width: 20px !important;
+  min-width: 20px !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  accent-color: var(--guild-hi);
+}
+
+.rqk-upload-rights__check span {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.rqk-upload-rights .rqk-upload-rights__check input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--guild-focus-ring);
+  outline-offset: 2px;
+}

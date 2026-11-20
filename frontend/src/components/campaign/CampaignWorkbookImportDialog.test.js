@@ -30,6 +30,7 @@ describe('CampaignWorkbookImportDialog', () => {
     });
   });
 
+  const confirmRights = () => fireEvent.click(screen.getByRole('checkbox', { name: /permission to use it/i }));
   const uploadFile = () => new File(
     ['fake docx contents'],
     'World.docx',
@@ -45,6 +46,7 @@ describe('CampaignWorkbookImportDialog', () => {
     />);
     const destination = screen.getByLabelText('Import destination');
     fireEvent.change(destination, { target: { value: 'camp-123' } });
+    confirmRights();
     fireEvent.change(screen.getByLabelText('Completed .docx workbook'), { target: { files: [uploadFile()] } });
     fireEvent.click(screen.getByRole('button', { name: 'Preview contents' }));
     expect(await screen.findByText('1 record found')).toBeInTheDocument();
@@ -62,6 +64,7 @@ describe('CampaignWorkbookImportDialog', () => {
       campaigns={[{ id: 'camp-123', name: 'The Sky Roads' }]}
       onClose={jest.fn()}
     />);
+    confirmRights();
     fireEvent.change(screen.getByLabelText('Completed .docx workbook'), { target: { files: [uploadFile()] } });
     fireEvent.click(screen.getByRole('button', { name: 'Preview contents' }));
     expect(await screen.findByText('1 record found')).toBeInTheDocument();
@@ -72,6 +75,7 @@ describe('CampaignWorkbookImportDialog', () => {
   test('does not report a completed import as failed when the library refresh fails', async () => {
     const onImported = jest.fn().mockRejectedValue(new Error('Refresh failed'));
     render(<CampaignWorkbookImportDialog campaigns={[]} onImported={onImported} onClose={jest.fn()} />);
+    confirmRights();
     fireEvent.change(screen.getByLabelText('Completed .docx workbook'), { target: { files: [uploadFile()] } });
     fireEvent.click(screen.getByRole('button', { name: 'Preview contents' }));
     expect(await screen.findByText('1 record found')).toBeInTheDocument();
@@ -82,9 +86,17 @@ describe('CampaignWorkbookImportDialog', () => {
     expect(screen.getByRole('alert')).not.toHaveTextContent(/Could not import workbook/i);
   });
 
+  test('asks for the rights confirmation before a workbook can be chosen or imported', () => {
+    render(<CampaignWorkbookImportDialog campaigns={[]} onImported={jest.fn()} onClose={jest.fn()} />);
+    expect(screen.getByLabelText('Completed .docx workbook')).toBeDisabled();
+    confirmRights();
+    expect(screen.getByLabelText('Completed .docx workbook')).toBeEnabled();
+  });
+
   test('rejects the wrong extension before making any requests', () => {
     render(<CampaignWorkbookImportDialog campaigns={[]} onClose={jest.fn()} />);
     const bad = new File(['bad'], 'notes.txt', { type: 'text/plain' });
+    confirmRights();
     fireEvent.change(screen.getByLabelText('Completed .docx workbook'), { target: { files: [bad] } });
     expect(screen.getByRole('alert')).toHaveTextContent(/\.docx workbook/);
     expect(screen.getByRole('button', { name: 'Preview contents' })).toBeDisabled();

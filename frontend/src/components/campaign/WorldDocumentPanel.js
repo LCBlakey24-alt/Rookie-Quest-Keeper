@@ -3,6 +3,7 @@ import { Download, FileUp, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
 import apiClient from '@/lib/apiClient';
+import UploadRightsConfirmation from '@/components/licensing/UploadRightsConfirmation';
 import HexLoader from '@/components/guild-motif/HexLoader';
 import './WorldDocumentPanel.css';
 
@@ -41,6 +42,7 @@ function initialSelection(drafts) {
 export default function WorldDocumentPanel({ campaignId, onSaved, blockedReason = '' }) {
   const inputRef = useRef(null);
   const [busy, setBusy] = useState('');
+  const [rightsConfirmed, setRightsConfirmed] = useState(false);
   const [drafts, setDrafts] = useState(null);
   const [selection, setSelection] = useState({});
 
@@ -121,14 +123,15 @@ export default function WorldDocumentPanel({ campaignId, onSaved, blockedReason 
           Write up your world in Word, by hand or with ChatGPT or Claude (the document includes a prompt), then upload it.
           Rook reads it into places, people, factions and quests for you to check. Nothing is added until you choose.
         </p>
+        <UploadRightsConfirmation checked={rightsConfirmed} onChange={setRightsConfirmed} disabled={Boolean(busy)} />
         <div className="rq-world-doc__actions">
           <button type="button" className="rq-world-doc__button" onClick={download} disabled={Boolean(busy)} data-testid="world-document-download">
             <Download size={15} aria-hidden="true" /> Download template
           </button>
-          <button type="button" className="rq-world-doc__button rq-world-doc__button--primary" onClick={() => inputRef.current?.click()} disabled={Boolean(busy)} data-testid="world-document-upload">
+          <button type="button" className="rq-world-doc__button rq-world-doc__button--primary" onClick={() => inputRef.current?.click()} disabled={Boolean(busy) || !rightsConfirmed} data-testid="world-document-upload">
             <FileUp size={15} aria-hidden="true" /> Upload filled document
           </button>
-          <input ref={inputRef} type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden onChange={(event) => read(event.target.files?.[0])} data-testid="world-document-file" />
+          <input ref={inputRef} type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden disabled={!rightsConfirmed} onChange={(event) => read(event.target.files?.[0])} data-testid="world-document-file" />
         </div>
       </div>
 
