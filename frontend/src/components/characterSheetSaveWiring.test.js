@@ -37,7 +37,7 @@ describe('live character save wiring', () => {
     expect(playTools).not.toContain('const spendHitDie = async () =>');
     expect(playTools).not.toContain('window.location.reload()');
     expect(sheet).toContain("rulesEdition === '2024' && currentHp <= 0");
-    expect(sheet).toContain("rollHitDie(hitDieInfo.sides, conMod, { minimum: rulesEdition === '2024' ? 1 : 0 })");
+    expect(sheet).toContain("rollHitDie(pooled.sides, conMod, { minimum: rulesEdition === '2024' ? 1 : 0 })");
     expect(sheet).toContain('await patchCharacter({ current_hit_points: nextHp, hit_dice_remaining:');
     expect(sheet).toContain('{ concentrating_on: null, concentration: null }');
   });

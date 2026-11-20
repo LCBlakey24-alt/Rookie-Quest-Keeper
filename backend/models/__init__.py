@@ -734,6 +734,7 @@ class PlayerCharacterCreate(BaseModel):
     temp_hp: Optional[int] = 0
     hit_dice: Optional[str] = None
     hit_dice_remaining: Optional[int] = None
+    hit_dice_remaining_by_die: Optional[Dict[str, int]] = None
     alignment: str = "Neutral"
     personality_traits: Optional[str] = ""
     ideals: Optional[str] = ""
@@ -816,6 +817,7 @@ class PlayerCharacterUpdate(BaseModel):
     temp_hp: Optional[int] = None
     hit_dice: Optional[str] = None
     hit_dice_remaining: Optional[int] = None
+    hit_dice_remaining_by_die: Optional[Dict[str, int]] = None
     
     # Skills & Proficiencies
     proficiency_bonus: Optional[int] = None
