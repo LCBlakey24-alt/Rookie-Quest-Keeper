@@ -30,6 +30,10 @@
 /* Progress: the motif shows the step number and fills with the journey. */
 .full-creator-page .full-creator-progress-card { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 12px; align-items: center; }
 .full-creator-page .full-creator-progress-card .full-creator-progress-motif { grid-row: 1 / span 3; }
+/* The starting-level card has no motif: stack the hint over the picker so the
+   picker keeps a readable width at every size. */
+.full-creator-page .full-creator-level-card { grid-template-columns: minmax(0, 1fr); row-gap: 8px; }
+.full-creator-page .full-creator-level-card > .full-creator-form-grid { max-width: 640px; }
 .full-creator-page .full-creator-progress-heading { margin-bottom: 0; }
 .full-creator-page .full-creator-progress-heading span { color: var(--gl-brass); }
 .full-creator-page .full-creator-progress-track { border-color: var(--gl-line); }
