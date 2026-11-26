@@ -161,3 +161,60 @@ html body #root .rqk-home-v5 .rqk-home-view-toggle {
   stroke-width: 2.4;
   stroke-opacity: 1;
 }
+
+/* Jump back in: the latest character and campaign, one tap from the top. */
+html body #root .rqk-home-v5 .rqk-home-jump { display: grid; gap: 10px; min-width: 0; }
+html body #root .rqk-home-v5 .rqk-home-jump-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 10px;
+}
+html body #root .rqk-home-v5 .rqk-home-jump-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px 14px;
+  border: 1px solid var(--hg-line-hot);
+  border-radius: 14px;
+  background: var(--guild-bg);
+  box-shadow: var(--hg-glow-hot);
+  color: var(--guild-text);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+html body #root .rqk-home-v5 .rqk-home-jump-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  box-shadow: var(--hg-glow-cool);
+  color: var(--guild-hi);
+}
+html body #root .rqk-home-v5 .rqk-home-jump-copy { display: grid; gap: 2px; min-width: 0; }
+html body #root .rqk-home-v5 .rqk-home-jump-copy small {
+  color: var(--guild-hi);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+html body #root .rqk-home-v5 .rqk-home-jump-copy strong {
+  overflow: hidden;
+  font-size: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html body #root .rqk-home-v5 .rqk-home-jump-copy span { color: var(--guild-muted); font-size: 12px; }
+html body #root .rqk-home-v5 .rqk-home-jump-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  html body #root .rqk-home-v5 .rqk-home-jump-card { transition: none; }
+}

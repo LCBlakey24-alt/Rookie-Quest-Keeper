@@ -1,7 +1,7 @@
 
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, BookOpen, Clock3, Globe2, List, PlusCircle, ScrollText, UserPlus, UsersRound, Wand2 } from 'lucide-react';
+import { AlertTriangle, ArrowRight, BookOpen, Clock3, Globe2, List, PlusCircle, ScrollText, UserPlus, UsersRound, Wand2 } from 'lucide-react';
 import HomeHubWheel from '@/components/dashboard/home/HomeHubWheel';
 import useDashboardData from '@/components/dashboard/useDashboardData';
 import UnifiedDashboardHeader from '@/components/dashboard/home/UnifiedDashboardHeader';
@@ -63,6 +63,28 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
     { id: 'new-character', label: 'New Character', value: '+', to: '/characters/new', ariaLabel: 'Create Character' },
   ];
 
+  // "Jump back in": the character and the campaign touched most recently,
+  // one tap from the top of Home. Only real records; nothing is invented.
+  const jumpBack = useMemo(() => {
+    const newest = (list) => [...safeArray(list)].sort((x, y) => new Date(y.updated_at || y.created_at || 0) - new Date(x.updated_at || x.created_at || 0))[0];
+    const character = newest(recentCharacters);
+    const campaign = newest(recentCampaigns);
+    return [
+      character && recordId(character) && {
+        id: 'character', icon: UsersRound, eyebrow: 'Your character', action: 'Open Sheet',
+        title: character.name || character.character_name || 'Unnamed Character',
+        text: `${character.race || character.species || 'Hero'} · Level ${character.level || 1}`,
+        to: `/characters/${recordId(character)}`,
+      },
+      campaign && recordId(campaign) && {
+        id: 'campaign', icon: BookOpen, eyebrow: 'Your campaign', action: 'Open Campaign',
+        title: campaign.name || campaign.campaign_name || 'Untitled Campaign',
+        text: campaign.world_name || 'Campaign workspace',
+        to: `/campaign/${recordId(campaign)}`,
+      },
+    ].filter(Boolean);
+  }, [recentCharacters, recentCampaigns]);
+
   const showGettingStarted = !loading && !dashboardWarning && safeCharacters.length === 0 && safeCampaigns.length === 0 && safeHomebrew.length === 0;
   const recentActivity = useMemo(() => {
     const charActivity = safeArray(recentCharacters).map((item) => ({
@@ -104,7 +126,6 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
   return (
     <main className="unified-dashboard-page unified-dashboard-page--simple rqk-home-v5" data-testid="rookie-home-v5">
       <UnifiedDashboardHeader username={username} refreshing={refreshing} onRefresh={loadDashboard} onLogout={onLogout} />
-      <BetaNotice audience="member" />
       {dashboardWarning && (
         <div className="dashboard-empty-compact" role="status" aria-live="polite">
           <AlertTriangle size={18} aria-hidden="true" />
@@ -114,7 +135,24 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
         </div>
       )}
       <UrgentKeeperNotices items={updates.items} />
-      <KeeperAnnouncementCarousel items={updates.items} loading={updates.loading} error={updates.error} onRefresh={updates.refresh} />
+      {jumpBack.length > 0 && (
+        <section className="rqk-home-jump" aria-labelledby="rqk-home-jump-heading" data-testid="home-jump-back-in">
+          <h2 id="rqk-home-jump-heading">Jump back in</h2>
+          <div className="rqk-home-jump-grid">
+            {jumpBack.map(({ id, icon: Icon, eyebrow, title, text, action, to }) => (
+              <Link key={id} to={to} className="rqk-home-jump-card" data-testid={`home-jump-${id}`}>
+                <span className="rqk-home-jump-icon" aria-hidden="true"><Icon size={20} /></span>
+                <span className="rqk-home-jump-copy">
+                  <small>{eyebrow}</small>
+                  <strong>{title}</strong>
+                  <span>{text}</span>
+                </span>
+                <span className="rqk-home-jump-action">{action} <ArrowRight size={16} aria-hidden="true" /></span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
       <section className="rqk-home-totals" aria-labelledby="rqk-home-totals-heading">
         <div className="rqk-home-totals-heading">
           <h2 id="rqk-home-totals-heading">My Dashboard</h2>
@@ -152,6 +190,8 @@ export default function UnifiedDashboard({ username = 'User', onLogout }) {
           </div>
         </section>
       )}
+      <BetaNotice audience="member" />
+      <KeeperAnnouncementCarousel items={updates.items} loading={updates.loading} error={updates.error} onRefresh={updates.refresh} />
       <div className="rqk-home-content-columns">
         <LatestKeeperUpdates items={updates.items} loading={updates.loading} error={updates.error} />
         <section className="rqk-home-feed-panel" aria-labelledby="dashboard-recent-title">

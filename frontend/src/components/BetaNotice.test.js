@@ -30,4 +30,29 @@ describe('Rookie Quest Keeper public beta transparency notice', () => {
     window.removeEventListener('rook-feedback-open', spy);
     expect(screen.queryByTestId('beta-notice-feedback-login')).not.toBeInTheDocument();
   });
+
+  test('a member can fold the notice to one line; the status and feedback stay, and it opens again', () => {
+    window.localStorage.clear();
+    const { unmount } = show('member');
+    fireEvent.click(screen.getByTestId('beta-notice-fold'));
+    expect(screen.getByTestId('beta-notice-home')).toHaveTextContent('EARLY ACCESS · PUBLIC BETA');
+    expect(screen.queryByText(/active development/i)).not.toBeInTheDocument();
+    expect(screen.getByTestId('beta-notice-feedback')).toBeInTheDocument();
+    unmount();
+
+    // The choice is remembered on this device.
+    show('member');
+    expect(screen.queryByText(/active development/i)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('beta-notice-expand'));
+    expect(screen.getByText(/active development/i)).toBeInTheDocument();
+    window.localStorage.clear();
+  });
+
+  test('the public landing notice cannot be folded away', () => {
+    window.localStorage.setItem('rqk.betaNotice.compact', '1');
+    show('public');
+    expect(screen.getByText(/active development/i)).toBeInTheDocument();
+    expect(screen.queryByTestId('beta-notice-fold')).not.toBeInTheDocument();
+    window.localStorage.clear();
+  });
 });

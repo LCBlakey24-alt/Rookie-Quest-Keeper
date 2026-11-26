@@ -103,3 +103,25 @@
 @media (prefers-reduced-motion: reduce) {
   #root .rqk-beta-notice * { transition: none !important; }
 }
+
+/* Folded to one line once a member has read it (BetaNotice.js). */
+#root .rqk-beta-notice__actions { gap: 8px; flex-wrap: wrap; }
+#root .rqk-beta-notice--compact { padding-top: 8px; padding-bottom: 8px; }
+#root .rqk-beta-notice--compact .rqk-beta-notice__marker { top: 8px; bottom: 8px; }
+#root .rqk-beta-notice__expand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--guild-hi);
+  text-align: left;
+  cursor: pointer;
+}
+#root .rqk-beta-notice__expand:focus-visible { outline: 2px solid var(--guild-focus-ring); outline-offset: 2px; border-radius: 8px; }
+#root .rqk-beta-notice__sr {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
