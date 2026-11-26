@@ -5,7 +5,8 @@
 }
 
 [data-rq-device='tablet'] .full-creator-workspace {
-  grid-template-columns: 86px minmax(0, 1fr);
+  /* 96px, as on desktop: at 86px "Background" broke mid-word. */
+  grid-template-columns: 96px minmax(0, 1fr);
   gap: 10px;
 }
 
