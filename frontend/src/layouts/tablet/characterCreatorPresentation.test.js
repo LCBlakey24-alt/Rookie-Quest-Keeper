@@ -6,7 +6,7 @@ const css = fs.readFileSync(path.join(__dirname, 'characterCreator.css'), 'utf8'
 describe('tablet character creator presentation', () => {
   test('keeps the creator workspace inside the tablet lane', () => {
     expect(css).toContain("[data-rq-device='tablet'] .full-creator-page");
-    expect(css).toContain('grid-template-columns: 86px minmax(0, 1fr)');
+    expect(css).toContain('grid-template-columns: 96px minmax(0, 1fr)');
     expect(css).toContain('grid-template-columns: 1fr !important');
   });
 
