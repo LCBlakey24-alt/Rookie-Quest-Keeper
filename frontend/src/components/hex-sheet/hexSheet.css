@@ -811,6 +811,10 @@ html body #root .hex-spell__cast text { fill: var(--hex-text); font: 800 40px/1 
 .hex-sheet__footer { gap: 8px; }
 .hex-sheet__footer-button--notes { margin-left: auto; padding: 0 14px; }
 .hex-sheet__footer-button--notes.has-notes svg { color: var(--hex-orange); }
+/* From 720px the site's floating Feedback button sits in the bottom-right
+   corner. Until the sheet column is clear of it (about 1080px), keep the
+   footer's own buttons out from underneath. */
+@media (min-width: 720px) and (max-width: 1079px) { .hex-sheet__footer { padding-right: 132px; } }
 .hex-notes { justify-content: flex-end; padding: 12px; }
 .hex-notes__panel {
   width: min(100%, 640px); max-height: 88vh; overflow-y: auto;
