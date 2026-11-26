@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
+import { loadTowerThumbnails } from '@/components/dice3d/loadTowerThumbnails';
+
 import { TOWER_SKIN_CATALOG } from '@/components/dice3d/towerSkinCatalog';
 import { DICE_DYES } from '@/components/dice3d/diceDyes';
 import { loadDiceDyeId, saveDiceDyeId, subscribeDiceDye } from '@/lib/diceDyePreference';
@@ -36,8 +38,20 @@ export default function DiceRollerStylePicker({ compact = false, onTestRoll }) {
   }), []);
   useEffect(() => subscribeDiceDye(setDyeId), []);
 
+  // Real pictures of each tower, drawn once the tower is chosen. Until they
+  // arrive (or if WebGL is unavailable) each design shows its colour swatch.
+  const [thumbnails, setThumbnails] = useState({});
+  useEffect(() => {
+    if (style !== 'tower' || compact) return undefined;
+    let cancelled = false;
+    loadTowerThumbnails(TOWER_SKIN_CATALOG.map((skin) => skin.id)).then((images) => {
+      if (!cancelled) setThumbnails(images);
+    });
+    return () => { cancelled = true; };
+  }, [style, compact]);
+
   return (
-    <div className={`rq-roller-style${compact ? ' is-compact' : ''}`} data-testid="dice-roller-style">
+    <div className={`rq-roller-style${compact ? ' is-compact' : ''}${Object.keys(thumbnails).length ? ' has-thumbs' : ''}`} data-testid="dice-roller-style">
       <fieldset className="rq-roller-style__modes">
         <legend>Dice animation</legend>
         <div className="rq-roller-style__options" role="radiogroup" aria-label="Dice animation">
@@ -78,11 +92,15 @@ export default function DiceRollerStylePicker({ compact = false, onTestRoll }) {
                   onChange={() => setTowerSkin(saveTowerSkinId(skin.id))}
                   data-testid={`tower-skin-${skin.id}`}
                 />
-                <span
-                  className="rq-roller-style__swatch"
-                  aria-hidden="true"
-                  style={{ background: `linear-gradient(135deg, ${skin.panel.color} 0 55%, ${skin.edge} 55% 70%, ${skin.plank.color} 70%)` }}
-                />
+                {thumbnails[skin.id] ? (
+                  <img className="rq-roller-style__thumb" src={thumbnails[skin.id]} alt="" data-testid={`tower-thumb-${skin.id}`} />
+                ) : (
+                  <span
+                    className="rq-roller-style__swatch"
+                    aria-hidden="true"
+                    style={{ background: `linear-gradient(135deg, ${skin.panel.color} 0 55%, ${skin.edge} 55% 70%, ${skin.plank.color} 70%)` }}
+                  />
+                )}
                 <span>{skin.name}</span>
               </label>
             ))}

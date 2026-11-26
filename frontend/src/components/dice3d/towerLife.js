@@ -103,7 +103,8 @@ export function createTowerLife(skin, random = Math.random) {
   inner.rotation.x = Math.PI / 2;
   inner.rotation.z = Math.PI / 6;
   sigil.add(outer, inner);
-  sigil.position.set(0, TOWER.top + 3.0, midZ);
+  // Above the tallest design's roof and finial.
+  sigil.position.set(0, TOWER.top + 5.6, midZ);
   group.add(sigil);
 
   // The mouth frame: two posts and a lintel round the opening.

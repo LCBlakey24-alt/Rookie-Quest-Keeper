@@ -531,9 +531,9 @@ export function cameraFraming(positions, fovDegrees, { aspect = 1, scale = 1 } =
  * the hexagon window) still shows the crown and the tray.
  */
 export function towerWideShot(fovDegrees, aspect = 1) {
-  const target = [0, TOWER.top * 0.47, -1.8];
-  // Tube plus the tallest design's crown, with a little air above it.
-  const height = TOWER.top + 7.5;
+  const target = [0, TOWER.top * 0.56, -1.8];
+  // Tube plus the tallest design's roof and the sigil above it, with a little air.
+  const height = TOWER.top + 12;
   const width = TRAY_HALF * 2 + 2;
   const tanHalf = Math.tan((fovDegrees / 2) * (Math.PI / 180));
   const fit = Math.max((height / 2) / tanHalf, (width / 2) / (tanHalf * Math.max(0.35, aspect || 1)));
