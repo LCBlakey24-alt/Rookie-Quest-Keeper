@@ -372,9 +372,9 @@ Not yet reviewed: the *wording* of built-in descriptions (species traits, class 
 
 1. **This document**, plus fixing the two wrong labels (`SRD_RACES_2024` includes Aasimar; `SRD_BACKGROUNDS` includes Criminal, Folk Hero and Noble for 2014).
 2. **Done (subclasses #993, species and backgrounds #994, fighting styles, spells and Potion of Fire Breath in the follow-up PR).** **Stop offering non-SRD options as built-in choices** in the creator and level-up: subclasses, species (Aasimar), backgrounds (PHB and "test" backgrounds), 2024 fighting styles, the 24 spells and Potion of Fire Breath. Keep the SRD option, the original starter options, "Custom / user-added" and campaign homebrew. "Tasha's Hideous Laughter" is offered under its SRD name, Hideous Laughter. **Existing characters keep what they have**: a saved non-SRD choice still loads and shows its name, marked as a manual / external reference, never deleted.
-3. **Remove the feature *text* of non-SRD subclasses** from the built-in rules modules, so stored characters show their own notes instead. Owner review first, because it changes what existing characters display.
-4. **Source fields** on built-in records (`srd_5_1`, `srd_5_2_1`, `original_rqk`), checked by a test so a non-SRD name can't be added as built-in again.
-5. **Rights confirmation** on uploads and the campaign import, with plain-English "don't upload whole books" guidance.
+3. **Done (owner approved 26 Nov 2026).** **Remove the feature *text* of non-SRD subclasses** from the built-in rules modules, so stored characters show their own notes instead. Owner review first, because it changes what existing characters display.
+4. **Guard test done (#995, `srdGuard.test.js`); source fields still to do.** **Source fields** on built-in records (`srd_5_1`, `srd_5_2_1`, `original_rqk`), checked by a test so a non-SRD name can't be added as built-in again.
+5. **Done (#996).** **Rights confirmation** on uploads and the campaign import, with plain-English "don't upload whole books" guidance.
 6. **Report button and takedown handling** for Community Creations.
 7. **Wording review** of built-in descriptions, module by module.
 

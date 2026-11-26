@@ -37,3 +37,46 @@ describe('built-in content stays within the SRD', () => {
     expect(unknown).toEqual([]);
   });
 });
+
+describe('paid-book subclasses carry no built-in feature text', () => {
+  const { CLASS_FEATURES } = jest.requireActual('../classFeatures');
+  const { BARBARIAN_SUBCLASS_FEATURES, getBarbarianSubclassSummary } = jest.requireActual('../barbarianSubclasses');
+  const { getPaladinSubclassOptions, getPaladinSubclassSummary } = jest.requireActual('../paladinSubclasses');
+  const { NON_SRD_SUBCLASS_NOTE } = jest.requireActual('./builtInContentPolicy');
+
+  test('the class features file lists features only for SRD subclasses', () => {
+    const offenders = [];
+    Object.values(CLASS_FEATURES).forEach((classData) => {
+      Object.values(classData.subclasses || {}).forEach((subclass) => {
+        const isSrd = srdSubclasses.has(key(subclass.name));
+        if (!isSrd && (subclass.features || []).length) offenders.push(subclass.name);
+        if (!isSrd) expect(subclass.description).toBe(NON_SRD_SUBCLASS_NOTE);
+        if (isSrd) expect((subclass.features || []).length).toBeGreaterThan(0);
+      });
+    });
+    expect(offenders).toEqual([]);
+  });
+
+  test('barbarian paths outside the SRD keep their name but no features', () => {
+    ['wild_heart', 'world_tree', 'zealot'].forEach((id) => {
+      expect(BARBARIAN_SUBCLASS_FEATURES[id].features).toEqual([]);
+      expect(BARBARIAN_SUBCLASS_FEATURES[id].label).toBeTruthy();
+    });
+    // A saved character with one still resolves, with nothing invented for it.
+    const zealot = getBarbarianSubclassSummary('Path of the Zealot', 10, '2024');
+    expect(zealot.label).toBe('Path of the Zealot');
+    expect(zealot.activeFeatures).toEqual([]);
+    expect(BARBARIAN_SUBCLASS_FEATURES.berserker.features.length).toBeGreaterThan(0);
+  });
+
+  test('paladin oaths outside the SRD keep their name but no named features', () => {
+    ['Oath of the Ancients', 'Oath of Vengeance', 'Oath of Glory'].forEach((oath) => {
+      const summary = getPaladinSubclassSummary(oath, 20, '2024');
+      expect(summary.label).toBe(oath);
+      summary.activeFeatures.forEach((feature) => expect(feature.name).toBe(`${oath} feature`));
+    });
+    const devotion = getPaladinSubclassSummary('Oath of Devotion', 20, '2014');
+    expect(devotion.activeFeatures.map((feature) => feature.name)).toContain('Aura of Devotion');
+    expect(getPaladinSubclassOptions('2014').map((option) => option.label)).toContain('Oath of Devotion');
+  });
+});

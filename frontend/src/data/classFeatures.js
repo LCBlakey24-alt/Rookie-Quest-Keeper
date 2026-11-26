@@ -1,3 +1,5 @@
+import { NON_SRD_SUBCLASS_NOTE } from './licensing/builtInContentPolicy';
+
 // Class Features Database - Actions, Bonus Actions, Reactions, and Passive abilities by class and level
 
 export const CLASS_FEATURES = {
@@ -347,14 +349,8 @@ export const CLASS_FEATURES = {
       },
       oath_of_the_ancients: {
         name: 'Oath of the Ancients',
-        description: 'Protect the light against darkness. Gain nature-based abilities and resistance to spell damage.',
-        features: [
-          { level: 3, name: 'Nature\'s Wrath', description: 'Channel Divinity: Spectral vines restrain a creature within 10 ft (STR/DEX save).' },
-          { level: 3, name: 'Turn the Faithless', description: 'Channel Divinity: Turn fey and fiends within 30 ft (WIS save).' },
-          { level: 7, name: 'Aura of Warding', description: 'You and allies within 10 ft have resistance to damage from spells.' },
-          { level: 15, name: 'Undying Sentinel', description: 'When reduced to 0 HP, drop to 1 HP instead (once per long rest). Also don\'t suffer drawbacks of old age.' },
-          { level: 20, name: 'Elder Champion', description: 'Transform for 1 minute: regain 10 HP/round, cast paladin spells as bonus action, enemies within 10 ft have disadvantage on saves.' },
-        ],
+        description: NON_SRD_SUBCLASS_NOTE,
+        features: [],
       },
     },
     features: [
@@ -417,13 +413,8 @@ export const CLASS_FEATURES = {
       },
       beast_master: {
         name: 'Beast Master',
-        description: 'Bond with an animal companion that fights alongside you. Your beast acts on your initiative and follows your commands.',
-        features: [
-          { level: 3, name: 'Ranger\'s Companion', description: 'Gain a beast companion (CR 1/4 or lower). It obeys your commands, adds your proficiency bonus to AC, attack rolls, damage, and saves.' },
-          { level: 7, name: 'Exceptional Training', description: 'Your beast can Dash, Disengage, Dodge, or Help as a bonus action. Its attacks count as magical.' },
-          { level: 11, name: 'Bestial Fury', description: 'Your beast can make two attacks when you command it to Attack.' },
-          { level: 15, name: 'Share Spells', description: 'When you cast a spell targeting yourself, it also affects your beast companion if within 30 ft.' },
-        ],
+        description: NON_SRD_SUBCLASS_NOTE,
+        features: [],
       },
     },
     features: [
@@ -536,14 +527,8 @@ export const CLASS_FEATURES = {
       },
       wild_magic: {
         name: 'Wild Magic',
-        description: 'Your spellcasting draws on wild magical forces that can produce unpredictable but powerful effects.',
-        features: [
-          { level: 1, name: 'Wild Magic Surge', description: 'After casting a sorcerer spell of 1st level or higher, DM can have you roll a d20. On a 1, roll on the Wild Magic Surge table.' },
-          { level: 1, name: 'Tides of Chaos', description: 'Gain advantage on one attack, ability check, or save. Once per long rest (or DM triggers Wild Magic Surge to regain).' },
-          { level: 6, name: 'Bend Luck', description: 'Spend 2 sorcery points as a reaction to roll 1d4 and add/subtract from a creature\'s attack, ability check, or save.' },
-          { level: 14, name: 'Controlled Chaos', description: 'When you roll on Wild Magic Surge table, roll twice and choose which result to use.' },
-          { level: 18, name: 'Spell Bombardment', description: 'When you roll damage, if any die shows the maximum value, choose one and reroll it, adding the result as extra damage.' },
-        ],
+        description: NON_SRD_SUBCLASS_NOTE,
+        features: [],
       },
     },
     features: [
@@ -589,13 +574,8 @@ export const CLASS_FEATURES = {
       },
       the_archfey: {
         name: 'The Archfey',
-        description: 'Your patron is an archfey from the Feywild. Gain charms, illusions, and fey-themed abilities.',
-        features: [
-          { level: 1, name: 'Fey Presence', description: 'As an action, charm or frighten creatures in a 10-ft cube (WIS save). Once per short or long rest.' },
-          { level: 6, name: 'Misty Escape', description: 'When you take damage, use reaction to turn invisible and teleport 60 ft. Until start of next turn.' },
-          { level: 10, name: 'Beguiling Defenses', description: 'Immune to being charmed. When a creature tries, use reaction to charm them (WIS save) for 1 minute.' },
-          { level: 14, name: 'Dark Delirium', description: 'As an action, charm or frighten a creature for 1 minute (WIS save). Once per short or long rest.' },
-        ],
+        description: NON_SRD_SUBCLASS_NOTE,
+        features: [],
       },
     },
     features: [
@@ -655,14 +635,8 @@ export const CLASS_FEATURES = {
       },
       school_of_abjuration: {
         name: 'School of Abjuration',
-        description: 'Specialize in protective magic. Create magical wards that absorb damage and banish threats.',
-        features: [
-          { level: 2, name: 'Abjuration Savant', description: 'Halve the gold and time to copy abjuration spells into your spellbook.' },
-          { level: 2, name: 'Arcane Ward', description: 'When you cast an abjuration spell of 1st level or higher, create a ward with HP equal to twice wizard level + INT modifier.' },
-          { level: 6, name: 'Projected Ward', description: 'When an ally within 30 ft takes damage, use reaction to have your Arcane Ward absorb the damage instead.' },
-          { level: 10, name: 'Improved Abjuration', description: 'Add proficiency bonus to ability checks for abjuration spells (like Counterspell or Dispel Magic).' },
-          { level: 14, name: 'Spell Resistance', description: 'Advantage on saving throws against spells. Resistance against spell damage.' },
-        ],
+        description: NON_SRD_SUBCLASS_NOTE,
+        features: [],
       },
     },
     features: [
