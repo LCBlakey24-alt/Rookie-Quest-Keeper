@@ -15,7 +15,9 @@ describe('Fighter builder options', () => {
 
     expect(options.needsFightingStyle).toBe(true);
     expect(options.weaponMasteryChoices).toBe(3);
-    expect(options.fightingStyles.map(style => style.name)).toContain('Blind Fighting');
+    // Blind Fighting is not in SRD 5.2.1, so it is not offered as a built-in choice.
+    expect(options.fightingStyles.map(style => style.name)).toContain('Two-Weapon Fighting');
+    expect(options.fightingStyles.map(style => style.name)).not.toContain('Blind Fighting');
     expect(options.requiredChoiceLabels).toEqual(['Fighting Style', 'Weapon Mastery']);
     expect(options.helperText).toContain('Choose 3 Weapon Mastery options.');
   });
@@ -25,12 +27,15 @@ describe('Fighter builder options', () => {
 
     expect(options.fightingStyleOptions).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        value: 'Blind Fighting',
-        label: 'Blind Fighting',
-        key: 'blind_fighting',
+        value: 'Great Weapon Fighting',
+        label: 'Great Weapon Fighting',
+        key: 'great_weapon_fighting',
         ruleset: '2024',
       }),
     ]));
+    // A character who already has a paid-book style keeps it in the list.
+    expect(getFighterBuilderOptions(1, '2024', 'Blind Fighting').fightingStyleOptions)
+      .toEqual(expect.arrayContaining([expect.objectContaining({ value: 'Blind Fighting', key: 'blind_fighting' })]));
   });
 
   test('level 3 Fighter requires subclass selection', () => {

@@ -49,6 +49,7 @@ import {
 } from '@/data/spellcastingPools';
 import './CleanSheetSpellsMobileOverrides.css';
 import SpellRollRow, { SpellRollContext } from './SpellRollRow';
+import { characterSpellNames, offerableSpellLists } from '@/data/licensing/builtInContentPolicy';
 
 const ABILITY_LABELS = {
   strength: 'STR',
@@ -675,7 +676,7 @@ export default function CleanSpellsTab({ character, onCharacterUpdate, onRollAtt
           ? spellListLabelFromMode(listMode)
           : getSpellListLabel(character, canonical);
         const builtInSpells = coreCaster
-          ? flattenClassSpellGroups(canonical, getSpellsForClass(canonical), maxSpellLevel)
+          ? flattenClassSpellGroups(canonical, offerableSpellLists(getSpellsForClass(canonical), characterSpellNames(character)), maxSpellLevel)
           : [];
         const customSpells = homebrewSpellsForClass(
           homebrewSpellOptions,

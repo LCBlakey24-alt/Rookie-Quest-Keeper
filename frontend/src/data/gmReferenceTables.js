@@ -434,7 +434,6 @@ Potion of Climbing| Common| 50 gp| Action| Climb speed equal to walking speed fo
 Potion of Animal Friendship| Uncommon| 100 gp| Action| Cast Animal Friendship, usually DC 13
 Potion of Water Breathing| Uncommon| 100 gp| Action| Breathe underwater for 1 hour
 Potion of Resistance| Uncommon| 150 gp| Action| Resistance to one damage type for 1 hour
-Potion of Fire Breath| Uncommon| 150 gp| Bonus Action| Exhale fire as bonus action, limited uses/duration
 Potion of Invisibility| Very Rare| 5,000 gp| Action| Become invisible for 1 hour or until attacking/casting
 Potion of Speed| Very Rare| 5,000 gp| Action| Gain Haste effect for 1 minute
 Potion of Flying| Very Rare| 5,000 gp| Action| Flying speed for 1 hour

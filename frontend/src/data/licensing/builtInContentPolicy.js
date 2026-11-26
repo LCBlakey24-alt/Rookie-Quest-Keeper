@@ -127,3 +127,73 @@ export function offerableSpecies(names = [], edition = '2014', current = '') {
 export function offerableBackgrounds(names = [], edition = '2014', current = '') {
   return offerable(names, BUILTIN_BACKGROUND_KEYS, SRD_BACKGROUND_KEYS[editionKey(edition)], current);
 }
+
+/*
+ * Fighting styles. SRD 5.1 licenses Archery, Defense, Dueling, Great Weapon
+ * Fighting, Protection and Two-Weapon Fighting; SRD 5.2.1 licenses Archery,
+ * Defense, Great Weapon Fighting and Two-Weapon Fighting. The built-in lists
+ * also name four styles from paid books, which are not offered.
+ */
+export const NON_SRD_FIGHTING_STYLES = Object.freeze([
+  'Blind Fighting', 'Interception', 'Thrown Weapon Fighting', 'Unarmed Fighting',
+]);
+const NON_SRD_FIGHTING_STYLE_KEYS = keySet(NON_SRD_FIGHTING_STYLES);
+
+const currentKeySet = (current) => new Set((Array.isArray(current) ? current : [current])
+  .map((value) => normalise(optionName(value))).filter(Boolean));
+
+/** Fighting styles a picker may offer, keeping the character's current one(s). */
+export function offerableFightingStyles(options = [], current = []) {
+  const currentKeys = currentKeySet(current);
+  return (Array.isArray(options) ? options : []).filter((option) => {
+    const key = normalise(optionName(option));
+    return !NON_SRD_FIGHTING_STYLE_KEYS.has(key) || currentKeys.has(key);
+  });
+}
+
+/*
+ * Spells in the built-in spell list that are in neither SRD (checked against
+ * the official SRD 5.1 and 5.2.1 PDFs). "Tasha's Hideous Laughter" is the
+ * paid-book name of the SRD spell Hideous Laughter, which is offered instead. They stay in the reference data so a
+ * character who already has one still sees its details; pickers stop offering
+ * them.
+ */
+export const NON_SRD_BUILTIN_SPELLS = Object.freeze([
+  'Blade Ward', 'Friends', 'Thorn Whip', 'Toll the Dead', 'Word of Radiance',
+  'Absorb Elements', 'Armor of Agathys', 'Arms of Hadar', 'Compelled Duel', 'Hail of Thorns',
+  "Tasha's Hideous Laughter", 'Thunderous Smite', 'Witch Bolt', 'Wrathful Smite',
+  'Crown of Madness',
+  'Aura of Vitality', 'Elemental Weapon', 'Hunger of Hadar',
+  'Staggering Smite',
+  'Banishing Smite', 'Destructive Wave', 'Synaptic Static',
+  'Find Greater Steed', 'Holy Weapon',
+]);
+const NON_SRD_SPELL_KEYS = keySet(NON_SRD_BUILTIN_SPELLS);
+
+export function isNonSrdBuiltInSpell(name) {
+  return NON_SRD_SPELL_KEYS.has(normalise(optionName(name)));
+}
+
+/**
+ * Spells a picker may offer: everything except the paid-book built-ins, plus
+ * any the character already has (`current` is a list of names or spells).
+ */
+export function offerableSpells(spells = [], current = []) {
+  const currentKeys = currentKeySet(current);
+  return (Array.isArray(spells) ? spells : []).filter((spell) => {
+    const key = normalise(optionName(spell));
+    return !NON_SRD_SPELL_KEYS.has(key) || currentKeys.has(key);
+  });
+}
+
+/** A getSpellsForClass() result with the paid-book spells taken out of every level. */
+export function offerableSpellLists(lists = {}, current = []) {
+  return Object.fromEntries(Object.entries(lists || {}).map(([level, spells]) => [level, offerableSpells(spells, current)]));
+}
+
+/** Every spell a saved character already has, from the fields the sheet reads. */
+export function characterSpellNames(character = {}) {
+  const fields = ['cantrips_known', 'cantrips', 'spells_known', 'known_spells', 'spellbook', 'spells_prepared', 'prepared_spells', 'preparedSpells'];
+  return fields.flatMap((field) => (Array.isArray(character?.[field]) ? character[field] : []))
+    .map((spell) => optionName(spell)).filter(Boolean);
+}
