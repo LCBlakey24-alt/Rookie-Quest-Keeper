@@ -199,6 +199,18 @@
   #root .rqk-campaign-mode-header { gap: 12px; }
 }
 
+/* Phones: both modes on the first screen. The tool chips are decoration
+   (hidden from screen readers already) and the same tools are named in each
+   description, so they go; spacing tightens; nothing else changes. */
+@media (max-width: 480px) {
+  #root .rqk-campaign-mode-page { gap: 12px; }
+  #root .rqk-campaign-mode-tools { display: none; }
+  #root .rqk-campaign-mode-intro p { display: none; }
+  #root .rqk-campaign-mode-option { gap: 8px; padding: 14px; }
+  #root .rqk-campaign-mode-option-description { font-size: 13px; line-height: 1.45; }
+  #root .rqk-campaign-mode-grid { gap: 10px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   #root .rqk-campaign-mode-option { transition: none; }
   #root .rqk-campaign-mode-option:hover { transform: none; }
