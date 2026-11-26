@@ -40,6 +40,29 @@ describe('home beta notice', () => {
   });
 });
 
+describe('jump back in', () => {
+  beforeEach(() => { jest.clearAllMocks(); window.localStorage.clear(); });
+  test('links straight to the latest character sheet and campaign', () => {
+    useDashboardData.mockReturnValue(fixture({
+      recentCharacters: [
+        { id: 'char-old', name: 'Older Hero', level: 2, updated_at: '2026-08-01T12:00:00Z' },
+        { id: 'char-1', name: 'Sample Hero', level: 5, race: 'Human', updated_at: '2026-08-24T12:00:00Z' },
+      ],
+    }));
+    renderHome();
+    const character = screen.getByTestId('home-jump-character');
+    expect(character).toHaveAttribute('href', '/characters/char-1');
+    expect(character).toHaveTextContent('Sample Hero');
+    expect(character).toHaveTextContent('Open Sheet');
+    expect(screen.getByTestId('home-jump-campaign')).toHaveAttribute('href', '/campaign/camp-1');
+  });
+  test('is left out when there is nothing to return to', () => {
+    useDashboardData.mockReturnValue(fixture({ characters: [], campaigns: [], homebrewItems: [], recentCharacters: [], recentCampaigns: [] }));
+    renderHome();
+    expect(screen.queryByTestId('home-jump-back-in')).not.toBeInTheDocument();
+  });
+});
+
 describe('Home Dashboard v5', () => {
   beforeEach(() => { jest.clearAllMocks(); window.localStorage.clear(); useDashboardData.mockReturnValue(fixture()); });
   test('the hub wheel shows each count, opens its page and has a list alternative', () => {

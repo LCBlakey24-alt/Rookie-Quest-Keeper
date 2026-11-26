@@ -248,6 +248,11 @@ html body #root .rqk-app-shell[data-rq-device='mobile'][data-rq-layout-shell='ap
   display: inline-flex;
   width: 28px;
   height: 28px;
+  /* The mark stays 28px; the padding makes the tap target 44px, and the
+     negative margin keeps the bar's layout exactly as it was. */
+  box-sizing: content-box;
+  padding: 8px;
+  margin: -8px;
 }
 
 /* The small "Rookie Quest Keeper" caption is redundant next to the mark. */
