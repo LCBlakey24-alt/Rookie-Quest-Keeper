@@ -16,6 +16,13 @@
  * docs/licensing/CONTENT_INVENTORY.md.
  */
 
+/**
+ * Shown in place of built-in feature text for a paid-book subclass a saved
+ * character already has. The name stays (so the character still loads); the
+ * features are the player's to add as notes or homebrew.
+ */
+export const NON_SRD_SUBCLASS_NOTE = "Not part of the open rules. Add this subclass's features from your own book as notes or homebrew.";
+
 const normalise = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
 
 /** Subclasses named in the built-in data that are in neither SRD. */
