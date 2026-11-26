@@ -88,7 +88,7 @@ function supportsWebGl() {
 }
 
 export default function DiceTray3DOverlay(props) {
-  const { rollId, dyeId, total, label, rollDetail, formulaText, rolls, isRevealed, isCrit, isFumble, onRevealNow, onClose, shape, anchorSelector, resultTone, rig = 'tray', towerSkin } = props;
+  const { rollId, dyeId, total, label, rollDetail, formulaText, rolls, isRevealed, isCrit, isFumble, onRevealNow, onClose, shape, anchorSelector, resultTone, rig = 'tray', towerSkin, towerIntroMs } = props;
 
   // The tower plays in the same window as the tray: the hexagon over the
   // wheel, or the centred panel elsewhere. A pool too big for the tube, or a
@@ -203,7 +203,7 @@ export default function DiceTray3DOverlay(props) {
 
     let tray;
     try {
-      tray = createDiceTray({ canvas, palette, frameScale: isHex ? HEX_FRAME_SCALE : 1, rig: useTower ? towerRigFor(getTowerSkinInfo(towerSkin).shape) : 'tray', towerSkin });
+      tray = createDiceTray({ canvas, palette, frameScale: isHex ? HEX_FRAME_SCALE : 1, rig: useTower ? towerRigFor(getTowerSkinInfo(towerSkin).shape) : 'tray', towerSkin, introMs: towerIntroMs });
     } catch (error) {
       canvas.remove();
       setFailed(true);
@@ -247,7 +247,7 @@ export default function DiceTray3DOverlay(props) {
     };
     // specsRef is read rather than listed: the signature is what decides
     // whether this is a new throw.
-  }, [canRender, diceSignature, handleSettled, palette, isHex, useTower, towerSkin]);
+  }, [canRender, diceSignature, handleSettled, palette, isHex, useTower, towerSkin, towerIntroMs]);
 
   if (!canRender) {
     return <FlatDiceResultOverlay {...props} />;

@@ -30,7 +30,7 @@ test('tells subscribers when the choice changes', () => {
   saveDiceStyle('tower');
   stop();
   saveDiceStyle('tray');
-  expect(seen).toEqual([{ style: 'tower', towerSkin: DEFAULT_TOWER_SKIN_ID }]);
+  expect(seen).toEqual([{ style: 'tower', towerSkin: DEFAULT_TOWER_SKIN_ID, towerCamera: 'showcase' }]);
 });
 
 test('an old "basic" choice falls back to the 3D tray', () => {

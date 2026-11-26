@@ -6,10 +6,12 @@ import { recordRemoteRoll } from '@/lib/sessionRollStats';
 import FlatDiceResultOverlay from '@/components/FlatDiceResultOverlay';
 import { currentCharacterId } from '@/lib/characterRoute';
 import { loadDiceTray3D } from '@/components/dice3d/loadDiceTray3D';
-import { loadDiceStyle, loadTowerSkinId, subscribeDiceStyle } from '@/lib/diceStylePreference';
+import { loadDiceStyle, loadTowerCamera, loadTowerSkinId, resolveTowerSkinId, subscribeDiceStyle, towerIntroMsFor } from '@/lib/diceStylePreference';
 import './DiceRollFlicker.css';
 
 const characterCache = new Map();
+// The last tower "Surprise me" picked, so the next roll gets a different one.
+let lastSurpriseSkin = '';
 const REVEAL_DELAY = 360;
 // With the 3D tray the dice decide when the roll is over: the tray calls
 // onRevealNow the moment they stop. The 360ms used for the flat card would
@@ -159,7 +161,7 @@ export default function DiceRollFlicker({
   // of flashing the retired flat result before the physical throw appears.
   // A genuine load failure still falls back so a table never loses a roll.
   // The viewer's roller style (Settings): the tray or the tower.
-  const [diceStyle, setDiceStyle] = useState(() => ({ style: loadDiceStyle(), towerSkin: loadTowerSkinId() }));
+  const [diceStyle, setDiceStyle] = useState(() => ({ style: loadDiceStyle(), towerSkin: loadTowerSkinId(), towerCamera: loadTowerCamera() }));
   useEffect(() => subscribeDiceStyle(setDiceStyle), []);
   const flatOnly = prefersReducedMotion;
   const rig = diceStyle.style === 'tower' ? 'tower' : 'tray';
@@ -215,6 +217,15 @@ export default function DiceRollFlicker({
   const finalCrit = Boolean(isCrit || natural20);
   const finalFumble = Boolean(!finalCrit && (isFumble || natural1));
   const revealKey = rollId || `${label}-${finalTotal}-${modifier}-${diceFingerprint}`;
+
+  // The tower for this roll. "Surprise me" picks one design per roll (not per
+  // render) and never the same one twice running.
+  const towerSkinForRoll = useMemo(() => {
+    const chosen = resolveTowerSkinId(diceStyle.towerSkin, lastSurpriseSkin);
+    lastSurpriseSkin = chosen;
+    return chosen;
+    // revealKey is listed only to identify the roll: a new roll, a new pick.
+  }, [diceStyle.towerSkin, revealKey]);
   const isResultRevealed = showTotal && revealedKey === revealKey;
   const revealNow = useCallback(() => {
     setShowTotal(true);
@@ -350,7 +361,8 @@ export default function DiceRollFlicker({
       shape={shape}
       anchorSelector={anchorSelector}
       rig={rig}
-      towerSkin={diceStyle.towerSkin}
+      towerSkin={towerSkinForRoll}
+      towerIntroMs={towerIntroMsFor(diceStyle.towerCamera)}
     />,
     document.body,
   );
