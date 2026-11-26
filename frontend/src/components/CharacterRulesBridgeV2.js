@@ -595,13 +595,11 @@ export default function CharacterRulesBridgeV2(props) {
     return <main className="full-creator-page"><div className="full-creator-loading">Loading your character options…</div></main>;
   }
 
-  return (
+  // These panels sit under the creator's own heading (not above it), so the
+  // page opens on "Create Character" and reads top to bottom.
+  const levelPanels = (
     <>
-      <section className="full-creator-progress-card" aria-label="Starting level">
-        <div className="full-creator-progress-heading">
-          <span>Starting level</span>
-          <strong>Level {targetLevel}</strong>
-        </div>
+      <section className="full-creator-progress-card full-creator-level-card" aria-label="Starting level">
         <p>{targetLevel > 1
           ? `Build a level 1 character below, then make the choices for levels 2 to ${targetLevel} here. Saving adds the hit points, features and spells for those levels.`
           : 'Most characters start at level 1. Pick a higher level if your GM asks for an experienced character.'}</p>
@@ -655,7 +653,8 @@ export default function CharacterRulesBridgeV2(props) {
           <p>The builder could not load uploaded options, so it has fallen back to the bundled core rules for now.</p>
         </section>
       )}
-      <FullCharacterCreatorV2 {...props} />
     </>
   );
+
+  return <FullCharacterCreatorV2 {...props} beforeSteps={levelPanels} />;
 }

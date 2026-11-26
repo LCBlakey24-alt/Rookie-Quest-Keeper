@@ -207,7 +207,7 @@ function bonusText(bonus) {
   return entries.length ? entries.map(([ability, value]) => `${LABELS[ability]} +${value}`).join(', ') : 'No direct ability bonus here';
 }
 
-export default function FullCharacterCreatorV2({ editMode = false }) {
+export default function FullCharacterCreatorV2({ editMode = false, beforeSteps = null }) {
   const navigate = useNavigate();
   const { characterId } = useParams();
   const [draft, setDraft] = useState(loadDraft);
@@ -724,15 +724,15 @@ export default function FullCharacterCreatorV2({ editMode = false }) {
       <header className="full-creator-header">
         <button type="button" onClick={() => navigate('/characters')}><ArrowLeft size={17} /> Characters</button>
         <div>
-          <p>Level 1 full builder</p>
           <h1>{editMode ? 'Edit Character' : 'Create Character'}</h1>
-          <span>Start with setup, then move through each builder section one page at a time.</span>
+          <span>One step at a time. Every choice can be changed later.</span>
           <small className="full-creator-draft-status">
             {editMode ? 'Changes are saved when you choose Save Changes.' : 'Draft saves automatically on this device.'}
           </small>
         </div>
-        <button type="button" onClick={() => navigate('/home')}>Dashboard</button>
       </header>
+
+      {beforeSteps}
 
       <section className="full-creator-progress-card" aria-label="Character creation progress">
         <GuildMotif caption="STEP" value={step + 1} progress={Math.max(journeyPercent / 100, 1 / steps.length)} size={58} className="full-creator-progress-motif" />
