@@ -51,6 +51,7 @@ import { PERCENTILE_UNITS_VALUES, faceNormals, shapeForSides } from './diceShape
 import { createStudioScene } from './studioEnvironment';
 import { TOWER, TOWER_LIMITS, addTowerColliders, inTray, isTowerRig, towerShapeOf, towerStart } from './diceTowerRig';
 import { buildTower } from './towerSkins';
+import { createTrayLife } from './trayLife';
 
 const TRAY_HALF = 3.5;
 
@@ -673,6 +674,9 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
   // The tower itself, in the chosen design. Every design shares the colliders.
   const towerModel = tower ? buildTower(towerSkin) : null;
   if (towerModel) scene.add(towerModel.group);
+  // Landing rings and crit sparks on the tray bed (decoration only).
+  const trayLife = createTrayLife(palette);
+  scene.add(trayLife.group);
 
   let active = [];
   let outcomeLights = [];
@@ -701,6 +705,7 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
     active = [];
     outcomeLights.forEach((light) => scene.remove(light));
     outcomeLights = [];
+    trayLife.clear();
   }
 
   function resize(width, height) {
@@ -841,6 +846,11 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
         if (tones.includes('crit')) towerModel.celebrate('crit');
         else if (tones.includes('fumble')) towerModel.celebrate('fumble');
       }
+      trayLife.reveal(active.map((entry) => ({
+        position: [entry.mesh.position.x, entry.mesh.position.y, entry.mesh.position.z],
+        radius: DIE_RADIUS,
+        tone: entry.spec.dropped ? undefined : entry.spec.accent,
+      })));
       active.forEach((entry) => {
         const accent = settledAccentFor(entry.spec, palette);
         if (!accent) return;
@@ -963,12 +973,13 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
         });
       }
 
+      trayLife.update(frameSeconds);
       renderer.render(scene, camera);
 
       // A few frames after the dice stop the picture is final, so the loop
       // ends rather than burning a rAF every frame for the panel's lifetime.
       // Keep drawing while the tower is still celebrating or throwing sparks.
-      if (announced && !cameraMove && !towerModel?.busy?.()) settleFrames += 1;
+      if (announced && !cameraMove && !towerModel?.busy?.() && !trayLife.busy()) settleFrames += 1;
       if (settleFrames < SETTLE_HOLD_FRAMES) {
         frame = requestAnimationFrame(tick);
       } else {
@@ -985,6 +996,7 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
     if (frame) cancelAnimationFrame(frame);
     clearDice();
     towerModel?.dispose();
+    trayLife.dispose();
     floor.geometry.dispose();
     floor.material.dispose();
     logo.geometry.dispose();
