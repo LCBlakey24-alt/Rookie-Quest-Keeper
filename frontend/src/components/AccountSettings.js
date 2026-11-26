@@ -174,8 +174,8 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
     <div className="account-settings-page" style={pageStyle} aria-busy={saving ? 'true' : 'false'}>
       <div className="account-settings-container" style={containerStyle}>
         <div className="account-settings-header" style={headerStyle}>
-          <Button onClick={() => navigate('/home')} className="btn-outline account-settings-back" style={backButtonStyle} data-testid="back-btn" disabled={saving}>
-            <ArrowLeft size={18} />
+          <Button onClick={() => navigate('/home')} className="btn-outline account-settings-back" style={backButtonStyle} data-testid="back-btn" disabled={saving} aria-label="Back to Home">
+            <ArrowLeft size={18} aria-hidden="true" />
           </Button>
           <div>
             <h1 style={pageTitleStyle}>Account Settings</h1>

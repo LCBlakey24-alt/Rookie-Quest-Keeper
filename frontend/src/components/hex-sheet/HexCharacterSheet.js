@@ -22,6 +22,7 @@ import { buildLongRestUpdates, buildShortRestUpdates, restBlockReason } from '@/
 import { rollD20 } from '@/components/clean-sheet/cleanSheetUtils';
 import { getConcentrationName, getConcentrationSaveDc, getConcentrationSaveModifier, needsConcentrationReplacement } from '@/data/characterConcentrationRules';
 
+import HexConditions from './HexConditions';
 import HexEquipment from './HexEquipment';
 import HexHpDial from './HexHpDial';
 import HexRecovery from './HexRecovery';
@@ -605,6 +606,10 @@ export default function HexCharacterSheet() {
             </li>
           ))}
         </ol>
+        <HexConditions
+          conditions={character.conditions}
+          onChange={(next, message) => patchThisSheet({ conditions: next }, { success: message, error: 'Could not save conditions' })}
+        />
       </nav>
 
       <main className="hex-sheet__wheel-area">
