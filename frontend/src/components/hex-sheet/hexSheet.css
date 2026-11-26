@@ -805,3 +805,43 @@ html body #root .hex-spell__cast text { fill: var(--hex-text); font: 800 40px/1 
 .hex-equip__defences ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: .9rem; }
 .hex-equip__defences strong { display: inline-block; min-width: 92px; color: var(--hex-hi); }
 .hex-equip__defences small { color: var(--hex-muted); margin-left: 4px; }
+
+/* Conditions ------------------------------------------------------------- */
+/* The button lives at the right-hand end of the trail row, so it adds no
+   height to the sheet. It lights up when the character has a condition. */
+.hex-sheet__conditions-button {
+  position: relative; z-index: 1; margin-left: auto;
+  min-height: 44px; max-width: 58%; padding: 0 14px; border-radius: 999px;
+  border: 1px solid var(--hex-resting-edge) !important; background: transparent; box-shadow: var(--hex-glow); color: var(--hex-muted);
+  display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer;
+}
+.hex-sheet .hex-sheet__conditions-button { --rq-control-blue: transparent; }
+.hex-sheet__conditions-button > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hex-sheet__conditions-button.is-active { color: var(--hex-text); border-color: var(--hex-orange) !important; }
+.hex-sheet__conditions-button.is-active svg { color: var(--hex-orange); }
+
+.hex-conditions { justify-content: flex-end; padding: 12px; }
+.hex-conditions__panel {
+  width: min(100%, 520px); max-height: min(84vh, 720px); overflow-y: auto;
+  padding: 16px; border-radius: 18px;
+  background: var(--hex-bg, #120c26); border: 1px solid var(--hex-resting-edge); box-shadow: var(--hex-glow);
+  color: var(--hex-text);
+}
+.hex-conditions__panel header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.hex-conditions__panel h2 { margin: 0; font-size: 1.15rem; }
+.hex-conditions__close {
+  width: 44px; height: 44px; display: grid; place-items: center; border-radius: 999px;
+  border: 1px solid var(--hex-resting-edge); background: transparent; color: var(--hex-text); cursor: pointer;
+}
+.hex-conditions__hint { margin: 4px 0 12px; font-size: 0.82rem; color: var(--hex-muted); }
+.hex-conditions__panel ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; }
+.hex-conditions__panel li button {
+  width: 100%; min-height: 56px; padding: 8px 12px; border-radius: 12px; text-align: left;
+  display: grid; gap: 2px; align-content: center;
+  border: 1px solid var(--hex-resting-edge); background: transparent; color: var(--hex-text); font: inherit; cursor: pointer;
+}
+.hex-conditions__panel li button strong { font-size: 0.95rem; }
+.hex-conditions__panel li button span { font-size: 0.76rem; line-height: 1.3; color: var(--hex-muted); }
+.hex-conditions__panel li button.is-on { border-color: var(--hex-orange); box-shadow: inset 0 0 16px var(--hex-orange-soft); }
+.hex-conditions__panel li button.is-on strong::after { content: ' ●'; color: var(--hex-orange); }
+@media (min-width: 720px) { .hex-conditions { justify-content: center; } }
