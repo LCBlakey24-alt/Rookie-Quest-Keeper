@@ -31,6 +31,7 @@ import '@/styles/homebrewGuild.css';
 import HomebrewSharingOptions from './homebrew/HomebrewSharingOptions';
 import HomebrewItemBuilder from './homebrew/HomebrewItemBuilder';
 import { emptyItemDraft, normaliseItemDraft, toSheetItem } from '@/data/homebrewItemModel';
+import UploadRightsConfirmation from '@/components/licensing/UploadRightsConfirmation';
 
 const fontStack = 'var(--rq-body-font, Manrope, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 const titleFont = fontStack;
@@ -350,6 +351,7 @@ export default function HomebrewWorkshop() {
   const [campaignId, setCampaignId] = useState('');
   const [contentSource, setContentSource] = useState('original');
   const [pasteText, setPasteText] = useState('');
+  const [rightsConfirmed, setRightsConfirmed] = useState(false);
   const [draft, setDraft] = useState(emptyDraft('subclass'));
   const [missing, setMissing] = useState(findMissing('subclass', emptyDraft('subclass')));
   const [library, setLibrary] = useState({});
@@ -539,9 +541,10 @@ export default function HomebrewWorkshop() {
           <h2 style={sectionTitleStyle}><Wand2 size={17} /> Source / Rook input</h2>
           <p style={helpStyle}>Start with a template, upload a file, paste rough notes, or type directly into the draft. Rook can parse or complete the missing parts. Artwork is added inside the draft panel.</p>
           <button type="button" onClick={handleDownloadTemplate} disabled={downloading} style={downloadButtonStyle} data-testid="hb-download-template-btn">{downloading ? <Loader2 size={16} className="rq-spin" /> : <Download size={16} />} Download {currentMeta.label} template</button>
-          <label htmlFor="hb-file-input" style={uploadStyle} data-testid="hb-upload-label">{parsing ? <Loader2 size={17} className="rq-spin" /> : <Upload size={17} />} {parsing ? 'Rook is reading…' : 'Upload .docx, .txt, .md, or .markdown'}<input id="hb-file-input" ref={fileInputRef} type="file" accept=".docx,.txt,.md,.markdown,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={handleFile} disabled={parsing} data-testid="hb-file-input" style={{ display: 'none' }} /></label>
+          <UploadRightsConfirmation checked={rightsConfirmed} onChange={setRightsConfirmed} disabled={parsing} />
+          <label htmlFor="hb-file-input" style={rightsConfirmed ? uploadStyle : { ...uploadStyle, opacity: 0.55, cursor: 'not-allowed' }} aria-disabled={!rightsConfirmed} data-testid="hb-upload-label">{parsing ? <Loader2 size={17} className="rq-spin" /> : <Upload size={17} />} {parsing ? 'Rook is reading…' : 'Upload .docx, .txt, .md, or .markdown'}<input id="hb-file-input" ref={fileInputRef} type="file" accept=".docx,.txt,.md,.markdown,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={handleFile} disabled={parsing || !rightsConfirmed} data-testid="hb-file-input" style={{ display: 'none' }} /></label>
           <textarea value={pasteText} onChange={event => setPasteText(event.target.value)} placeholder={`Paste ${formatType(type).toLowerCase()} notes, theme, mechanics, or half-written ideas here...`} style={{ ...inputStyle, minHeight: 165, resize: 'vertical' }} data-testid="hb-paste-text" />
-          <div style={actionRowStyle}><button type="button" onClick={handleParseText} disabled={parsing || !pasteText.trim()} style={primaryButtonStyle} data-testid="hb-parse-text-btn">{parsing ? <Loader2 size={15} className="rq-spin" /> : <Bot size={15} />} Parse with Rook</button><button type="button" onClick={handleCompleteDraft} disabled={completing} style={secondaryButtonStyle} data-testid="hb-complete-draft-btn">{completing ? <Loader2 size={15} className="rq-spin" /> : <Sparkles size={15} />} Ask Rook to Fill Gaps</button></div>
+          <div style={actionRowStyle}><button type="button" onClick={handleParseText} disabled={parsing || !pasteText.trim() || !rightsConfirmed} style={primaryButtonStyle} data-testid="hb-parse-text-btn">{parsing ? <Loader2 size={15} className="rq-spin" /> : <Bot size={15} />} Parse with Rook</button><button type="button" onClick={handleCompleteDraft} disabled={completing} style={secondaryButtonStyle} data-testid="hb-complete-draft-btn">{completing ? <Loader2 size={15} className="rq-spin" /> : <Sparkles size={15} />} Ask Rook to Fill Gaps</button></div>
           <div style={tipStyle}><strong>Power tip:</strong> write formulas like “Scarab Charges = Warlock level” or “Greed Tokens = proficiency bonus, GM adjustable”. Rook will try to preserve those as sheet resources.</div>
         </aside>
 

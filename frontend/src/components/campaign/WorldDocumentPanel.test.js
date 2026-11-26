@@ -19,12 +19,20 @@ const drafts = {
 };
 
 function upload() {
+  fireEvent.click(screen.getByRole('checkbox', { name: /permission to use it/i }));
   const file = new File(['docx'], 'world.docx', { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
   fireEvent.change(screen.getByTestId('world-document-file'), { target: { files: [file] } });
 }
 
 describe('WorldDocumentPanel', () => {
   beforeEach(() => jest.clearAllMocks());
+
+  it('asks for the rights confirmation before a document can be uploaded', () => {
+    render(<WorldDocumentPanel campaignId="c1" />);
+    expect(screen.getByTestId('world-document-upload')).toBeDisabled();
+    fireEvent.click(screen.getByRole('checkbox', { name: /permission to use it/i }));
+    expect(screen.getByTestId('world-document-upload')).toBeEnabled();
+  });
 
   it('reads a document into drafts, with existing records unticked', async () => {
     apiClient.post.mockResolvedValueOnce({ data: drafts });

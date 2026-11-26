@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Download, FileText, UploadCloud, X } from 'lucide-react';
 import apiClient from '@/lib/apiClient';
+import UploadRightsConfirmation from '@/components/licensing/UploadRightsConfirmation';
 import './CampaignWorkbookImportDialog.css';
 
 const MAX_FILE_BYTES = 2 * 1024 * 1024;
@@ -47,6 +48,7 @@ export default function CampaignWorkbookImportDialog({
   const lockedToCampaign = Boolean(campaignId);
   const [selectedCampaignId, setSelectedCampaignId] = useState(campaignId || '');
   const [file, setFile] = useState(null);
+  const [rightsConfirmed, setRightsConfirmed] = useState(false);
   const [preview, setPreview] = useState(null);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
@@ -205,13 +207,14 @@ export default function CampaignWorkbookImportDialog({
             </select>
             </>)}
             <p className="rqk-workbook-hint">Existing campaigns are never replaced. Matching record names will be skipped, and existing calendar settings are kept.</p>
+            <UploadRightsConfirmation checked={rightsConfirmed} onChange={setRightsConfirmed} disabled={working} />
             <label htmlFor="rqk-workbook-file">Completed .docx workbook</label>
             <input
               id="rqk-workbook-file"
               ref={fileInput}
               type="file"
               accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-              disabled={working}
+              disabled={working || !rightsConfirmed}
               onChange={(event) => selectFile(event.target.files?.[0])}
             />
             {file && <p className="rqk-workbook-file"><FileText size={15} /> {file.name}</p>}
@@ -219,7 +222,7 @@ export default function CampaignWorkbookImportDialog({
 
           <section>
             <h3>3. Review and import</h3>
-            <button type="button" className="rqk-workbook-secondary" disabled={!file || working} onClick={previewImport}>
+            <button type="button" className="rqk-workbook-secondary" disabled={!file || working || !rightsConfirmed} onClick={previewImport}>
               {busy === 'previewing' ? 'Reading workbook…' : 'Preview contents'}
             </button>
             {preview && (
@@ -233,7 +236,7 @@ export default function CampaignWorkbookImportDialog({
                   <p key={i} className="rqk-workbook-warning">{warning}</p>
                 ))}
                 <p className="rqk-workbook-hint">This preview validates your workbook, but the importer will check existing names again during saving.</p>
-                <button type="button" className="rqk-workbook-primary" disabled={working} onClick={confirmImport}>
+                <button type="button" className="rqk-workbook-primary" disabled={working || !rightsConfirmed} onClick={confirmImport}>
                   <UploadCloud size={16} /> {busy === 'importing' ? 'Importing…' : 'Confirm import'}
                 </button>
               </div>
