@@ -1,0 +1,51 @@
+# Render blueprint for the Rookie Quest Keeper API in Europe.
+#
+# The live API (rookie-quest-keeper-api) was created by hand on the free plan
+# in Oregon. Render cannot move a service between regions, so this describes
+# a NEW service next to the database (MongoDB Atlas, Western Europe) and the
+# UK players. Creating it does not touch the existing service.
+#
+# How to use it, and how to switch the site over safely:
+# docs/RENDER_FRANKFURT_MIGRATION.md
+#
+# No secret is stored here. Every `sync: false` value is typed into Render's
+# dashboard when the blueprint is created (copy each from the old service).
+services:
+  - type: web
+    name: rookie-quest-keeper-api-eu
+    runtime: python
+    region: frankfurt
+    plan: starter            # always on: no sleeping, no cold start
+    branch: main
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      # Required: the API refuses to start without these.
+      - key: MONGO_URL
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: JWT_SECRET_KEY   # must be the SAME value as the old service, or everyone is signed out
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: APP_URL
+        sync: false
+      # Optional: copy across any of these the old service has set.
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: SENDER_EMAIL
+        sync: false
+      - key: ADMIN_USERNAMES
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
