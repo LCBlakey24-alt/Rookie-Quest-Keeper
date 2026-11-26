@@ -13,10 +13,15 @@ import {
 import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import PrivacyRightsPanel from '@/components/privacy/PrivacyRightsPanel';
 import DiceRollerStylePicker from '@/components/dice3d/DiceRollerStylePicker';
+import DiceRollFlicker from '@/components/DiceRollFlicker';
 
 function AccountSettings({ username, onLogout, onUsernameChange }) {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
+  // A practice roll to see the chosen dice animation. Settings is not a
+  // character page, so it is never sent to a campaign's roll log.
+  const [testRoll, setTestRoll] = useState(null);
+  const rollTestDie = () => setTestRoll({ id: `settings-test-${Date.now()}`, value: 1 + Math.floor(Math.random() * 20) });
   const [loading, setLoading] = useState(true);
   const [savingAction, setSavingAction] = useState('');
 
@@ -201,7 +206,19 @@ function AccountSettings({ username, onLogout, onUsernameChange }) {
         <section className="account-settings-panel" style={panelStyle} data-testid="dice-roller-settings">
           <SectionHeader icon={Dices} title="Dice roller" />
           <p style={{ ...helpTextStyle, margin: '0 0 16px' }}>The roller works the same either way. This only changes what plays in the dice window after you roll. Saved on this device.</p>
-          <DiceRollerStylePicker />
+          <DiceRollerStylePicker onTestRoll={rollTestDie} />
+          {testRoll && (
+            <DiceRollFlicker
+              show
+              rollId={testRoll.id}
+              rolls={[{ sides: 20, result: testRoll.value }]}
+              total={testRoll.value}
+              label="Test roll"
+              isCrit={testRoll.value === 20}
+              isFumble={testRoll.value === 1}
+              onComplete={() => setTestRoll(null)}
+            />
+          )}
         </section>
 
         <section className="account-settings-panel" style={panelStyle} aria-busy={passwordSaving || passwordSetupSaving ? 'true' : 'false'}>

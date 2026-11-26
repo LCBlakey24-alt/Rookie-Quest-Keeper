@@ -588,8 +588,11 @@ export const TOWER_CAMERA_MS = 950;
 
 const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2);
 
-export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = true, rig = 'tray', towerSkin = null }) {
+export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = true, rig = 'tray', towerSkin = null, introMs = TOWER_INTRO_MS }) {
   const tower = isTowerRig(rig);
+  // The opening shot's length is the viewer's choice (Settings); never zero,
+  // so the camera always eases in rather than cutting.
+  const introLength = Math.max(200, Number(introMs) || TOWER_INTRO_MS);
   const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setClearColor(0x000000, 0);
   renderer.shadowMap.enabled = true;
@@ -746,7 +749,7 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
       const until = (typeof performance !== 'undefined' ? performance.now() : Date.now()) + PLAN_BUDGET_MS;
       let step = planner.next();
       while (!step.done && (typeof performance !== 'undefined' ? performance.now() : Date.now()) < until) step = planner.next();
-      const shot = towerIntroShot(wide, Math.min(1, (now - introStartedAt) / TOWER_INTRO_MS));
+      const shot = towerIntroShot(wide, Math.min(1, (now - introStartedAt) / introLength));
       camera.position.set(...shot.position);
       camera.lookAt(...shot.target);
       towerModel?.update?.(frameSeconds, { dice: [], dropping: false });
@@ -888,7 +891,7 @@ export function createDiceTray({ canvas, palette, frameScale = 1, floorLogo = tr
       const frameSeconds = lastTime === null ? 1 / 60 : Math.min(0.1, Math.max(0, (now - lastTime) / 1000));
       if (!introDone) {
         if (introStart === null) introStart = now;
-        const t = Math.min(1, (now - introStart) / TOWER_INTRO_MS);
+        const t = Math.min(1, (now - introStart) / introLength);
         shot = towerIntroShot(opening, t);
         camera.position.set(...shot.position);
         camera.lookAt(...shot.target);
