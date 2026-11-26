@@ -391,3 +391,15 @@
     color: var(--rqk-midnight-magenta) !important;
   }
 }
+
+/* Tablet: four action buttons beside the title left it about 90px, so
+   "My Campaigns" broke mid-word. Stack the title over the actions, as the
+   phone layout does. */
+html body #root .rqk-app-shell[data-rq-device='tablet'] .campaigns-library-page--simple .campaigns-library-hero {
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-items: start !important;
+  gap: 12px !important;
+}
+html body #root .rqk-app-shell[data-rq-device='tablet'] .campaigns-library-actions {
+  justify-content: flex-start !important;
+}

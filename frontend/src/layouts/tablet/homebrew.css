@@ -13,3 +13,10 @@
 #root .rqk-app-shell[data-rq-device='tablet'] [data-testid='homebrew-workshop'] [data-testid^='hb-type-'] {
   min-height: 92px !important;
 }
+
+/* The rule above is for the builder (source panel beside the draft). The type
+   picker is also an inline grid, so it was caught too and became ten
+   full-width rows. Give it back its tiles. */
+#root .rqk-app-shell[data-rq-device='tablet'] [data-testid='homebrew-workshop'] > section > section.hb-types {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)) !important;
+}
