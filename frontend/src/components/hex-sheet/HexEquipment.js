@@ -10,12 +10,14 @@ import {
   equipInventoryState,
   inventoryItemIdentity,
   normaliseCurrencyState,
+  removeInventoryItemState,
   syncInventoryWithEquipment,
   updateInventoryItemState,
 } from '@/data/characterInventoryState';
 import { rollDiceNotation } from '@/data/diceRoller';
 import usePlayerRulesOptions from '@/hooks/usePlayerRulesOptions';
 import { activeItemDefences, homebrewItemSummary, inventoryItemFromHomebrew } from '@/data/homebrewItemModel';
+import { customInventoryItem, hasSheetItem, inventoryItemFromCatalog, searchSheetItems } from '@/data/sheetItemCatalog';
 import GlowPolygon, { GlowFilter, useSvgId } from './GlowPolygon';
 import {
   ATTUNEMENT_LIMIT,
@@ -67,6 +69,8 @@ export default function HexEquipment({ character, proficiencyBonus, onRoll, onPr
   const [busy, setBusy] = useState(false);
   const [addingHomebrew, setAddingHomebrew] = useState(false);
   const [homebrewSearch, setHomebrewSearch] = useState('');
+  const [addingItem, setAddingItem] = useState(false);
+  const [itemSearch, setItemSearch] = useState('');
   // Homebrew items: the player's own, plus the GM's shared with this campaign.
   // Loaded only when the picker opens.
   const homebrew = usePlayerRulesOptions({ campaignId: character?.campaign_id || undefined, enabled: addingHomebrew });
@@ -178,6 +182,25 @@ export default function HexEquipment({ character, proficiencyBonus, onRoll, onPr
     const ok = await save({ inventory: [...inventory, added], equipped }, `${nameOf(added)} added to your equipment`);
     if (ok) { setAddingHomebrew(false); setHomebrewSearch(''); }
   };
+  // Ordinary items picked up in play: an SRD weapon, armour or piece of
+  // gear from the catalogue, or anything else by name.
+  const addCarriedItem = async (item) => {
+    if (!item) return;
+    const ok = await save({ inventory: [...inventory, item], equipped }, `${nameOf(item)} added to your equipment`);
+    if (ok) { setAddingItem(false); setItemSearch(''); }
+  };
+  // Only what the player added here can be removed here; starting and
+  // GM-granted items stay under the classic inventory's rules.
+  const addedHere = (item) => Boolean(item?.id) && ['srd_5_1', 'user_original'].includes(item?.source);
+  const removeCarriedItem = async (item) => {
+    if (typeof window !== 'undefined' && !window.confirm(`Remove ${nameOf(item)} from your equipment?`)) return;
+    const state = removeInventoryItemState({ inventory, equipped, item });
+    if (!state.removed) return;
+    await save({ inventory: state.inventory, equipped: state.equipped }, `${nameOf(item)} removed`);
+  };
+  const catalogMatches = addingItem ? searchSheetItems(itemSearch, 24) : [];
+  const customName = itemSearch.replace(/\s+/g, ' ').trim();
+
   const homebrewItems = (Array.isArray(homebrew.options?.items) ? homebrew.options.items : [])
     .filter((doc) => !homebrewSearch.trim() || String(doc.name || '').toLowerCase().includes(homebrewSearch.trim().toLowerCase()));
   const defences = activeItemDefences(character || {});
@@ -332,10 +355,39 @@ export default function HexEquipment({ character, proficiencyBonus, onRoll, onPr
         <header>
           <h3>Equipment</h3>
           <span>{backpack.length} item{backpack.length === 1 ? '' : 's'} · attuned {attunedCount}/{ATTUNEMENT_LIMIT}</span>
-          <button type="button" onClick={() => setAddingHomebrew((open) => !open)} aria-expanded={addingHomebrew} disabled={busy} data-testid="hex-add-homebrew">
+          <button type="button" onClick={() => { setAddingItem((open) => !open); setAddingHomebrew(false); }} aria-expanded={addingItem} disabled={busy} data-testid="hex-add-item">
+            {addingItem ? 'Close' : 'Add item'}
+          </button>
+          <button type="button" onClick={() => { setAddingHomebrew((open) => !open); setAddingItem(false); }} aria-expanded={addingHomebrew} disabled={busy} data-testid="hex-add-homebrew">
             {addingHomebrew ? 'Close' : 'Add homebrew item'}
           </button>
         </header>
+        {addingItem && (
+          <div className="hex-equip__homebrew" data-testid="hex-item-picker">
+            <input type="search" value={itemSearch} onChange={(event) => setItemSearch(event.target.value)} placeholder="Search weapons, armour and gear" aria-label="Search items to add" autoFocus />
+            <ul>
+              {catalogMatches.map((entry) => (
+                <li key={`${entry.kind}-${entry.name}`}>
+                  <div>
+                    <strong>{entry.name}</strong>
+                    <span>{[entry.kind, entry.summary, entry.weight ? `${entry.weight} lb` : ''].filter(Boolean).join(' · ')}</span>
+                  </div>
+                  <button type="button" onClick={() => addCarriedItem(inventoryItemFromCatalog(entry))} disabled={busy} data-testid={`hex-item-add-${entry.name}`}>Add</button>
+                </li>
+              ))}
+              {customName && !hasSheetItem(customName) && (
+                <li>
+                  <div>
+                    <strong>{customName}</strong>
+                    <span>Your own item, added by name</span>
+                  </div>
+                  <button type="button" onClick={() => addCarriedItem(customInventoryItem(customName))} disabled={busy} data-testid="hex-item-add-custom">Add</button>
+                </li>
+              )}
+            </ul>
+            {!customName && <p>Type a name to add something that is not listed.</p>}
+          </div>
+        )}
         {addingHomebrew && (
           <div className="hex-equip__homebrew" data-testid="hex-homebrew-picker">
             <input type="search" value={homebrewSearch} onChange={(event) => setHomebrewSearch(event.target.value)} placeholder="Search your homebrew items" aria-label="Search homebrew items" />
@@ -374,6 +426,7 @@ export default function HexEquipment({ character, proficiencyBonus, onRoll, onPr
                     <button type="button" onClick={() => updateItem(packed, { worn: !packed.worn }, packed.worn ? `${nameOf(packed)} taken off` : `Wearing ${nameOf(packed)}`)} disabled={busy} aria-pressed={Boolean(packed.worn)}>{packed.worn ? 'Take off' : 'Wear'}</button>
                   )}
                   {free && !oldSlot && <button type="button" onClick={() => equip(packed, free)} disabled={busy} data-testid={`hex-pack-equip-${nameOf(packed)}`}>Equip · {slotLabel(free)}</button>}
+                  {addedHere(packed) && <button type="button" onClick={() => removeCarriedItem(packed)} disabled={busy} aria-label={`Remove ${nameOf(packed)}`} data-testid={`hex-pack-remove-${nameOf(packed)}`}>Remove</button>}
                 </div>
               </li>
             );
