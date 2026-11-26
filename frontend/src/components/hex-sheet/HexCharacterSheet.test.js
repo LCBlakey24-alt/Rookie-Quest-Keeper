@@ -662,3 +662,21 @@ describe('Combat keeps the concentration warning', () => {
     expect(apiClient.patch).not.toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ concentrating_on: 'Hold Person' }));
   });
 });
+
+describe('notes', () => {
+  test('the Notes button opens the shared notes editor with the saved notes, and Close returns to the sheet', async () => {
+    await openSheet({ ...PUNCH, notes: 'The innkeeper is called Mara.' });
+    expect(screen.queryByTestId('hex-notes-panel')).toBeNull();
+    fireEvent.click(screen.getByTestId('hex-notes-button'));
+    const panel = screen.getByTestId('hex-notes-panel');
+    expect(within(panel).getByPlaceholderText('Write live character notes here...')).toHaveValue('The innkeeper is called Mara.');
+    fireEvent.click(screen.getByTestId('hex-notes-close'));
+    expect(screen.queryByTestId('hex-notes-panel')).toBeNull();
+    expect(screen.getByTestId('hex-wheel')).toBeInTheDocument();
+  });
+
+  test('the button shows when there are notes to read', async () => {
+    await openSheet({ ...PUNCH, notes: 'Owes us 5 gold.' });
+    expect(screen.getByTestId('hex-notes-button').className).toContain('has-notes');
+  });
+});

@@ -2,7 +2,7 @@ import RouteLoadingScreen from '@/components/RouteLoadingScreen';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { requestDiceOpen } from '@/lib/diceOpenRequest';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, ChevronLeft, Settings, TrendingUp } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, Settings, TrendingUp, NotebookPen } from 'lucide-react';
 import { toast } from 'sonner';
 
 import apiClient from '@/lib/apiClient';
@@ -38,6 +38,8 @@ import { spellDiceEntry } from '@/components/clean-sheet/SpellRollRow';
 import { SLOT } from './hexGeometry';
 import { HEX_THEMES, getHexTheme, loadHexThemeId, saveHexThemeId } from './hexThemes';
 import { abilityRows, formatModifier, identityLines, portraitUrlFor, proficiencyBonusFor, vitalsFor } from './hexSheetModel';
+import CleanNotesTab from '@/components/clean-sheet/CleanNotesTab';
+import '@/styles/cleanNotesTab.css';
 import './hexSheet.css';
 
 /** Main wheel, laid out as in the hand-drawn reference. */
@@ -114,6 +116,7 @@ export default function HexCharacterSheet() {
   const [showLevelReveal, setShowLevelReveal] = useState(false);
   const location = useLocation();
   const [showSettings, setShowSettings] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
   const [showPortrait, setShowPortrait] = useState(false);
   const [themeId, setThemeId] = useState(loadHexThemeId);
   const themeVars = getHexTheme(themeId).vars;
@@ -746,6 +749,16 @@ export default function HexCharacterSheet() {
           <span className="hex-glass" aria-hidden="true" />
           <TrendingUp size={18} aria-hidden="true" /> {levelUpReady ? `Level up ready · ${character.level_up_grant.to_level}` : 'Level Up'}
         </button>
+        <button
+          type="button"
+          className={`hex-sheet__footer-button hex-sheet__footer-button--notes${String(character.notes || '').trim() ? ' has-notes' : ''}`}
+          onClick={() => setShowNotes(true)}
+          aria-haspopup="dialog"
+          data-testid="hex-notes-button"
+        >
+          <span className="hex-glass" aria-hidden="true" />
+          <NotebookPen size={18} aria-hidden="true" /> Notes
+        </button>
         <div className="hex-sheet__settings" ref={settingsRef}>
           <button type="button" className="hex-sheet__footer-button hex-sheet__footer-button--icon" onClick={() => setShowSettings((open) => !open)} aria-expanded={showSettings} aria-label="Settings and edit character" data-testid="hex-settings">
             <span className="hex-glass" aria-hidden="true" />
@@ -781,6 +794,25 @@ export default function HexCharacterSheet() {
         <div className="hex-sheet__overlay" role="dialog" aria-modal="true" aria-label={`${identity.name} portrait`} onClick={() => setShowPortrait(false)} onKeyDown={(event) => { if (event.key === 'Escape') setShowPortrait(false); }}>
           <HexPortrait url={portraitUrlFor(character)} name={identity.name} size="large" />
           <button type="button" className="hex-sheet__text-button" autoFocus onClick={() => setShowPortrait(false)}><span className="hex-glass" aria-hidden="true" />Close</button>
+        </div>
+      )}
+
+      {showNotes && (
+        <div
+          className="hex-sheet__overlay hex-notes"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${identity.name} notes`}
+          onClick={() => setShowNotes(false)}
+          onKeyDown={(event) => { if (event.key === 'Escape') setShowNotes(false); }}
+          data-testid="hex-notes-panel"
+        >
+          {/* The classic sheet's own notes editor, so both sheets share one set
+              of notes, one draft and one autosave. Clicks inside stay inside. */}
+          <div className="hex-notes__panel" onClick={(event) => event.stopPropagation()}>
+            <CleanNotesTab character={character} onSaveCharacter={patchThisSheet} />
+            <button type="button" className="hex-sheet__text-button" onClick={() => setShowNotes(false)} data-testid="hex-notes-close"><span className="hex-glass" aria-hidden="true" />Close</button>
+          </div>
         </div>
       )}
 
