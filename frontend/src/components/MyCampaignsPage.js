@@ -43,8 +43,8 @@ function campaignTypeLabel(campaign) {
   return campaignTypes[campaign?.campaign_type] || campaignTypes[campaign?.world_genre] || 'Campaign';
 }
 
-function campaignDescription(campaign) {
-  return campaign?.description || campaign?.world_name || campaign?.world_setting_notes || 'Campaign workspace ready for prep.';
+function campaignDescription(campaign, fallback = 'Campaign workspace ready for prep.') {
+  return campaign?.description || campaign?.world_name || campaign?.world_setting_notes || fallback;
 }
 
 function formatDate(value) {
@@ -68,6 +68,14 @@ async function fetchCampaignLibrary() {
     if (status !== 404 && status !== 405) throw error;
     return apiClient.get('/campaigns');
   }
+}
+
+/** "3 campaigns · 1 run by you, 2 joined": every campaign the user is part of. */
+export function campaignCountLabel(owned = 0, joined = 0) {
+  const total = owned + joined;
+  const base = `${total} campaign${total === 1 ? '' : 's'}`;
+  if (!owned || !joined) return joined ? `${base} joined as a player` : `${total} saved campaign${total === 1 ? '' : 's'}`;
+  return `${base} · ${owned} run by you, ${joined} joined`;
 }
 
 export default function MyCampaignsPage() {
@@ -286,13 +294,39 @@ export default function MyCampaignsPage() {
     );
   }
 
+  // A player who runs no campaigns sees the campaign they joined first; the
+  // prompt to run one as GM follows it instead of sitting on top of it.
+  const joinedFirst = sortedCampaigns.length === 0 && playerOnlyCampaigns.length > 0;
+  const joinedSection = playerOnlyCampaigns.length > 0 ? (
+<section className="campaigns-joined-section" aria-labelledby="campaigns-joined-title">
+          <h2 id="campaigns-joined-title"><BookOpen size={20} aria-hidden="true" /> Joined as a Player</h2>
+          <div className="library-page-grid campaigns-card-grid">
+            {playerOnlyCampaigns.map((campaign) => {
+              const id = recordId(campaign);
+              if (!id) return null;
+              return (
+                <article className="library-page-card campaign-library-card campaign-library-card--simple" key={id}>
+                  <div className="campaign-card-main">
+                    <h3>{campaignTitle(campaign)}</h3>
+                    <p className="campaign-card-description">{campaignDescription(campaign, 'Your party, quests, notes and handouts.')}</p>
+                  </div>
+                  <button type="button" className="campaign-card-open" onClick={() => navigate(`/player/campaign/${id}`)}>
+                    Open Player Campaign <ChevronRight size={16} aria-hidden="true" />
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+  ) : null;
+
   return (
     <main className="library-page campaigns-library-page campaigns-library-page--simple">
       <section className="library-page-hero campaigns-library-hero">
         <div>
           <p className="library-page-eyebrow">Campaigns</p>
           <h1>My Campaigns</h1>
-          <p>{sortedCampaigns.length} saved campaign{sortedCampaigns.length === 1 ? '' : 's'}</p>
+          <p data-testid="campaigns-count">{campaignCountLabel(sortedCampaigns.length, playerOnlyCampaigns.length)}</p>
         </div>
 
         <div className="campaigns-library-actions" aria-label="Campaign actions">
@@ -372,6 +406,8 @@ export default function MyCampaignsPage() {
         </section>
       )}
 
+      {joinedFirst && joinedSection}
+
       {loadError && sortedCampaigns.length === 0 ? (
         <section className="library-page-empty" role="alert" aria-live="polite">
           <h2>Couldn’t load campaigns</h2>
@@ -388,7 +424,7 @@ export default function MyCampaignsPage() {
           {playerOnlyCampaigns.length > 0 ? (
             <>
               <h2>No campaigns you're managing</h2>
-              <p>Your joined campaigns are listed below. You can also create a campaign to run as GM.</p>
+              <p>Want to run a game of your own? Create a campaign and invite your players.</p>
             </>
           ) : !joinedCampaignsLoaded ? (
             <>
@@ -445,28 +481,7 @@ export default function MyCampaignsPage() {
         </section>
       )}
 
-      {playerOnlyCampaigns.length > 0 && (
-        <section className="campaigns-joined-section" aria-labelledby="campaigns-joined-title">
-          <h2 id="campaigns-joined-title"><BookOpen size={20} aria-hidden="true" /> Joined as a Player</h2>
-          <div className="library-page-grid campaigns-card-grid">
-            {playerOnlyCampaigns.map((campaign) => {
-              const id = recordId(campaign);
-              if (!id) return null;
-              return (
-                <article className="library-page-card campaign-library-card campaign-library-card--simple" key={id}>
-                  <div className="campaign-card-main">
-                    <h3>{campaignTitle(campaign)}</h3>
-                    <p className="campaign-card-description">{campaignDescription(campaign)}</p>
-                  </div>
-                  <button type="button" className="campaign-card-open" onClick={() => navigate(`/player/campaign/${id}`)}>
-                    Open Player Campaign <ChevronRight size={16} aria-hidden="true" />
-                  </button>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      )}
+      {!joinedFirst && joinedSection}
       <JoinCampaignModal
         characterId={recordId(selectedCharacter)} characterName={selectedCharacter?.name || 'Selected character'}
         characters={joinCharacters.map((character) => ({ id: recordId(character), name: character.name }))}

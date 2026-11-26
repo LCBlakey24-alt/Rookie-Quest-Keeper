@@ -100,6 +100,11 @@ describe('MyCampaignsPage simplified library', () => {
     expect(screen.getByRole('heading', { name: /No campaigns you're managing/ })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'No campaigns yet' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Join by Code' })).toBeEnabled();
+    // The campaign they play in comes before the prompt to run one, and is counted.
+    const joined = screen.getByRole('heading', { name: 'Joined as a Player' });
+    const prompt = screen.getByRole('heading', { name: /No campaigns you're managing/ });
+    expect(joined.compareDocumentPosition(prompt) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByTestId('campaigns-count')).toHaveTextContent('1 campaign joined as a player');
   });
 
   test('does not claim players have no characters or joined campaigns during failed requests', async () => {
@@ -167,5 +172,15 @@ describe('MyCampaignsPage simplified library', () => {
     expect(screen.queryByText('Latest update')).not.toBeInTheDocument();
     expect(screen.queryByText('Saved tables')).not.toBeInTheDocument();
     expect(screen.queryByText(/Keep prep tidy/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('campaignCountLabel', () => {
+  const { campaignCountLabel } = jest.requireActual('./MyCampaignsPage');
+  test('counts every campaign the user is part of', () => {
+    expect(campaignCountLabel(0, 0)).toBe('0 saved campaigns');
+    expect(campaignCountLabel(1, 0)).toBe('1 saved campaign');
+    expect(campaignCountLabel(0, 2)).toBe('2 campaigns joined as a player');
+    expect(campaignCountLabel(1, 2)).toBe('3 campaigns · 1 run by you, 2 joined');
   });
 });
