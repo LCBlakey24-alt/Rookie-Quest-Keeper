@@ -165,3 +165,33 @@
 
   .rq-roller-style__skin-list { grid-template-columns: 1fr; }
 }
+
+/* Real pictures of each tower (dice3d/towerThumbnails.js). The cards grow
+   to show them; without pictures the compact swatch layout above applies. */
+.rq-roller-style.has-thumbs .rq-roller-style__skin {
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 6px 6px 8px;
+  text-align: center;
+}
+
+.rq-roller-style__thumb {
+  display: block;
+  width: 100%;
+  max-width: 96px;
+  aspect-ratio: 3 / 4;
+  object-fit: contain;
+}
+
+.rq-roller-style.has-thumbs .rq-roller-style__swatch--surprise {
+  width: 44px;
+  height: 44px;
+  margin: 22px 0;
+  border-radius: 10px;
+  font-size: 22px;
+}
+
+@media (max-width: 380px) {
+  .rq-roller-style.has-thumbs .rq-roller-style__skin-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
