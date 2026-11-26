@@ -806,6 +806,47 @@ html body #root .hex-spell__cast text { fill: var(--hex-text); font: 800 40px/1 
 .hex-equip__defences strong { display: inline-block; min-width: 92px; color: var(--hex-hi); }
 .hex-equip__defences small { color: var(--hex-muted); margin-left: 4px; }
 
+/* Notes ------------------------------------------------------------------ */
+/* The classic sheet's notes editor, shown in a panel over the hexagon sheet. */
+.hex-sheet__footer { gap: 8px; }
+.hex-sheet__footer-button--notes { margin-left: auto; padding: 0 14px; }
+.hex-sheet__footer-button--notes.has-notes svg { color: var(--hex-orange); }
+/* From 720px the site's floating Feedback button sits in the bottom-right
+   corner. Until the sheet column is clear of it (about 1080px), keep the
+   footer's own buttons out from underneath. */
+@media (min-width: 720px) and (max-width: 1079px) { .hex-sheet__footer { padding-right: 132px; } }
+.hex-notes { justify-content: flex-end; padding: 12px; }
+.hex-notes__panel {
+  width: min(100%, 640px); max-height: 88vh; overflow-y: auto;
+  display: grid; gap: 12px; justify-items: end;
+  padding: 16px; border-radius: 18px;
+  background: var(--hex-bg, #120c26); border: 1px solid var(--hex-resting-edge); box-shadow: var(--hex-glow);
+  color: var(--hex-text);
+}
+.hex-notes__panel .clean-sheet-notes-tab { width: 100%; }
+.hex-notes__panel .clean-sheet-panel { display: grid; gap: 10px; padding: 0; border: 0; background: transparent; box-shadow: none; }
+.hex-notes__panel .clean-sheet-panel-heading { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.hex-notes__panel .clean-sheet-panel-heading h2 { margin: 0; font-size: 1.15rem; }
+.hex-notes__panel .clean-sheet-panel-heading p { margin: 4px 0 0; font-size: 0.82rem; color: var(--hex-muted); }
+.hex-notes__panel .clean-sheet-panel-heading > span { font-size: 0.76rem; color: var(--hex-muted); white-space: nowrap; }
+.hex-notes__panel .clean-sheet-notes-textarea { width: 100%; min-height: 42vh; box-sizing: border-box; }
+.hex-notes__panel .clean-sheet-notes-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 0.82rem; color: var(--hex-muted); }
+.hex-notes__panel .clean-sheet-notes-actions button {
+  min-height: 44px; padding: 0 16px; border-radius: 999px; cursor: pointer; font: inherit; font-weight: 700;
+  border: 1px solid var(--hex-resting-edge); background: transparent; color: var(--hex-text);
+}
+.hex-notes__panel .clean-sheet-notes-actions button:disabled { opacity: 0.6; cursor: default; }
+@media (min-width: 720px) { .hex-notes { justify-content: center; } }
+/* The editor takes the hexagon sheet's colours here, not the classic palette. */
+.hex-notes__panel .clean-sheet-notes-textarea {
+  background: rgba(0, 0, 0, 0.28); color: var(--hex-text);
+  border: 1px solid var(--hex-resting-edge);
+}
+.hex-notes__panel .clean-sheet-notes-textarea:focus { border-color: var(--hex-orange); box-shadow: 0 0 0 2px var(--hex-orange-soft); }
+.hex-notes__panel .clean-sheet-notes-textarea::placeholder { color: var(--hex-muted); }
+.hex-notes__panel .clean-sheet-notes-actions { margin-top: 0; }
+.hex-notes__panel .clean-sheet-notes-actions button { flex: 0 0 auto; width: auto; }
+
 /* Conditions ------------------------------------------------------------- */
 /* The button lives at the right-hand end of the trail row, so it adds no
    height to the sheet. It lights up when the character has a condition. */
