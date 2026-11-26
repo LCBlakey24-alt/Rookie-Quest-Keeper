@@ -275,10 +275,12 @@ function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players 
 
   return (
     <div className="rqk-live-grid__run" style={runScreenStyle}>
-      <header style={runHeaderStyle}>
-        <p style={eyebrowStyle}>Live Play</p>
-        <h2 style={runTitleStyle}>Your session, under control.</h2>
-      </header>
+      {/* The bar above already says "Live Play Mode", so this heading is for
+          screen readers only. The party comes first: who is at the table and
+          how hurt they are is what a GM looks for. */}
+      <h2 style={srOnlyStyle}>Live Play</h2>
+
+      <LivePartyRow players={players} onOpenParty={() => onSelect('party')} />
 
       <section className="rqk-live-grid__session-brief" aria-label="Session at a glance">
         <div className="rqk-live-grid__brief-copy">
@@ -303,8 +305,6 @@ function RunScreen({ campaignId, recentTools, onSelect, scenarios = [], players 
       </section>
 
       <LiveActiveQuests campaignId={campaignId} onOpenQuests={() => onSelect('story')} />
-
-      <LivePartyRow players={players} onOpenParty={() => onSelect('party')} />
 
       {continueItems.length > 0 && (
         <section className="rqk-live-grid__continue" style={continueStyle}>
@@ -375,9 +375,7 @@ const toolTitleStyle = { display: 'flex', alignItems: 'center', gap: 7, color: r
 const livePillStyle = { padding: '4px 7px', background: rq.bg, color: rq.muted, border: `1px solid ${rq.line}`, fontSize: 9, fontWeight: 950, letterSpacing: '0.08em', textTransform: 'uppercase' };
 const toolBodyStyle = { padding: 8, minWidth: 0 };
 const runScreenStyle = { display: 'grid', gap: 10 };
-const runHeaderStyle = { padding: '10px 4px 3px' };
-const eyebrowStyle = { margin: 0, color: rq.muted, fontSize: 10, fontWeight: 950, letterSpacing: '0.1em', textTransform: 'uppercase' };
-const runTitleStyle = { margin: '2px 0 0', color: rq.text, fontSize: 'clamp(24px, 4vw, 38px)', lineHeight: 1, fontWeight: 950 };
+const srOnlyStyle = { position: 'absolute', width: 1, height: 1, margin: -1, padding: 0, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap', border: 0 };
 const continueStyle = { display: 'grid', gap: 5, padding: 8, background: rq.bg, border: `1px solid ${rq.line}`, borderLeft: `1px solid ${rq.pink}` };
 const continueRowStyle = { display: 'flex', gap: 5, flexWrap: 'wrap' };
 const continueButtonStyle = { minHeight: 34, border: `1px solid ${rq.pink}`, background: rq.card, color: rq.text, padding: '0 9px', display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontFamily: fontStack, fontSize: 11, fontWeight: 950 };
