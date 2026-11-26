@@ -368,6 +368,9 @@ body:has(.hex-sheet) .rq-floating-dice:not(.has-group-check-request) .rq-floatin
 .hex-sheet.hex-sheet--with-list { height: auto; min-height: 100dvh; }
 .hex-sheet--with-list .hex-sheet__wheel-area { flex: 0 0 auto; justify-content: flex-start; }
 .hex-sheet--with-list .hex-wheel { width: min(100%, 400px); }
+/* When a list page is shorter than the screen, keep the footer at the bottom
+   (as on the main page) instead of floating under the last card. */
+.hex-sheet--with-list .hex-sheet__footer { margin-top: auto; }
 
 .hex-combat-list { width: min(100%, 760px); }
 .hex-combat-list .clean-sheet-grid { display: grid; gap: 12px; }
@@ -886,3 +889,14 @@ html body #root .hex-spell__cast text { fill: var(--hex-text); font: 800 40px/1 
 .hex-conditions__panel li button.is-on { border-color: var(--hex-orange); box-shadow: inset 0 0 16px var(--hex-orange-soft); }
 .hex-conditions__panel li button.is-on strong::after { content: ' ●'; color: var(--hex-orange); }
 @media (min-width: 720px) { .hex-conditions { justify-content: center; } }
+
+/* Phone, inside a sheet page: the trail row also holds Back and the page
+   name, so the Conditions button shrinks to its icon while nothing is active.
+   Its accessible name still says "Conditions: none. Add a condition." With a
+   condition active it shows the names again, since that is worth the room. */
+@media (max-width: 479px) {
+  .hex-sheet__crumbs:not(.is-root) ~ .hex-sheet__conditions-button:not(.is-active) {
+    flex: 0 0 44px; width: 44px; padding: 0; justify-content: center;
+  }
+  .hex-sheet__crumbs:not(.is-root) ~ .hex-sheet__conditions-button:not(.is-active) > span:last-child { display: none; }
+}
