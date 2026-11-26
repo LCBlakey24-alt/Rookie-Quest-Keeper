@@ -186,6 +186,106 @@ function sideBands(group, material, f, heights, { thickness = 0.08, height = 0.2
   });
 }
 
+/** A lantern hung from a bracket on each front corner, with a lit pane. */
+function lanterns(group, f, metal, glow, y = f.top - 0.5) {
+  const chain = new CylinderGeometry(0.02, 0.02, 0.4, 6);
+  const cap = new ConeGeometry(0.18, 0.16, 6);
+  const pane = new CylinderGeometry(0.13, 0.11, 0.3, 6);
+  const foot = new CylinderGeometry(0.14, 0.05, 0.09, 6);
+  [-1, 1].forEach((side) => {
+    const x = side * (f.halfW + 0.02);
+    const z = f.front + 0.62;
+    group.add(solid(metal, box(0.07, 0.07, 0.7), [x, y, f.front + 0.33]));
+    group.add(solid(metal, chain, [x, y - 0.2, z]));
+    group.add(solid(metal, cap, [x, y - 0.46, z]));
+    group.add(solid(glow, pane, [x, y - 0.69, z]));
+    group.add(solid(metal, foot, [x, y - 0.88, z]));
+  });
+}
+
+/**
+ * An arched doorway over the mouth the dice leave by: an arch on two
+ * imposts with a keystone and a fanlight of three bars. It sits on the
+ * glass above the opening, so nothing is in the dice's way.
+ */
+function mouthArch(group, f, material, keystone = material) {
+  const r = TOWER.width / 2 + 0.04;
+  const z = f.front + 0.15;
+  const arch = solid(material, new TorusGeometry(r, 0.13, 8, 28, Math.PI), [0, TOWER.mouth, z]);
+  group.add(arch);
+  [-1, 1].forEach((side) => group.add(solid(material, box(0.42, 0.24, 0.3), [side * r, TOWER.mouth, z])));
+  group.add(solid(keystone, box(0.38, 0.56, 0.34), [0, TOWER.mouth + r + 0.02, z + 0.02]));
+  const bar = new CylinderGeometry(0.035, 0.035, r - 0.1, 6);
+  [-Math.PI / 4, 0, Math.PI / 4].forEach((angle) => {
+    const mesh = solid(material, bar, [Math.sin(angle) * (r / 2), TOWER.mouth + Math.cos(angle) * (r / 2), z - 0.04]);
+    mesh.rotation.z = -angle;
+    group.add(mesh);
+  });
+}
+
+/** Tall lit windows down each side of the tube, with a sill under each. */
+function sideWindows(group, f, glow, sill, heights, { tall = 1.2, wide = 0.26, offsets = [0] } = {}) {
+  const pane = new BoxGeometry(0.05, tall, wide);
+  const ledge = box(0.14, 0.08, wide + 0.2);
+  heights.forEach((y) => {
+    [-1, 1].forEach((side) => {
+      offsets.forEach((dz) => {
+        group.add(solid(glow, pane, [side * (f.halfW + 0.03), y, f.midZ + dz]));
+        group.add(solid(sill, ledge, [side * (f.halfW + 0.06), y - tall / 2 - 0.04, f.midZ + dz]));
+      });
+    });
+  });
+}
+
+/** A toothed gear mounted flat against one side of the tube. */
+function gear(group, material, [x, y, z], radius, teeth = 10) {
+  const side = Math.sign(x) || 1;
+  const wheel = new Group();
+  const rim = new Mesh(new TorusGeometry(radius, radius * 0.16, 8, 28), material);
+  wheel.add(rim);
+  const tooth = new BoxGeometry(radius * 0.26, radius * 0.3, radius * 0.24);
+  for (let i = 0; i < teeth; i += 1) {
+    const angle = (i / teeth) * Math.PI * 2;
+    const mesh = new Mesh(tooth, material);
+    mesh.position.set(Math.cos(angle) * radius * 1.16, Math.sin(angle) * radius * 1.16, 0);
+    mesh.rotation.z = angle + Math.PI / 2;
+    wheel.add(mesh);
+  }
+  const spoke = new BoxGeometry(radius * 2, radius * 0.14, radius * 0.12);
+  [0, Math.PI / 3, (Math.PI * 2) / 3].forEach((angle) => {
+    const mesh = new Mesh(spoke, material);
+    mesh.rotation.z = angle;
+    wheel.add(mesh);
+  });
+  const hub = new Mesh(new CylinderGeometry(radius * 0.26, radius * 0.26, radius * 0.4, 12), material);
+  hub.rotation.x = Math.PI / 2;
+  wheel.add(hub);
+  wheel.traverse((node) => { if (node.isMesh) { node.castShadow = true; node.receiveShadow = true; } });
+  wheel.position.set(x, y, z);
+  wheel.rotation.y = side * (Math.PI / 2);
+  group.add(wheel);
+}
+
+/** A pipe up one side of the tube, with a flange every few units and an elbow into the wall. */
+function pipe(group, material, x, z, y0, y1, radius = 0.12) {
+  const length = y1 - y0;
+  group.add(solid(material, new CylinderGeometry(radius, radius, length, 12), [x, y0 + length / 2, z]));
+  const flange = new CylinderGeometry(radius * 1.7, radius * 1.7, 0.1, 12);
+  for (let y = y0 + 1.2; y < y1; y += 2.6) group.add(solid(material, flange, [x, y, z]));
+  const elbow = solid(material, new TorusGeometry(radius * 2.2, radius, 8, 12, Math.PI / 2), [x - Math.sign(x) * radius * 2.2, y1, z]);
+  elbow.rotation.y = x > 0 ? 0 : Math.PI;
+  group.add(elbow);
+}
+
+/** A stoppered bottle of coloured glass. */
+function bottle(group, glassColour, stopper, [x, y, z], scale = 1) {
+  const profile = [[0, 0], [0.13, 0], [0.15, 0.05], [0.15, 0.22], [0.06, 0.32], [0.05, 0.42], [0.07, 0.44], [0, 0.44]];
+  const body = new LatheGeometry(profile.map(([px, py]) => new Vector2(px * scale, py * scale)), 14);
+  const glass = new MeshPhysicalMaterial({ color: glassColour, emissive: new Color(glassColour), emissiveIntensity: 0.35, roughness: 0.1, transparent: true, opacity: 0.85, clearcoat: 1 });
+  group.add(solid(glass, body, [x, y, z]));
+  group.add(solid(stopper, new CylinderGeometry(0.045 * scale, 0.055 * scale, 0.09 * scale, 8), [x, y + 0.48 * scale, z]));
+}
+
 /**
  * The shared machine: tube walls, glass front, baffles, ramp and the tray
  * rim, drawn from the collider list.
@@ -318,6 +418,9 @@ function decorateSpire(group, skin, { panel, plank, roof }) {
   group.add(solid(glow, new SphereGeometry(0.22, 16, 12), [0, capTop + 3.2, f.midZ]));
   const finial = new SphereGeometry(0.13, 12, 8);
   f.corners.forEach(([x, z]) => group.add(solid(glow, finial, [x, f.top + 0.55, z])));
+  mouthArch(group, f, plank, glow);
+  sideWindows(group, f, glowMaterial(skin.edge, 1.1), plank, [5.4, 9.0, 12.6], { tall: 1.5, wide: 0.22, offsets: [-0.9, 0.9] });
+  lanterns(group, f, plank, glow);
 }
 
 /* Gilded Reliquary: marble walls, turned gold columns, studded gold rails
@@ -341,7 +444,25 @@ function decorateReliquary(group, skin, { panel, plank }) {
   const urnY = capTop + f.halfW + 0.05;
   group.add(solid(plank, urn, [0, urnY, f.midZ]));
   const halo = new TorusGeometry(0.46, 0.06, 10, 32);
-  group.add(solid(glowMaterial(skin.edge, 0.9), halo, [0, urnY + 1.75, f.midZ]));
+  const haloGlow = glowMaterial(skin.edge, 0.9);
+  group.add(solid(haloGlow, halo, [0, urnY + 1.75, f.midZ]));
+  // A jewelled doorway, a candle on each corner and a censer either side.
+  const ruby = glowMaterial('#e0405f', 0.8);
+  mouthArch(group, f, plank, ruby);
+  const gem = new SphereGeometry(0.12, 12, 10);
+  ['#3f86e0', '#e0405f', '#3fcf8a'].forEach((colour, index) => {
+    const angle = ((index - 1) * Math.PI) / 3.4;
+    const r = TOWER.width / 2 + 0.04;
+    group.add(solid(index === 1 ? ruby : glowMaterial(colour, 0.8), gem, [Math.sin(angle) * r, TOWER.mouth + Math.cos(angle) * r, f.front + 0.3]));
+  });
+  const wax = new CylinderGeometry(0.075, 0.085, 0.55, 10);
+  const flame = new ConeGeometry(0.06, 0.2, 8);
+  const flameGlow = glowMaterial('#ffd27a', 2.2);
+  f.corners.forEach(([x, z]) => {
+    group.add(solid(panel, wax, [x, capTop + 0.28, z]));
+    group.add(solid(flameGlow, flame, [x, capTop + 0.66, z]));
+  });
+  lanterns(group, f, plank, flameGlow, f.top - 0.7);
 }
 
 /* Ember Forge: hammered iron bound with riveted straps, angle-iron corners,
@@ -378,6 +499,23 @@ function decorateForge(group, skin, { panel, plank, roof }) {
   // A smaller capped flue beside it.
   group.add(solid(roof, new CylinderGeometry(0.2, 0.24, 1.3, 12), [-1.2, capTop + 0.65, f.midZ + 0.6]));
   group.add(solid(roof, new ConeGeometry(0.34, 0.3, 12), [-1.2, capTop + 1.45, f.midZ + 0.6]));
+  // Machinery: a pair of meshing gears, pipework and a pressure gauge.
+  mouthArch(group, f, plank, vent);
+  gear(group, plank, [f.halfW + 0.2, 7.8, f.midZ + 1.15], 0.62, 12);
+  gear(group, roof, [f.halfW + 0.2, 8.72, f.midZ + 0.3], 0.38, 8);
+  gear(group, plank, [-(f.halfW + 0.2), 4.6, f.midZ - 1.0], 0.5, 10);
+  pipe(group, roof, -(f.halfW + 0.3), f.back + 0.5, 0.7, f.top - 1.2);
+  pipe(group, roof, f.halfW + 0.3, f.back + 0.5, 0.7, 11.0, 0.09);
+  const dial = new Group();
+  const bezel = new Mesh(new TorusGeometry(0.3, 0.06, 8, 24), plank);
+  const face = new Mesh(new CylinderGeometry(0.29, 0.29, 0.05, 24), new MeshStandardMaterial({ color: '#e9dcc0', roughness: 0.6 }));
+  face.rotation.x = Math.PI / 2;
+  const needle = new Mesh(new BoxGeometry(0.03, 0.26, 0.02), vent);
+  needle.position.set(0.06, 0.08, 0.04);
+  needle.rotation.z = -0.6;
+  dial.add(bezel, face, needle);
+  dial.position.set(-(f.halfW - 0.55), 13.3, f.front + 0.2);
+  group.add(dial);
 }
 
 /* Spiral Glass: a stone turret -- columns, a battlemented ring and a tiled
@@ -407,6 +545,31 @@ function decorateSpiral(group, skin, { panel, roof, glass, surfaces }) {
   group.add(solid(roof, cone, [0, capTop + 2.2, f.midZ]));
   group.add(solid(brass, new SphereGeometry(0.16, 12, 10), [0, capTop + 3.8, f.midZ]));
   group.add(solid(glowMaterial(skin.accent, 1.3), new SphereGeometry(0.1, 12, 8), [0, capTop + 4.05, f.midZ]));
+  // A lived-in turret: a stone doorway, lit arrow slits, ivy up one column,
+  // lanterns and a pennant flying from the roof.
+  mouthArch(group, f, panel, brass);
+  const candle = glowMaterial('#ffd98a', 1.5);
+  sideWindows(group, f, candle, panel, [3.0, 7.2, 12.2], { tall: 1.0, wide: 0.2 });
+  lanterns(group, f, brass, candle);
+  const leafDark = new MeshStandardMaterial({ color: '#2f6b33', roughness: 0.95 });
+  const leafLight = new MeshStandardMaterial({ color: '#4f9a48', roughness: 0.95 });
+  const leaf = new SphereGeometry(1, 7, 5);
+  const [ivyX, ivyZ] = f.corners[0];
+  for (let i = 0; i < 26; i += 1) {
+    const climb = i / 25;
+    const angle = i * 1.7;
+    const reach = 0.36 + (i % 3) * 0.05;
+    const mesh = solid(i % 3 === 0 ? leafLight : leafDark, leaf, [ivyX + Math.cos(angle) * reach, 0.5 + climb * 9.5, ivyZ + Math.sin(angle) * reach]);
+    const size = 0.13 + ((i * 7) % 5) * 0.022;
+    mesh.scale.set(size, size * 0.55, size);
+    mesh.rotation.set(angle, angle * 0.7, 0);
+    group.add(mesh);
+  }
+  group.add(solid(brass, new CylinderGeometry(0.025, 0.025, 1.0, 6), [0, capTop + 4.4, f.midZ]));
+  const pennant = solid(glowMaterial(skin.accent, 0.5), new ConeGeometry(0.2, 0.8, 3), [0.42, capTop + 4.68, f.midZ]);
+  pennant.rotation.z = -Math.PI / 2;
+  pennant.scale.z = 0.12;
+  group.add(pennant);
 }
 
 /* Funnel Chute: a walnut cabinet with lathe-turned posts and bronze
@@ -437,6 +600,31 @@ function decorateFunnel(group, skin, { panel, plank, roof, glass, surfaces }) {
   group.add(solid(plank, knob, [0, capTop + 1.05, f.midZ]));
   const ball = new SphereGeometry(0.2, 14, 10);
   f.corners.forEach(([x, z]) => group.add(solid(plank, ball, [x, f.top + 0.36, z])));
+  // An apothecary's cabinet: drawers with brass pulls, a shelf of bottles
+  // on each side, a brass plate and a lantern either side of the doorway.
+  mouthArch(group, f, panel, plank);
+  const drawer = box(0.08, 0.78, 1.7);
+  const pull = new SphereGeometry(0.075, 10, 8);
+  [2.1, 3.1, 4.1].forEach((y) => {
+    [-1, 1].forEach((side) => {
+      [-0.95, 0.95].forEach((dz) => {
+        group.add(solid(roof, drawer, [side * (f.halfW + 0.04), y, f.midZ + dz]));
+        group.add(solid(plank, pull, [side * (f.halfW + 0.12), y, f.midZ + dz]));
+      });
+    });
+  });
+  const potions = ['#6fd0ff', '#ff6fae', '#9be36b', '#ffc94a'];
+  [-1, 1].forEach((side) => {
+    const x = side * (f.halfW + 0.28);
+    group.add(solid(roof, box(0.5, 0.08, 3.2), [x, 9.2, f.midZ]));
+    [-1, 1].forEach((end) => group.add(solid(plank, box(0.4, 0.3, 0.06), [x, 9.02, f.midZ + end * 1.5])));
+    potions.forEach((colour, index) => {
+      const pick = potions[(index + (side > 0 ? 1 : 0)) % potions.length];
+      bottle(group, pick, plank, [x + side * 0.02, 9.24, f.midZ - 1.2 + index * 0.8], 0.95 + (index % 2) * 0.25);
+    });
+  });
+  group.add(solid(plank, box(1.5, 0.42, 0.06), [0, f.top - 0.95, f.front + 0.06]));
+  lanterns(group, f, plank, glowMaterial(skin.accent, 1.6), f.top - 1.4);
 }
 
 /* Peg Drop: an oak frame with turned posts, brass bars capped in warm
@@ -470,6 +658,27 @@ function decoratePegs(group, skin, { panel, plank, roof }) {
   group.add(solid(cap, new SphereGeometry(0.12, 12, 8), [0, capTop + 0.5, f.front + 0.34]));
   const finial = new LatheGeometry([[0, 0], [0.2, 0], [0.12, 0.14], [0.22, 0.36], [0.1, 0.62], [0, 0.82]].map(([x, y]) => new Vector2(x, y)), 16);
   f.corners.forEach(([x, z]) => group.add(solid(plank, finial, [x, f.top + 0.2, z])));
+  // A fairground board: coloured bulbs up the frame and along the pediment,
+  // and a brass bell hung in a little frame on top.
+  mouthArch(group, f, panel, plank);
+  const bulbs = ['#ffb347', '#ff5d8f', '#6fd3ff'].map((colour) => glowMaterial(colour, 1.7));
+  const bulb = new SphereGeometry(0.085, 10, 8);
+  let count = 0;
+  for (let y = 4.4; y < f.top - 0.6; y += 0.85) {
+    [-1, 1].forEach((side) => {
+      group.add(solid(bulbs[count % 3], bulb, [side * (f.halfW + 0.02), y, f.front + 0.34]));
+      count += 1;
+    });
+  }
+  for (let i = 0; i < 7; i += 1) {
+    group.add(solid(bulbs[i % 3], bulb, [-f.halfW * 0.7 + (i * f.halfW * 1.4) / 6, capTop + 1.06, f.front + 0.1]));
+  }
+  const bellY = capTop + 1.5;
+  [-0.5, 0.5].forEach((x) => group.add(solid(roof, new CylinderGeometry(0.06, 0.07, 1.5, 8), [x, capTop + 0.75, f.midZ])));
+  group.add(solid(roof, box(1.3, 0.12, 0.14), [0, bellY, f.midZ]));
+  const bell = new LatheGeometry([[0, 0.62], [0.08, 0.62], [0.12, 0.5], [0.2, 0.34], [0.26, 0.12], [0.36, 0.02], [0.36, 0], [0.3, 0]].map(([x, y]) => new Vector2(x, y)), 20);
+  group.add(solid(plank, bell, [0, bellY - 0.72, f.midZ]));
+  group.add(solid(plank, new SphereGeometry(0.07, 10, 8), [0, bellY - 0.74, f.midZ]));
 }
 
 /**
