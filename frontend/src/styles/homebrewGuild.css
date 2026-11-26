@@ -57,6 +57,10 @@ html body #root .rqk-app-shell.rqk-app-shell .hb-page .hb-type {
   background: var(--guild-bg) !important;
   border: 1px solid var(--guild-line) !important;
   box-shadow: var(--guild-control-glow) !important;
+  /* A shared button rule centres content; these tiles read left to right, so
+     every tile's icon, name and help start at the same edge. */
+  justify-content: stretch !important;
+  justify-items: start !important;
 }
 html body #root .rqk-app-shell.rqk-app-shell .hb-page .hb-type svg { color: var(--guild-hi) !important; }
 html body #root .rqk-app-shell.rqk-app-shell .hb-page .hb-type span { color: var(--guild-muted) !important; font-size: 12px; line-height: 1.4; }
